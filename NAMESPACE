@@ -1,0 +1,42 @@
+useDynLib(pec)
+export("pec",
+       "crps",
+       "ipcw",
+       "R2",
+       "predictSurvProb")
+
+S3method(pec,list)
+S3method(pec,cph)
+S3method(pec,coxph)
+S3method(pec,glm)
+S3method(pec,aalen)
+S3method(pec,prodlim)
+S3method(pec,survfit)
+
+S3method(ipcw,cox)
+S3method(ipcw,marginal)
+S3method(ipcw,none)
+S3method(ipcw,nonpar)
+S3method(ipcw,aalen)
+#S3method(ipcw,project)
+
+S3method(plot,pec)
+S3method(print,pec)
+S3method(summary,pec)
+
+
+S3method(predictSurvProb,aalen)
+S3method(predictSurvProb,cox.aalen)
+S3method(predictSurvProb,coxph)
+S3method(predictSurvProb,cph)
+S3method(predictSurvProb,default)
+S3method(predictSurvProb,glm)
+S3method(predictSurvProb,matrix)
+S3method(predictSurvProb,mfp)
+S3method(predictSurvProb,phnnet)
+S3method(predictSurvProb,prodlim)
+S3method(predictSurvProb,psm)
+S3method(predictSurvProb,rpart)
+S3method(predictSurvProb,survfit)
+S3method(predictSurvProb,survnnet)
+
