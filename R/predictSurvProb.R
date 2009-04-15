@@ -117,7 +117,6 @@ predictSurvProb.rpart <- function(object,newdata,times,train.data,...){
   rpart.form <- reformulate("rpartFactor",object$call$formula[[2]])
   #  fit.rpart <- cph(rpart.form,data=learndat,se.fit=FALSE,surv=TRUE,x=TRUE,y=TRUE)
   fit.rpart <- prodlim(rpart.form,data=learndat)
-  #  print(fit.rpart$type)
   p <- predictSurvProb(fit.rpart,newdata=newdata,times=times)
   #  print(p[100:113,1:10])
   p
@@ -151,6 +150,7 @@ predictSurvProb.cph <- function(object,newdata,times,...){
 predictSurvProb.prodlim <- function(object,newdata,times,...){
   require(prodlim)
   p <- predict(object=object,type="surv",newdata=newdata,times=times,mode="matrix",level.chaos=1)
+  if (NROW(p)==1 && class(p)=="list") p <- unlist(p)
   p[is.na(p)] <- 0
   if (is.null(dim(p)))
     {if (length(p)!=length(times))
@@ -278,12 +278,17 @@ predictSurvProb.phnnet <- function(object,newdata,times,train.data,...){
 
 # methods for uncensored regression
 # --------------------------------------------------------------------
+
+predictProb <- function(object,newdata,times,...){
+  UseMethod("predictProb",object)
+}
+
 predictSurvProb.glm <- function(object,newdata,times,...){
   ## no censoring -- only normal family with mu=0 and sd=sd(y)
   N <- NROW(newdata)
   NT <- length(times)
   if (!(unclass(family(object))$family=="gaussian"))
-    stop("Currently only gaussian family implemented.")
+    stop("Currently only gaussian family implemented for glm.")
   betax <- predict(object,newdata=newdata,se.fit=FALSE)
   ##   print(betax[1:10])
   pred.matrix <- matrix(rep(times,N),byrow=TRUE,ncol=NT,nrow=N)
@@ -294,7 +299,7 @@ predictSurvProb.glm <- function(object,newdata,times,...){
 }
 
 
-predictSurvProb.ols <- function(object,newdata,times,...){
+predictProb.ols <- function(object,newdata,times,...){
   ## no censoring -- only normal family with mu=0 and sd=sd(y)
   N <- NROW(newdata)
   NT <- length(times)
@@ -309,7 +314,7 @@ predictSurvProb.ols <- function(object,newdata,times,...){
   p
 }
 
-predictSurvProb.randomForest <- function(object,newdata,times,...){
+predictProb.randomForest <- function(object,newdata,times,...){
   ## no censoring -- only normal family with mu=0 and sd=sd(y)
   N <- NROW(newdata)
   NT <- length(times)
@@ -320,15 +325,4 @@ predictSurvProb.randomForest <- function(object,newdata,times,...){
     stop("Prediction failed")
   p
 }
-
-
-## predictSurvProb.character <- function(object,newdata,times,train.data,...){
-##   fname <- paste(extern$prediction$pattern,b,sep=".")
-##   if (!file.exists(extern$prediction$pattern)) stop(paste("File not found",fname))
-##   if (is.null(extern$prediction$importFun)){
-##     extern$prediction$importFun <- "read.table"
-##   }
-##   fit.b <- do.call(extern$prediction$importFun,list(file=fname))
-## }
-
 

@@ -17,7 +17,7 @@ crps <- function(object,
   if(missing(times)) times <- object$maxtime
   if (!(object$exact || length(object.times)>100))
     warning("Only ", length(time)," time point",ifelse(length(times)==1,"","s")," used")
-
+  
   ##  time range
   if (missing(start))
     start <- object$start

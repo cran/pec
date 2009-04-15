@@ -10,7 +10,6 @@
 \method{plot}{pec}(x,
 	 what="PredErr",
 	 who,
-	 crps=FALSE,
 	 xlim=c(x$start,x$maxtime),
 	 ylim=c(0,0.3),
 	 xlab="Time",
@@ -38,10 +37,6 @@ Other choices are \code{AppErr}, \code{OutOfBagErr}, \code{NoInfErr}, \code{over
 }
 \item{who}{Specifies models in \code{x$models} for which the prediction
   error curves are drawn. Defaults to all models.
-}
-\item{crps}{Logical. If \code{TRUE}
-  apply \code{\link{crps}} before plotting the prediction
-  error curve.
 }
 \item{xlim}{Plotting range on the x-axis.}
 \item{ylim}{Plotting range on the y-axis}

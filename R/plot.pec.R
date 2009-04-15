@@ -1,7 +1,6 @@
 "plot.pec" <-  function(x,
                         what="PredErr",
                         who,
-                        crps=FALSE,
                         xlim=c(x$start,x$maxtime),
                         ylim=c(0,0.3),
                         xlab="Time",
@@ -79,10 +78,10 @@
     invisible(x)
   }
   else{
-    if (crps==TRUE)
-      y <- t(crps(x,who=who,what=what,times=X,print=FALSE))
-    else
-      y <- do.call("cbind",x[[what]][who])[at,,drop=FALSE]
+    #    if (crps==TRUE)
+    #      y <- t(crps(x,who=who,what=what,times=X,print=FALSE))
+    #    else
+    y <- do.call("cbind",x[[what]][who])[at,,drop=FALSE]
     ## y <- x[[what]][at,who,drop=FALSE]
 
     if (length(y)==0) stop("No plotting values: check if x[[what]][who] is a list of numeric vectors.")

@@ -48,29 +48,28 @@ ipcw(formula,
 
 \seealso{\code{\link{pec}}}
 \examples{
-library(survival)
-data(pbc)
+dat=SimSurv(300)
 
-pbc <- pbc[order(pbc$time),]
+dat <- dat[order(dat$time),]
 
 # using the marginal Kaplan-Meier for the censoring times
 
-WKM=ipcw(Surv(time,status)~edema,data=pbc,model="marginal",times=sort(unique(pbc$time)),otimes=pbc$time)
+WKM=ipcw(Hist(time,status)~X2,data=dat,model="marginal",times=sort(unique(dat$time)),otimes=dat$time)
 plot(WKM$fit)
 WKM$fit
 
 # using the Cox model for the censoring times given edema
 
-WCox=ipcw(Surv(time,status)~edema,data=pbc,model="cox",times=sort(unique(pbc$time)),otimes=pbc$time)
+WCox=ipcw(Surv(time,status)~X2,data=dat,model="cox",times=sort(unique(dat$time)),otimes=dat$time)
 WCox$fit
 
 plot(WKM$fit)
-lines(sort(unique(pbc$time)),1-WCox$wt[1,],type="l",col=2,lty=3,lwd=3)
-lines(sort(unique(pbc$time)),1-WCox$wt[2,],type="l",col=3,lty=3,lwd=3)
+lines(sort(unique(dat$time)),1-WCox$wt[1,],type="l",col=2,lty=3,lwd=3)
+lines(sort(unique(dat$time)),1-WCox$wt[2,],type="l",col=3,lty=3,lwd=3)
 
-# using the stratified Kaplan-Meier for the censoring times given edema
+# using the stratified Kaplan-Meier for the censoring times given X2
 
-WKM2=ipcw(Surv(time,status)~edema,data=pbc,model="nonpar",times=sort(unique(pbc$time)),otimes=pbc$time)
+WKM2=ipcw(Surv(time,status)~X2,data=dat,model="nonpar",times=sort(unique(dat$time)),otimes=dat$time)
 plot(WKM2$fit,add=TRUE)
 
  }

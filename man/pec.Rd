@@ -91,8 +91,10 @@ pec(object,...)
   }
   \item{times}{A vector of timepoints. At each timepoint the prediction
     error curves
-    are estimated. If missing and \code{exact==TRUE} use all the
-    unique values of the response variable.
+    are estimated. If \code{exact==TRUE} the \code{times} are merged
+    with all the unique values of the response variable. 
+    If \code{times} is missing and \code{exact==TRUE} all the
+    unique values of the response variable are used.
     If missing and \code{exact==FALSE} use a 
     equidistant grid of values between \code{start} and \code{maxtime}.
     The distance is determined by \code{exactness}.
@@ -117,8 +119,8 @@ pec(object,...)
     The default is 100.
   }
   \item{fillChar}{Symbol used to fill-in places where the
-    values of the prediction error curves are not available. The default is
-   \code{NA}.}
+     values of the prediction error curves are not available. The default is
+    \code{NA}.}
   \item{cens.model}{
     Method for estimating inverse probability of
     censoring weigths:
@@ -141,14 +143,12 @@ pec(object,...)
   }
   \item{replan}{Method for estimating the prediction error curves.
     
-    \code{none}:{Assess the models in the same data where they are
+      \code{none}: Assess the models in the same data where they are
       fitted. 
-    }
-
-    \code{boot}: {
-      Bootstrap the prediction error curves \code{B} times WITHOUT cross-validation.
-    }
-    \code{cvK}: {K-fold cross-validation, i.e. \code{cv10}
+      \code{boot}: Bootstrap the prediction error curves \code{B} times
+      WITHOUT cross-validation.
+      
+    \code{cvK}: K-fold cross-validation, i.e. \code{cv10}
       for 10-fold cross-validation.
       After splitting the data in K subsets, the prediction models (ie
       those specified in \code{object}) are evalutated on the data omitting the Kth
@@ -157,25 +157,20 @@ pec(object,...)
       
       The random splitting is repeated \code{B} times and the estimated prediction error
       curves are obtained by averaging.
-    }
     
-    \code{OutOfBag}: {Bootstrap cross validation. The prediction models are
+    \code{OutOfBag}: Bootstrap cross validation. The prediction models are
       trained on \code{B} bootstrap samples, that are either drawn with or
       without replacement from \code{data} of the size \code{M}.
       The models are assessed in the observations that are NOT in the
-      bootstrap sample.}
+      bootstrap sample.
 
-    \code{Boot632}: {Linear combination of AppErr and OutOfBag using
-      the constant weight .632.}
+    \code{Boot632}: Linear combination of AppErr and OutOfBag using
+      the constant weight .632.
 
-    \code{Boot632plus}: {Linear combination of AppErr and OutOfBag using
+    \code{Boot632plus}: Linear combination of AppErr and OutOfBag using
       weights dependent on how the models perform in permuted data.
-    }
 
-    \code{NoInf}: {
-      Assess the models in permuted data.
-    }
-    
+    \code{NoInf}: Assess the models in permuted data.
   }
   \item{B}{Number of bootstrap samples. The default depends on argument \code{replan}.
     When \code{replan in c("OutOfBag","Boot632","Boot632plus"} the
@@ -270,8 +265,8 @@ pec(object,...)
 }
 
 \value{
-  A \code{pec} object for which \code{print}, \code{summary},
-  and \code{plot} methods defined.
+  A \code{pec} object. See also the help pages of the corresponding \code{print}, \code{summary},
+  and \code{plot} methods.
   The object includes the following components:
   \item{PredErr}{
     The estimated prediction error according to the

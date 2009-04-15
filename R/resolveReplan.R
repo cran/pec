@@ -10,7 +10,8 @@ resolveReplan <- function(replan,B,N,M,k,import=NULL,export=NULL){
     re.plus <- length(grep("plus|\\+",replan,val=FALSE,ignore.case=TRUE))>0
     ## replan <- match.arg(replan,c("none","plain","outofbag","boot632","boot.632","boot632plus","boot.632plus","noinf"))
     if (re.noinf==TRUE){replan <- "noinf"; ReName <- "no information error"}
-    else if (re.outofbag==TRUE){replan <- "outofbag"; ReName <- "out-of-bag error"}
+    else if (re.outofbag==TRUE){replan <- "outofbag";
+                                ReName <- "BootCV"}
     else
       if (re.boot==TRUE){
         if (re.632==TRUE){
@@ -76,11 +77,3 @@ resolveReplan <- function(replan,B,N,M,k,import=NULL,export=NULL){
   out
 }
 
-print.rePlan <- function(x){
-  cat(paste("\nEstimation strategy:",x$name),"\n")
-  if (x$internal.name=="crossval")
-    cat("Repeat: ",x$B,"\n")
-  else 
-    cat("No. bootstrap samples: ",x$B,"\n")
-  cat("Sample size: ",x$N,"\n")
-}

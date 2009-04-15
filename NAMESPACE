@@ -2,6 +2,7 @@ useDynLib(pec)
 export("pec",
        "crps",
        "ipcw",
+#       "cindex",
        "R2",
        "predictSurvProb")
 
@@ -18,12 +19,13 @@ S3method(ipcw,marginal)
 S3method(ipcw,none)
 S3method(ipcw,nonpar)
 S3method(ipcw,aalen)
-#S3method(ipcw,project)
 
 S3method(plot,pec)
 S3method(print,pec)
 S3method(summary,pec)
 
+#S3method(print,Cindex)
+#S3method(summary,Cindex)
 
 S3method(predictSurvProb,aalen)
 S3method(predictSurvProb,cox.aalen)

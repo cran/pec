@@ -14,12 +14,12 @@ void cindex(double *C,
     if (Y[i]<=*tau && status[i]==1){
       for (j=i+1;j<*N;j++){
 	if (*cens_model==0){
-	  wi = weight[(tindex[i]-1)];
-	  wj = weight_lag[(tindex[i]-1)];
+	  wi = weight_lag[(tindex[i]-1)];
+	  wj = weight[(tindex[i]-1)];
 	  }
 	else{
-	  wi = weight[(i + (tindex[i]-1) * (*N))];
-	  wj = weight_lag[(j + (tindex[i]-1) * (*N))];
+	  wi = weight_lag[(i + (tindex[i]-1) * (*N))];
+	  wj = weight[(j + (tindex[i]-1) * (*N))];
 	}
 	if (wj>0 && wi>0){ 
 	  comparison += 1/(wi * wj);

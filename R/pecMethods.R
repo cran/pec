@@ -36,7 +36,7 @@ pec.list <- function(object,
 
   if (missing(formula)){
     formula <- eval(object[[1]]$call$formula)
-    if (class(formula)!="formula")
+    if (match("formula",class(formula),nomatch=0)==0)
       stop("Argument formula is missing.")
     else if (verbose)
       warning("Argument formula is missing. I use the formula from the call to the first model instead.")
@@ -58,17 +58,19 @@ pec.list <- function(object,
   
   # data
   # --------------------------------------------------------------------
+
   if (missing(data)){
     data <- eval(object[[1]]$call$data)
-    if (class(data)!="data.frame")
+    if (match("data.frame",class(data),nomatch=0)==0)
       stop("Argument data is missing.")
     else
-      warning("Argument data is missing. I use the data from the call to the first model instead.")
+      if (verbose)
+        warning("Argument data is missing. I use the data from the call to the first model instead.")
   }
 
   # censoring model
   # --------------------------------------------------------------------
-  cens.model <- match.arg(cens.model,c("project","cox","marginal","nonpar","aalen","none"))
+  cens.model <- match.arg(cens.model,c("cox","marginal","nonpar","aalen","none"))
   
   # response
   # --------------------------------------------------------------------
@@ -167,7 +169,7 @@ pec.list <- function(object,
   # --------------------------------------------------------------------
   
   list.out <- lapply(1:NF,function(f){
-   
+    
     if (verbose==TRUE) cat("\n",names(object)[f],"\n")
     fit <- object[[f]]
     extract <- model.parms[[f]]
@@ -179,6 +181,7 @@ pec.list <- function(object,
       pred <- predictSurvProb(fit,newdata=data,times=times,train.data=data)
     }
     else{
+      print(class(fit))
       pred <- do.call("predictSurvProb",c(list(object=fit,newdata=data,times=times,train.data=data),model.args[[f]]))
     }
     
@@ -201,20 +204,7 @@ pec.list <- function(object,
     # --------------------------------------------------------------------
     if (replan$internal.name %in% c("boot632plus","noinf")){
       # if (NCOL(pred)==1) NoInfErr <- AppErr
-      NoInfErr <- .C("pec_noinf",
-                     pec=double(NT),
-                     as.double(Y),
-                     as.double(status),
-                     as.double(times),
-                     as.double(pred),
-                     as.double(wt),
-                     as.double(wt.obs),
-                     as.integer(N),
-                     as.integer(NT),
-                     as.integer(wt.dim),
-                     as.integer(NCOL(pred)>1),
-                     NAOK=TRUE,
-                     PACKAGE="pec")$pec
+      NoInfErr <- .C("pec_noinf",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(wt),as.double(wt.obs),as.integer(N),as.integer(NT),as.integer(wt.dim),as.integer(NCOL(pred)>1),NAOK=TRUE,PACKAGE="pec")$pec
     }
 
     # resampling error 
@@ -292,7 +282,7 @@ pec.list <- function(object,
     }
     if (replan$internal.name %in% c("boot632plus","outofbag","boot632")){
       
-      # OutOfBagError or BootstrapCrossValidationError
+      # OutOfBagError aka BootstrapCrossValidationError
       # --------------------------------------------------------------------
       compute.OutOfBagErrMat <- lapply(1:B,function(b){
         if (verbose==TRUE) internalTalk(b,B)
@@ -300,7 +290,11 @@ pec.list <- function(object,
         val.b <- data[vindex.b,,drop=FALSE]
         train.b <- data[ResampleIndex[,b],,drop=FALSE]
         if (wt.dim==1) wt.b <- wt[vindex.b,] else wt.b <- wt
-        fit.b <- internalReevalFit(object=fit,data=train.b,step=b,silent=na.accept>0,verbose=verbose)
+        fit.b <- internalReevalFit(object=fit,
+                                   data=train.b,
+                                   step=b,
+                                   silent=na.accept>0,
+                                   verbose=verbose)
         if (!is.null(extract)) fit.parms <- fit.b[extract]
         else fit.parms <- NULL
         if (is.null(fit.b)){
@@ -325,20 +319,7 @@ pec.list <- function(object,
             ## write.table(pred.b,file=paste(write.path,"pred-oob-sample-",b,"-",names(object)[f],".txt",sep=""))
             ## message(paste("prediction of ",names(object)[f],"for oob-sample",b,"saved"))
             ## }
-            innerOutOfBagErr <- .C("pec",
-                                   pec=double(NT),
-                                   as.double(Y[vindex.b]),
-                                   as.double(status[vindex.b]),
-                                   as.double(times),
-                                   as.double(pred.b),
-                                   as.double(wt.b),
-                                   as.double(wt.obs[vindex.b]),
-                                   as.integer(sum(vindex.b)),
-                                   as.integer(NT),
-                                   as.integer(wt.dim),
-                                   as.integer(NCOL(pred.b)>1),
-                                   NAOK=TRUE,
-                                   PACKAGE="pec")$pec
+            innerOutOfBagErr <- .C("pec",pec=double(NT),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(times),as.double(pred.b),as.double(wt.b),as.double(wt.obs[vindex.b]),as.integer(sum(vindex.b)),as.integer(NT),as.integer(wt.dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pec
           }
         }
         list("innerOutOfBagErr"=innerOutOfBagErr,"fit.parms"=fit.parms,"failed"=failed)
