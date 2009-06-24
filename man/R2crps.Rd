@@ -46,6 +46,7 @@ crps(object, who, what, times, start)
 
 \examples{set.seed(18713)
 
+\dontrun{
 dat=SimSurv(100)
 nullmodel=prodlim(Hist(time,status)~1,data=dat)
 pmodel=coxph(Surv(time,status)~X1+X2,data=dat)
@@ -57,6 +58,7 @@ crps(perror,times=1,start=0) # between 0 and 1
 crps(perror,times=seq(0,1,.2),start=0) # between 0 and seq(0,1,.2)
 
 R2(perror,times=seq(0,1,.1))
+}
 }
 
 % \examples{

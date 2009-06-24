@@ -48,7 +48,7 @@ void pec_uncens(double *pec,
 		int *survP)
 {
   int s, i;
-  double p, brier, gs, gi;
+  double p, brier;
   
   for (s=0; s<(*NT);s++) {
     for (i=0; i<*N;i++){
@@ -87,7 +87,7 @@ void pec_noinf(double *pec,
 	       int *pmodel)
 {
   int s, i, j;
-  double p, y, brier, gs, gi;
+  double p, brier, gs, gi;
 
   for (s=0; s<*NT;s++) {
     for (j=0; j<*N; j++){

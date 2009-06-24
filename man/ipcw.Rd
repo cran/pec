@@ -48,7 +48,8 @@ ipcw(formula,
 
 \seealso{\code{\link{pec}}}
 \examples{
-dat=SimSurv(300)
+\dontrun{
+dat=prodlim:::SimSurv(300)
 
 dat <- dat[order(dat$time),]
 
@@ -71,6 +72,6 @@ lines(sort(unique(dat$time)),1-WCox$wt[2,],type="l",col=3,lty=3,lwd=3)
 
 WKM2=ipcw(Surv(time,status)~X2,data=dat,model="nonpar",times=sort(unique(dat$time)),otimes=dat$time)
 plot(WKM2$fit,add=TRUE)
-
+}
  }
 \keyword{survival}% at least one, from doc/KEYWORDS
