@@ -5,15 +5,19 @@
 \alias{predictSurvProb.coxph}
 \alias{predictSurvProb.cph}
 \alias{predictSurvProb.default}
-\alias{predictSurvProb.glm}
+\alias{predictSurvProb.rsf}
 \alias{predictSurvProb.matrix}
 \alias{predictSurvProb.mfp}
+\alias{predictSurvProb.pecCforest}
 \alias{predictSurvProb.prodlim}
 \alias{predictSurvProb.psm}
+\alias{predictSurvProb.selectCox}
 \alias{predictSurvProb.survfit}
 \alias{predictSurvProb.survnnet}
 \alias{predictSurvProb.phnnet}
 \alias{predictSurvProb.rpart}
+
+
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Predicting survival probabilities}
 \description{
@@ -32,26 +36,28 @@
 \method{predictSurvProb}{coxph}(object, newdata, times,...)
 \method{predictSurvProb}{cph}(object, newdata, times,...)
 \method{predictSurvProb}{default}(object, newdata, times,...)
-\method{predictSurvProb}{glm}(object, newdata, times,...)
+\method{predictSurvProb}{rsf}(object, newdata, times,...)
 \method{predictSurvProb}{matrix}(object, newdata, times,...)
 \method{predictSurvProb}{mfp}(object, newdata, times,...)
+\method{predictSurvProb}{pecCforest}(object, newdata, times,...)
 \method{predictSurvProb}{prodlim}(object, newdata, times,...)
 \method{predictSurvProb}{psm}(object, newdata, times,...)
+\method{predictSurvProb}{selectCox}(object, newdata, times,...)
 \method{predictSurvProb}{survfit}(object, newdata, times,...)
 \method{predictSurvProb}{phnnet}(object, newdata, times,train.data,...)
 \method{predictSurvProb}{survnnet}(object, newdata, times,train.data,...)
 \method{predictSurvProb}{rpart}(object, newdata, times,train.data,...)
-
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{object}{A model for which predicted probabilities are desired.}
-  \item{newdata}{A data frame containing predictor variable combinations for
-    which predictions are desired}
+ \item{object}{A fitted model from which to extract predicted survival probabilities}
+ \item{newdata}{A data frame containing predictor variable combinations for
+   which to compute predicted survival probabilities.
+ }
   \item{times}{A vector of times in the range of the response
     variable, e.g. times when the response is a survival object, at
-    which the exceedance probabilities (i.e. the survival probabilities) are
-    returned.}
+    which to return the survival probabilities.
+  }
    \item{train.data}{An optional data frame which contains the
      response and predictor variable combinations
      in which the prediction model was trained}
@@ -65,11 +71,11 @@
   \code{predictSurvProb.CLASS}.
   
   Currently there are \code{predictSurvProb} methods for objects of class cph (library
-  Design), coxph (library survival), aalen (library timereg),
+  rms), coxph (library survival), aalen (library timereg),
   cox.aalen (library timereg), mfp (library mfp), phnnet (library
   survnnet), survnnet (library survnnet), rpart (library rpart),
   product.limit (library prodlim), survfit (library survival), psm
-  (library Design), glm (library stats).
+  (library rms)
 }
 
 \value{
@@ -94,8 +100,24 @@
 }
 
 \seealso{\code{\link{predict}},\code{\link{survfit}}}
-% \examples{
+\examples{
+# generate some survival data
+d <- SimSurv(100)
+# then fit a Cox model 
+coxmodel <- cph(Surv(time,status)~X1+X2,data=d,surv=TRUE)
 
-% }
+# predicted survival probabilities can be extracted
+# at selected time-points:
+ttt <- quantile(d$time)
+# for selected predictor values:
+ndat <- data.frame(X1=c(0.25,0.25,-0.05,0.05),X2=c(0,1,0,1))
+# as follows
+predictSurvProb(coxmodel,newdata=ndat,times=ttt)
+
+# the same can be done e.g. for a randomSurvivalForest model
+library(randomSurvivalForest)
+rsfmodel <- rsf(Survrsf(time,status)~X1+X2,data=d)
+predictSurvProb(rsfmodel,newdata=ndat,times=ttt)
+}
 
 \keyword{survival}% at least one, from doc/KEYWORDS

@@ -16,17 +16,9 @@
   \item{x}{Object of class \code{pec}}
   \item{object}{Object of class \code{pec}}
   \item{times}{Time points at which to show the values of the prediction error curve(s)}
-  \item{what}{What estimate of the prediction error curve to show. 
-    By default the estimate is shown which corresponds to the \code{replan}
-    argument in the call to \code{pec}. This is  
-    is stored in \code{predErr}. For \code{replan in
-      c("cvk","bootB0","boot.632","boot.632plus")} also the apparent
-    error \code{AppErr} is a possible choice. If
-    \code{replan in c("boot.632plus","boot.632","NoInf")} then
-    also the out of bag error (\code{OutOfBagErr}),
-    the estimated overfit (\code{overfit}), and the
-    no-information-error (\code{NoInfErr}) are possible
-    choices.}
+  \item{what}{What estimate of the prediction error curve to
+    show. Should be a string matching an element of the object. The
+    default is determined by splitMethod.}
   \item{models}{Which models in the list \code{object$models} should be
     shown. Defaults to all models.}
   \item{digits}{Number of decimals used in tables.}

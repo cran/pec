@@ -1,5 +1,10 @@
 \name{ipcw}
 \alias{ipcw}
+\alias{ipcw.none}
+\alias{ipcw.marginal}
+\alias{ipcw.nonpar}
+\alias{ipcw.cox}
+\alias{ipcw.aalen}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Estimation of censoring probabilities}
 \description{This function is used internally by the function \code{pec}
@@ -7,9 +12,11 @@
 \usage{
 ipcw(formula,
      data,
-     model = c("cox", "marginal", "nonpar", "aalen", "none"),
+     method = c("cox", "marginal", "nonpar", "aalen", "none"),
      times,
-     otimes)
+     subjectTimes,
+     subjectTimesLag=1,
+     what)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,13 +27,26 @@ ipcw(formula,
     available models (see argument \code{model})
   will use predictors on the right hand side of the formula.}
   \item{data}{The data used for fitting the censoring model}
-  \item{model}{Censoring model used for estimation of the (conditional) censoring
+  \item{method}{Censoring model used for estimation of the (conditional) censoring
     distribution.}
-  \item{times}{Time values at which the probabilities of not being
-    censored are returned}
-  \item{otimes}{The time values, usually the original event times in the data.frame \code{data},
-    at which lagged individual probabilities of not being censored are
-    returned. 
+  \item{times}{For \code{what="IPCW.times"} a vector of times at which to
+    compute the probabilities of not being
+    censored.}
+  \item{subjectTimes}{For \code{what="IPCW.subjectTimes"} a vector of
+    individual times at which the probabilities of not being censored
+    are computed. 
+  }
+  \item{subjectTimesLag}{
+    If equal to \code{1} then obtain \code{G(T_i-|X_i)}, if equal to
+    \code{0} estimate the conditional censoring distribution at the
+    subjectTimes, i.e. (\code{G(T_i|X_i)}).
+  }
+  \item{what}{
+    Decide about what to do:
+    If equal to \code{"IPCW.times"} then weights are estimated
+    at given \code{times}.
+    If equal to \code{"IPCW.subjectTimes"} then weights are estimated
+    at individual \code{subjectTimes}. 
   }
 }
 \details{Inverse of the probability of censoring weights (IPCW) usually 
@@ -37,41 +57,43 @@ ipcw(formula,
   function of the censoring times and derives the weights.
   
   Currently the data set should be order by time to get the value \code{wt.obs} in
-  the right order for some choices of \code{model}!
+  the right order for some choices of \code{method}!
 }
 \value{
-  \item{wt}{Estimated weights at \code{times}}
-  \item{wt.obs}{Estimated weights at individual time values \code{otimes}}
+  \item{times}{The times at which weights are estimated}
+  \item{IPCW.times}{Estimated weights at \code{times}}
+  \item{IPCW.subjectTimes}{Estimated weights at individual time values \code{subjectTimes}}
   \item{fit}{The fitted censoring model}
+  \item{method}{The method for modelling the censoring distribution}
+  \item{call}{The call}
 }
 \author{Thomas A. Gerds \email{tag@biostat.ku.dk}}
 
 \seealso{\code{\link{pec}}}
 \examples{
-\dontrun{
 dat=prodlim:::SimSurv(300)
 
 dat <- dat[order(dat$time),]
 
 # using the marginal Kaplan-Meier for the censoring times
 
-WKM=ipcw(Hist(time,status)~X2,data=dat,model="marginal",times=sort(unique(dat$time)),otimes=dat$time)
+WKM=ipcw(Hist(time,status)~X2,data=dat,method="marginal",times=sort(unique(dat$time)),subjectTimes=dat$time)
 plot(WKM$fit)
 WKM$fit
 
-# using the Cox model for the censoring times given edema
+# using the Cox model for the censoring times given X2
 
-WCox=ipcw(Surv(time,status)~X2,data=dat,model="cox",times=sort(unique(dat$time)),otimes=dat$time)
+WCox=ipcw(Surv(time,status)~X2,data=dat,method="cox",times=sort(unique(dat$time)),subjectTimes=dat$time)
 WCox$fit
 
 plot(WKM$fit)
-lines(sort(unique(dat$time)),1-WCox$wt[1,],type="l",col=2,lty=3,lwd=3)
-lines(sort(unique(dat$time)),1-WCox$wt[2,],type="l",col=3,lty=3,lwd=3)
+lines(sort(unique(dat$time)),1-WCox$IPCW.times[1,],type="l",col=2,lty=3,lwd=3)
+lines(sort(unique(dat$time)),1-WCox$IPCW.times[5,],type="l",col=3,lty=3,lwd=3)
 
 # using the stratified Kaplan-Meier for the censoring times given X2
 
-WKM2=ipcw(Surv(time,status)~X2,data=dat,model="nonpar",times=sort(unique(dat$time)),otimes=dat$time)
-plot(WKM2$fit,add=TRUE)
-}
+WKM2=ipcw(Surv(time,status)~X2,data=dat,method="nonpar",times=sort(unique(dat$time)),subjectTimes=dat$time)
+plot(WKM2$fit,add=FALSE)
+
  }
 \keyword{survival}% at least one, from doc/KEYWORDS

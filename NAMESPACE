@@ -1,15 +1,25 @@
 useDynLib(pec)
 export("pec",
        "crps",
+       "ibs",
        "ipcw",
-#       "cindex",
+       "cindex",
        "R2",
-       "predictSurvProb")
+       "resolvesplitMethod",
+       ## "ConfScoreSurv",
+       "predictSurvProb",
+       "predictEventProb",
+       ## "calPlot",
+       "selectCox",
+       "pecCforest",
+       "resolvesplitMethod",
+       "plotPredictSurvProb")
+
+S3method(cindex,list)
 
 S3method(pec,list)
 S3method(pec,cph)
 S3method(pec,coxph)
-S3method(pec,glm)
 S3method(pec,aalen)
 S3method(pec,prodlim)
 S3method(pec,survfit)
@@ -20,25 +30,39 @@ S3method(ipcw,none)
 S3method(ipcw,nonpar)
 S3method(ipcw,aalen)
 
+S3method(print,R2)
+S3method(print,crps)
+
 S3method(plot,pec)
 S3method(print,pec)
 S3method(summary,pec)
 
-#S3method(print,Cindex)
-#S3method(summary,Cindex)
+S3method(plot,confScoreSurv)
+S3method(print,confScoreSurv)
+S3method(summary,confScoreSurv)
+
+S3method(plot,Cindex)
+S3method(print,Cindex)
+S3method(summary,Cindex)
 
 S3method(predictSurvProb,aalen)
 S3method(predictSurvProb,cox.aalen)
 S3method(predictSurvProb,coxph)
 S3method(predictSurvProb,cph)
 S3method(predictSurvProb,default)
-S3method(predictSurvProb,glm)
+S3method(predictSurvProb,rsf)
 S3method(predictSurvProb,matrix)
 S3method(predictSurvProb,mfp)
+S3method(predictSurvProb,pecCforest)
 S3method(predictSurvProb,phnnet)
 S3method(predictSurvProb,prodlim)
 S3method(predictSurvProb,psm)
 S3method(predictSurvProb,rpart)
+S3method(predictSurvProb,selectCox)
 S3method(predictSurvProb,survfit)
 S3method(predictSurvProb,survnnet)
 
+S3method(predictEventProb,prodlim)
+S3method(predictEventProb,compRisk)
+S3method(predictEventProb,CRR)
+S3method(predictEventProb,cumincCox)

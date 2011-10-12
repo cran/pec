@@ -1,6 +1,11 @@
-internalTalk <- function(x,y){
+internalTalk <- function(x,y,sign="'"){
   if (y>100){
-    if (x %in% seq(0,y,100)) cat(paste("\n",x))
+    if (y<500){
+      if (x %in% seq(0,y,10)) cat(paste("\n",x))
+    }
+    else{
+      if (x %in% seq(0,y,100)) cat(paste("\n",x))
+    }
   }
   else{
     if (y>10){
@@ -8,7 +13,7 @@ internalTalk <- function(x,y){
     }
     else
       if (y>1)
-        cat(paste("'"))
+        cat(paste(sign))
   }
 }
 

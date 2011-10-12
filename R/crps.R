@@ -1,59 +1,51 @@
 crps <- function(object,
-                 who,
+                 models,
                  what,
                  times,
-                 ## weights=NULL,
                  start){
   stopifnot(class(object)[1] == "pec")
   
-  ## find the prediction models
-  if (missing(who)) who <- 1:length(object$models)
+  # {{{find the prediction models
+  if (missing(models)) models <- 1:length(object$models)
   else
-    if (!is.numeric(who))
-      who <- names(object$models)[match(who,names(object$models))]
-  
-  ## times
+    if (!is.numeric(models))
+      models <- names(object$models)[match(models,names(object$models))]
+  # }}}
+  # {{{times
   object.times <- object$time
   if(missing(times)) times <- object$maxtime
+  if (any(times>object$maxtime)) {
+    warning(paste("You asked to integrate until times where prediction error curves are not defined.", object$maxtime))
+    times <- times[times<=object$maxtime]
+  }
   if (!(object$exact || length(object.times)>100))
     warning("Only ", length(time)," time point",ifelse(length(times)==1,"","s")," used")
-  
   ##  time range
-  if (missing(start))
-    start <- object$start
-  
-  ## list of values 
+  if (missing(start)) start <- object$start
+  # }}}
+  # {{{ what errors
   if (missing(what) || is.null(what)){
-    ##     print(match(c("pred.error","apparent.error","BootB0.error","boot.632.error","boot.632plus.error"),names(object)))
-    ##     found.defaults <- match(c("pred.error","AppErr","OutOfBagErr","B632Err"),names(object),nomatch=0)
-    ##     found.defaults <- grep(c("Err$"),names(object),val=TRUE)
-    ##     what <- names(object)[found.defaults]
     what <- grep(c("Err$"),names(object),val=TRUE)
   }
-  Dint <- function(x,a,b,grid){
-    if ((b-a)<0)
-      0
-    else
-      1/(b-a) * sum(x[grid>=a & grid<b]*diff(c(grid[grid>=a & grid<b],b)))
-  }
-  ##   if (length(weights)>0){
-  ##     stopifnot(length(weights)==length(object$time))
-  ##   }
-  ##   else weigths <- NULL
+  # }}}
+  # {{{ for each element of what: evaluate crps at times
   out <- lapply(what,function(w){
-    xmat <- object[[w]][who]
-    ##     if (length(weights>0)){
-    ##       print("Weighted sum")
-    ##       xmat <- lapply(xmat,function(u){u*weights})
-    ##     }
-    ##     print(xmat)
+    est <- object[[w]][models]
     y <- sapply(times,function(t){
-      intx <- sapply(xmat, function(x){Dint(x=x,a=start,b=t,grid=object.times)})
+      intx <- sapply(est, function(y){
+        Dint(x=object.times,
+             y=y,
+             range=c(start,t))
+      })
     })
-    if (!is.null(dim(y)))
-      colnames(y) <- paste("t",times,sep=".")
-    y
+    if (!is.null(dim(y))){
+      tnames <- paste("time=",round(times,1),sep="")
+      tnames[times<1] <- paste("time=",signif(times[times<1],2),sep="")
+      colnames(y) <- paste("IBS[",start,";",tnames,"]",sep="")
+      y}
   })
+  # }}}
+  # {{{ prepare output
   NW <- length(what)
   NT <- length(times)
   if (NW==1)
@@ -66,5 +58,10 @@ crps <- function(object,
       colnames(out) <- what
     }
   }
+  # }}}
+  class(out) <- "crps"
   out
 }
+## the name ibs is more intuitive for integrated Brier score
+## whereas continuous ranked probability score is less well known
+ibs <- crps

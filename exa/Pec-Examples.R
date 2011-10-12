@@ -1,94 +1,91 @@
+# {{{ testing seed
+library(pec)
+set.seed(17)
+d <- SimSurv(100)
+f <- coxph(Surv(time,status)~X2,data=d)
+set.seed(13)
+a=pec(f,splitMethod="bootcv",B=3,M=63,keep.index=TRUE,verbose=F)
+b=a$splitMethod$index
+set.seed(13)
+c=pec:::resolvesplitMethod(splitMethod="bootcv",N=100,M=63,B=3)$index
+stopifnot(all.equal(b,c))
+# }}}
+
+# {{{ testing ipcw
+set.seed(18)
+A=pec(f,B=30,splitMethod="bootcv")
+set.seed(18)
+A1=pec(f,B=30,ipcw.refit=T,splitMethod="bootcv")
+cbind(A$BootCvErr$CoxModel,A1$BootCvErr$CoxModel)
+## plot(A,xlim=c(0,100))
+## plot(A1,add=TRUE,lty=3)
+B=pec(f,cens.model="cox")
+
+# }}}
+
+# {{{ testing splitMethods: cvk, loocv
+
 # Comparing the predictive performance of some standard
 # survival regression models 
 # --------------------------------------------------------------------
 
 library(pec)
-library(Design) # thanks Frank Harrell 
+library(rms) # thanks to Frank Harrell 
+data(GBSG2)
+GBSG2$status <- GBSG2$cens
+GBSG2 <- GBSG2[order(GBSG2$time,-GBSG2$status),]
+GBSG2$grade.bin <- as.factor(as.numeric(GBSG2$tgrade!="I"))
+levels(GBSG2$grade.bin) <- c("I","II/III")
 
-## ,----
-## |  Predicting the time to death for patients with
-## |  primary biliary cirrhosis
-## `----
-
-data(pbc)
-
-## ,----
-## | 0. Benchmark prediction:
-## | Kaplan-Meier predicts the same probabilities for all patients
-## | 1. The bilirubin level is a predictor?
-## | 2. The log(bilirubin level) predicts better?
-## | 3. Michael WK always uses splines
-## | 4. A multifactor model predicts always better!
-## |    covariate selection according to book Therneau & Grambsch
-## | 5. Michael WK always uses splines 
-## `----
-
+GBSG2=GBSG2[sample(1:NROW(GBSG2),size=50),]
 # Kaplan-Meier (survival package)
-pbc.fit0 <- survfit(Surv(time,status)~1,data=pbc)
-
+system.time(pbc.fit0 <- survfit(Surv(time,status)~1,data=GBSG2))
 # Kaplan-Meier (prodlim package) is faster
-pbc.fit0 <- prodlim(Hist(time,status)~1,data=pbc) 
+system.time(pbc.fit0 <- prodlim(Hist(time,status)~1,data=pbc) )
+## Cox model (rms)
+Cox=cph(Surv(time,status)~age+tsize+grade.bin+pnodes+progrec+estrec,data=GBSG2,x=TRUE,y=TRUE,surv=TRUE,se.fit=FALSE)
 
-tmp <- coxph(Surv(time,status)~age+edema+bili+protime+alb,data=pbc)
+set.seed(17)
+check.code("pec")
+loocv <- pec.list(object=list(Cox),formula=Surv(time,status)~1,data=GBSG2,cens.model="marginal",splitMethod="loocv",B=1,keep.matrix=TRUE,verbose=TRUE)
+cv5 <- pec.list(object=list(Cox),formula=Surv(time,status)~1,data=GBSG2,cens.model="marginal",splitMethod="cv5",B=2,keep.matrix=TRUE,verbose=TRUE)
+# }}}
 
-see <- pec.list(object=list(fullcox=tmp),
-                formula=Surv(time,status)~age+edema+bili+protime+alb,
-                data=pbc,
-                maxtime=3000,
-                exact=F,
-                cens.model="marginal",
-                replan="boot632plus",
-                B=100,
-                keep.matrix=TRUE,
-                na.accept=10,
-                verbose=TRUE)
+# {{{ testing splitMethods: boot632, boot632+
 
+## d <- SimSurv(300)
+## f2 <- coxph(Surv(time,status)~rcs(X1)+X2,data=d)
 
+library(pec)
+library(rms) # thanks to Frank Harrell 
+data(GBSG2)
+GBSG2$status <- GBSG2$cens
+GBSG2 <- GBSG2[order(GBSG2$time,-GBSG2$status),]
+GBSG2$grade.bin <- as.factor(as.numeric(GBSG2$tgrade!="I"))
+levels(GBSG2$grade.bin) <- c("I","II/III")
 
-# Cox regression models
-pbc.fit1 <- cph(Surv(time,status)~bili,data=pbc,surv=T,x=T,y=T) 
-pbc.fit2 <- cph(Surv(time,status)~log(bili),data=pbc,surv=T)
-pbc.fit3 <- cph(Surv(time,status)~rcs(bili,parms=3),data=pbc,surv=T)
-pbc.fit4 <- cph(Surv(time,status)~age+edema+log(bili)+log(protime)+log(alb),data=pbc,surv=T)
-pbc.fit5 <- cph(Surv(time,status)~age+edema+rcs(bili,parms=3)+rcs(protime,parms=3)+rcs(alb,parms=3),data=pbc,surv=T)
+d <- SimSurv(100)
+library(randomSurvivalForest)
 
-## Evaluate the predictive performance with the Brier score
+RSF=rsf(Survrsf(time,status)~age+tsize+grade.bin+pnodes+progrec+estrec,data=GBSG2,forest=TRUE)
+save(RSF,file="~/research/SoftWare/pec/exa/RSF-gbsg2.rda")
+set.seed(17)
+b632 <- pec.list(object=list(RSF),formula=Surv(time,status)~1,data=GBSG2,cens.model="marginal",splitMethod="boot632plus",B=10,M=500)
+set.seed(17)
+b632a <- pec.list(object=list(RSF),noinf.permute=T,formula=Surv(time,status)~1,data=GBSG2,cens.model="marginal",splitMethod="boot632plus",B=10,M=500)
+plot(b632a$NoInfErr[[2]],b632$NoInfErr[[2]])
 
-pbc.models <- list("Kaplan-Meier"=pbc.fit0,
-                   "Cox bili"=pbc.fit1,
-                   "Cox log(bili)"=pbc.fit2,
-                   "Cox rcs(bili,3)"=pbc.fit3,
-                   "Cox multi"=pbc.fit4,
-                   "Cox rcs(multi,3)"=pbc.fit5)
-## ,----
-## |  Dependent censoring!!!
-## |  To avoid bias we find censoring weights 
-## |  conditional on the covariates.
-## `----
-
-set.seed(20092007)
-pbc.pec <- pec.list(object=pbc.models,
-                    formula=Surv(time,status)~age+edema+bili+protime+alb,
-                    data=pbc,
-                    maxtime=3000,
-                    exact=TRUE,
-                    cens.model="cox",
-                    replan="boot632plus",
-                    B=100,
-                    keep.matrix=TRUE,
-                    na.accept=10,
-                    verbose=TRUE)
-
-print(pbc.pec)
-summary(pbc.pec,times=c(300,600,900,1200,1500,1800))
-
-plot(pbc.pec)
-plot(pbc.pec,who=c(1,2,4,6),smooth=TRUE)
-plot(pbc.pec,who=c(1,2,4,6),smooth=TRUE,what="AppErr")
-plot(pbc.pec,who=c(1,2,4,6),smooth=TRUE,what="OutOfBagErr")
-plot(pbc.pec,who=c(1,2,4,6),smooth=TRUE,what="special",specials=list(what=c("PredErr"),bench=1))
+f3 <- rsf(Survrsf(time,status)~X1+X2,data=d)
+set.seed(17)
+b632 <- pec.list(object=list(f3),formula=Surv(time,status)~1,data=d,cens.model="marginal",splitMethod="boot632plus",B=10)
+set.seed(17)
+b632a <- pec.list(object=list(f3),noinf.permute=T,formula=Surv(time,status)~1,data=d,cens.model="marginal",splitMethod="boot632plus",B=10)
+plot(b632a$NoInfErr[[1]],b632$NoInfErr[[1]])
+plot(b632a$NoInfErr[[2]],b632$NoInfErr[[2]])
+## plot(b632,xlim=c(0,100))
+## plot(b632a,add=T,lty=3)
+# }}}
 
 
-library(timereg)
 
          

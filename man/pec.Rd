@@ -7,7 +7,6 @@
 \alias{pec.cph}
 \alias{pec.coxph}
 \alias{pec.glm}
-\alias{pec.glm}
 
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Prediction error curves}
@@ -16,35 +15,49 @@
   models in survival analysis. The Brier score is a weighted average
   of the squared distances between the observed survival status and
   the predicted survival probability of a model. Roughly the weights correspond
-  to the probabilities of not being censored and they might depend on covariates.
-  Prediction error curves are obtained when the Brier score is followed
-  over time. Bootstrap-crossvalidation techniques are implemented to
-  estimate the generalization error. 
+  to the probabilities of not being censored. The weights can be
+  estimated depend on covariates. Prediction error curves are
+  obtained when the Brier score is followed over time.
+  Cross-validation based on bootstrap resampling or bootstrap
+  subsampling can be applied to assess and compare the
+  predictive power of various regression modelling strategies on the
+  same set of data.
 }
-
 \usage{
 pec(object,...)
 \method{pec}{list}(object,
-    formula,
-    data,
-    times,
-    start,
-    maxtime,
-    exact=TRUE,
-    exactness=100,
-    fillChar=NA,
-    cens.model="cox",
-    replan="none",
-    B,
-    M,
-    model.args=NULL,
-    model.parms=NULL,
-    keep.matrix=FALSE,
-    import=NULL,
-    export=NULL,
-    na.accept=0,
-    verbose=TRUE,
-    ...)
+                     formula,
+                     data,
+                     times,
+                     cause,
+                     start,
+                     maxtime,
+                     exact=TRUE,
+                     exactness=100,
+                     fillChar=NA,
+                     cens.model="cox",
+                     ipcw.refit=FALSE,
+                     splitMethod="none",
+                     B,
+                     M,
+                     reference=TRUE,
+                     model.args=NULL,
+                     model.parms=NULL,
+                     keep.index=FALSE,
+                     keep.matrix=FALSE,
+                     keep.models="Call",
+                     keep.residuals=FALSE,
+                     keep.pvalues=FALSE,
+                     noinf.permute=FALSE,
+                     multiSplitTest=FALSE,
+                     testIBS,
+                     testTimes,
+                     confInt=FALSE,
+                     confLevel=0.95,
+                     verbose=TRUE,
+                     savePath=NULL,
+                     ...)
+
 \method{pec}{coxph}(object,...)
 \method{pec}{glm}(object,...)
 \method{pec}{cph}(object,...)
@@ -56,24 +69,23 @@ pec(object,...)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{
-    A named list of prediction models. Each entry
-    is either an R-object for which a \link{predictSurvProb}
-    method exists (see details) or a \code{call} that can be evaluated to such an R-object.
-    For resampling (e.g. when \code{replan} is "boot632plus")
-    all the models in this list must include their \code{call} in their
-    value.
+    A named list of prediction models, where allowed entries are
+    (1) R-objects for which a \link{predictSurvProb}
+    method exists (see details), (2) a \code{call} that evaluates
+    to such an R-object (see examples), (3) a matrix with predicted
+    probabilities having as many rows as \code{data} and as many columns
+    as \code{times}. For cross-validation all objects in this list
+    must include their \code{call}.
   }
   \item{formula}{
-    A formula. If missing the formula of the
-    first model in list is used.
-    The left hand side is used to finde the status response
+    A survival formula. The left hand side is used to finde the status response
     variable in \code{data}. For right censored data, the right hand
     side of the formula is
      used to specify conditional censoring models. For
-    example, set \code{Surv(time,status)~x+y} and
+     example, set \code{Surv(time,status)~x1+x2} and
     \code{cens.model="cox"}. Then the weights are based on a Cox regression model for the
     censoring times with
-    predictors `x' and `y'.
+    predictors x1 and x2.
     Note that the usual coding is assumed:
     \code{status=0} for censored times and that each variable name that
     appears in \code{formula}
@@ -82,11 +94,12 @@ pec(object,...)
     \code{cens.model} is coerced to \code{"marginal"} and the
     Kaplan-Meier estimator for the censoring times is used to calculate the
     weights.
+    If \code{formula} is \code{missing}, the formula of the
+    first model in list is used.
   }
-  
   \item{data}{A data frame in which to validate the prediction models
     and to fit the censoring model.
-    If missing the data of the
+    If \code{data} is missing, the data of the
     first model in list is used.
   }
   \item{times}{A vector of timepoints. At each timepoint the prediction
@@ -98,6 +111,11 @@ pec(object,...)
     If missing and \code{exact==FALSE} use a 
     equidistant grid of values between \code{start} and \code{maxtime}.
     The distance is determined by \code{exactness}.
+  }
+  \item{cause}{
+    For competing risks, the event of interest. Defaults to the
+    first state of the response, which is obtained by evaluating the
+    left hand side of \code{formula} in \code{data}.
   }
   \item{start}{Minimal time for estimating the prediction error curves.
     If missing and \code{formula} defines a \code{Surv} or \code{Hist}
@@ -139,14 +157,17 @@ pec(object,...)
     the prodlim package.
 
     \code{aalen}: The nonparametric Aalen additive model fitted to the
-    censoring times. Requires the timereg package maintained by Thomas Scheike. 
+    censoring times. Requires the \code{timereg} package.
   }
-  \item{replan}{Method for estimating the prediction error curves.
+  \item{ipcw.refit}{
+    If \code{TRUE} the inverse probability of
+ censoring weigths are estimated separately in each training set during cross-validation.
+  }
+  \item{splitMethod}{SplitMethod for estimating the prediction error curves.
     
-      \code{none}: Assess the models in the same data where they are
+    \code{none/noPlan}: Assess the models in the same data where they are
       fitted. 
-      \code{boot}: Bootstrap the prediction error curves \code{B} times
-      WITHOUT cross-validation.
+      \code{boot}: DEPRECIATED.
       
     \code{cvK}: K-fold cross-validation, i.e. \code{cv10}
       for 10-fold cross-validation.
@@ -158,30 +179,36 @@ pec(object,...)
       The random splitting is repeated \code{B} times and the estimated prediction error
       curves are obtained by averaging.
     
-    \code{OutOfBag}: Bootstrap cross validation. The prediction models are
-      trained on \code{B} bootstrap samples, that are either drawn with or
+    \code{BootCv}: Bootstrap cross validation. The prediction models are
+      trained on \code{B} bootstrap samples, that are either drawn with
+      replacement of the same size as the original data or
       without replacement from \code{data} of the size \code{M}.
       The models are assessed in the observations that are NOT in the
       bootstrap sample.
 
-    \code{Boot632}: Linear combination of AppErr and OutOfBag using
+    \code{Boot632}: Linear combination of AppErr and BootCvErr using
       the constant weight .632.
+      
+    \code{Boot632plus}: Linear combination of AppErr and BootCv using
+    weights dependent on how the models perform in permuted data.
 
-    \code{Boot632plus}: Linear combination of AppErr and OutOfBag using
-      weights dependent on how the models perform in permuted data.
+    \code{loocv}: Leave one out cross-validation.
 
     \code{NoInf}: Assess the models in permuted data.
   }
-  \item{B}{Number of bootstrap samples. The default depends on argument \code{replan}.
-    When \code{replan in c("OutOfBag","Boot632","Boot632plus"} the
-    default is 100. For \code{replan="cvK"} \code{B} is the number of cross-validation cycles,
+  \item{B}{Number of bootstrap samples. The default depends on argument \code{splitMethod}.
+    When \code{splitMethod} in c("BootCv","Boot632","Boot632plus") the
+    default is 100. For \code{splitMethod="cvK"} \code{B} is the number of cross-validation cycles,
     and -- default is 1.
-    For \code{replan="none"} \code{B} is the number of bootstrap
+    For \code{splitMethod="none"} \code{B} is the number of bootstrap
     simulations e.g. to obtain bootstrap confidence limits -- default is 0.}
-  \item{M}{The size of the bootstrap samples for resampling without replacement.
+  \item{M}{The size of the bootstrap samples for resampling without
+    replacement. Ignored for resampling with replacement.
   }
-  
-  \item{model.args}{Experimental. List of extra arguments that
+  \item{reference}{Logical. If \code{TRUE} add the marginal Kaplan-Meier
+  prediction model as a reference to the list of models.}
+
+  \item{model.args}{List of extra arguments that
     can be passed to the \code{predictSurvProb} methods. The list must have
     an entry for each entry in \code{object}.
   }
@@ -192,32 +219,56 @@ pec(object,...)
     be extracted and added to the value. 
   }
 
+  \item{keep.index}{
+    Logical. If \code{FALSE} remove the bootstrap or cross-validation
+    index from the output list which otherwise is included in the splitMethod
+    part of the output list. 
+  }
+
   \item{keep.matrix}{
-    Logical. If \code{TRUE} add all \code{B} prediction error curves to
-    the output.
+    Logical. If \code{TRUE} add all \code{B} prediction error curves
+    from bootstrapping or cross-validation to the output.
   }
-  \item{import}{Experimental.
-    Import the bootstrap matrix from an external file.
-    \code{import} is a list of arguments that
-    passed to internal function pecImportIndex
+  \item{keep.models}{
+    Logical. If \code{TRUE} keep the models in object. If \code{"Call"}
+    keep only the \code{call} of these models. 
   }
-  \item{export}{Experimental.
-    Export the  bootstrap matrix to an external file.
-    \code{export} is a list of arguments that
-    passed to internal function pecExportIndex together
-    with the matrix.
+  \item{keep.residuals}{
+    Logical. If \code{TRUE} keep the patient individual residuals at \code{testTimes}.
   }
-  \item{na.accept}{
-    Only for "OutOfBag" error.
-    The maximal number of failures during training
-    the models to the bootstrap samples. Usually a
-    small number relative to \code{B}.
+  \item{keep.pvalues}{
+    For \code{multiSplitTest}. If \code{TRUE} keep the pvalues from the single splits.
   }
-  \item{verbose}{if \code{TRUE} the procedure is reporting details of
-    the progress, e.g. it prints the current step in resampling
-    procedures.
+  \item{noinf.permute}{
+    If \code{TRUE} the noinformation error is approximated using permutation.
   }
-  \item{...}{Difficult to explain}
+  \item{multiSplitTest}{
+    If \code{TRUE} the test proposed by van de Wiel et al. (2009) is
+    applied. Requires subsampling bootrap cross-validation, i.e.
+    that \code{splitMethod} equals \code{bootcv} and that
+    \code{M} is specified.
+  }
+  \item{testIBS}{
+    A range of time points for testing differences between models
+    in the integrated Brier scores.
+  }
+  \item{testTimes}{
+    A vector of time points for testing differences between models
+    in the time-point specific Brier scores.
+  }
+  \item{confInt}{
+    Experimental.
+  }
+  \item{confLevel}{
+    Experimental.
+  }
+  \item{verbose}{if \code{TRUE} report details of
+    the progress, e.g. count the steps in cross-validation.
+  }
+  \item{savePath}{Place in your filesystem (directory) where training models fitted during
+    cross-validation are saved. If \code{missing} training models are not saved.
+  }
+  \item{...}{Not used.}
 }
 \details{
   Missing data in the response or in the input matrix cause a failure. 
@@ -258,7 +309,7 @@ pec(object,...)
     \item{}{\code{phnnet}, \code{survnnet} from \code{library(survnnet)}}
     \item{}{\code{rpart} (from \code{library(rpart)})}
     \item{}{\code{coxph}, \code{survfit} from \code{library(survival)}}
-    \item{}{\code{cph}, \code{psm} from \code{library(Design)}}
+    \item{}{\code{cph}, \code{psm} from \code{library(rms)}}
     \item{}{\code{prodlim} from \code{library(prodlim)}}
     \item{}{\code{glm} from \code{library(stats)}}
   }
@@ -270,42 +321,42 @@ pec(object,...)
   The object includes the following components:
   \item{PredErr}{
     The estimated prediction error according to the
-    \code{replan}. A matrix where each column represents the
+    \code{splitMethod}. A matrix where each column represents the
     estimated prediction error of a fit at
     the time points in time.
   }
   \item{AppErr}{
     The training error or apparent error obtained when
     the model(s) are evaluated in the same data where
-    they were trained. Only if \code{replan} is one of
-    "NoInf", "cvK", "OutOfBag", "Boot632" or "Boot632plus".
+    they were trained. Only if \code{splitMethod} is one of
+    "NoInf", "cvK", "BootCv", "Boot632" or "Boot632plus".
   }
-  \item{OutOfBagErr}{
+  \item{BootCvErr}{
     The prediction error when
     the model(s) are trained in the bootstrap sample and evaluated in
     the data that are not in the bootstrap sample.
-    Only if \code{replan} is one of
-    "Boot632" or "Boot632plus". When \code{replan="OutOfBag"}
-    then the \code{OutOfBagErr} is stored in the component \code{PredErr}.
+    Only if \code{splitMethod} is one of
+    "Boot632" or "Boot632plus". When \code{splitMethod="BootCv"}
+    then the \code{BootCvErr} is stored in the component \code{PredErr}.
   }
   \item{NoInfErr}{
     The prediction error when
     the model(s) are evaluated in the permuted data.
-    Only if \code{replan} is one of
-    "OutOfBag", "Boot632", or "Boot632plus".
-    For \code{replan="NoInf"}
+    Only if \code{splitMethod} is one of
+    "BootCv", "Boot632", or "Boot632plus".
+    For \code{splitMethod="NoInf"}
     the \code{NoInfErr} is stored in the component \code{PredErr}.
   }
   \item{weight}{
     The weight used to linear combine the \code{AppErr} and the
-    \code{OutOfBagErr} 
-    Only if \code{replan} is one of
+    \code{BootCvErr} 
+    Only if \code{splitMethod} is one of
     "Boot632", or "Boot632plus".
   }
   \item{overfit}{
     Estimated \code{overfit} of the model(s).
     See Efron \& Tibshirani (1997, Journal of the American Statistical Association) and Gerds \& Schumacher (2007, Biometrics).
-    Only if \code{replan} is one of
+    Only if \code{splitMethod} is one of
     "Boot632", or "Boot632plus".
   }
   \item{call}{The call that produced the object} 
@@ -322,7 +373,7 @@ pec(object,...)
     estimated.}
   \item{exact}{\code{TRUE} if the prediction error curves are
     estimated at all unique values of the response in the full data.}
-  \item{method}{The method used for estimation of the prediction error.}
+  \item{splitMethod}{The splitMethod used for estimation of the overfitting bias.}
 }
 
 \references{E. Graf et al.  (1999),
@@ -346,7 +397,7 @@ pec(object,...)
   23(14):1768-74, 2007.
 }
 
-\author{Thomas Gerds \email{tag@biostat.ku.dk} }
+\author{Thomas Alexander Gerds \email{tag@biostat.ku.dk} }
 
 % ~Make other sections like Warning with \section{Warning }{....} ~
 
@@ -357,20 +408,13 @@ pec(object,...)
 # with survival response and two predictors
 
 set.seed(130971)
-N <- 300
-X1 <- rnorm(N,mean=10,sd=5)
-X2 <- rbinom(N,1,.4)
-linPred <- .00001+0.2*X1+2.3*X2
-T <- sapply(linPred,function(lp){rexp(n=1,exp(-lp))})
-C <- rexp(n=300,exp(-mean(linPred)))
-dat <- data.frame(time=pmin(T,C),status=as.numeric(T<=C),X1=X1,X2=X2)
+dat <- SimSurv(300)
 
 # fit some candidate Cox models and compute the Kaplan-Meier estimate 
 
-Models <- list("Kaplan.Meier"=survfit(Surv(time,status)~1,data=dat),
-               "Cox.X1"=coxph(Surv(time,status)~X1,data=dat),
-               "Cox.X2"=coxph(Surv(time,status)~X2,data=dat),
-               "Cox.X1.X2"=coxph(Surv(time,status)~X1+X2,data=dat))
+Models <- list("Cox.X1"=coxph(Surv(time,status)~X1,data=dat,y=TRUE),
+              "Cox.X2"=coxph(Surv(time,status)~X2,data=dat,y=TRUE),
+              "Cox.X1.X2"=coxph(Surv(time,status)~X1+X2,data=dat,y=TRUE))
 
 # compute the apparent prediction error 
 PredError <- pec(object=Models,
@@ -378,7 +422,7 @@ PredError <- pec(object=Models,
                   data=dat,
                   exact=TRUE,
                   cens.model="marginal",
-                  replan="none",
+                  splitMethod="none",
                   B=0,
                   verbose=TRUE)
 
@@ -393,16 +437,41 @@ PredError.632plus <- pec(object=Models,
                   data=dat,
                   exact=TRUE,
                   cens.model="marginal",
-                  replan="boot632plus",
+                  splitMethod="Boot632plus",
                   B=100,
                   verbose=TRUE)
 
 print(PredError.632plus,times=seq(5,30,5))
 summary(PredError.632plus)
 plot(PredError.632plus,xlim=c(0,30))
+\dontrun{
+# do the same again but now parallized
+set.seed(17100)
+library(doMC)
+registerDoMC()
+PredError.632plus <- pec(object=Models,
+                  formula=Surv(time,status)~X1+X2,
+                  data=dat,
+                  exact=TRUE,
+                  cens.model="marginal",
+                  splitMethod="Boot632plus",
+                  B=100,
+                  verbose=TRUE)
+}
 
-% ##---- Should be DIRECTLY executable !! ----
-% ##-- ==>  Define data, use random,
-% ##--	or do  help(data=index)  for the standard data sets.
- }
+# ---------------- competing risks -----------------
+
+\dontrun{
+library(survival)
+library(compRisk)
+library(cmprsk)
+library(pec)
+data(pbc)
+f1  <- CRR(Hist(time,status)~sex+edema,cause=2,data=pbc)
+f2  <- CRR(Hist(time,status)~sex,cause=2,data=pbc)
+f3  <- compRisk(Hist(time,status)~sex+edema,cause=2,data=pbc)
+f4  <- compRisk(Hist(time,status)~sex+edema,cause=2,data=pbc,link="prop")
+p1 <- pec(list(f1,f2,f3,f4),formula=Hist(time,status)~1,data=pbc,cause=2)
+}
+}
 \keyword{survival}% at least one, from doc/KEYWORDS

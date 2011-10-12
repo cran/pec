@@ -1,162 +1,218 @@
-"plot.pec" <-  function(x,
-                        what="PredErr",
-                        who,
-                        xlim=c(x$start,x$maxtime),
-                        ylim=c(0,0.3),
-                        xlab="Time",
-                        ylab,
-                        lwd.lines=2,
-                        axes=TRUE,
-                        col,
-                        lty,
-                        lines.type,
-                        smooth=FALSE,
-                        add.refline=FALSE,
-                        add=FALSE,
-                        legend=ifelse(add,FALSE,TRUE),
-                        legend.text,
-                        legend.args=list(),
-                        specials=NULL,...){
-  if (missing(lines.type)) if (!x$exact || smooth) lines.type <- "l" else lines.type <- "s"
-  at <- x$time <= xlim[2]
-  X <- x$time[at]
-  if (missing(who)) who <- 1:length(x$models)
-  else
-    if (!is.numeric(who))
-      who <- names(x$models)[match(who,names(x$models))]
-  if (what=="special"){
-    if(!(x$method$internal.name=="boot632plus"||x$method$internal.name=="boot632"))
-      stop("Plotting method `special' requires prediction error method `boot632plus' or `boot632'")
-    if (is.null(specials$bootcol)) specials$bootcol <- "gray77"
-    mc <- match.call()
-    mc$legend <- FALSE
-    if (is.null(specials$what)) specials$what <- c("PredErr")
-    if (!is.null(specials$bench)){
-      if (is.null(specials$benchcol)) specials$benchcol <- 1
-      who <- who[who!=specials$bench]
-      mcbench <- mc
-      mcbench$who <- specials$bench
-      mcbench$what <- "PredErr"
-      mcbench$add <- FALSE
-    }
-    lapply(who,function(w){
-      mcw <- mc
-      mcw$who <- w
-      if (!is.null(specials$bench)){
-        eval(mcbench)
-      }
-      else{
-        mcw$add <- FALSE
-        mcw$what <- "PredErr"
-        mcw$lty <- if (is.null(specials$lty.632Err)) 1 else specials$lty.632Err
-        eval(mcw)
-      }
-      boot <- x$OutOfBagErrMat[[w]]
-      nix <- lapply(1:NCOL(boot),function(b){
-        lines(X,boot[,b,drop=TRUE],col=specials$bootcol,type="s",lwd=2.5)
-      })
-      mcw$col <- if (is.null(specials$col)) 2 else specials$col
-      mcw$add <- TRUE
-      if ("AppErr" %in% specials$what){
-        mcw$what <- "AppErr"
-        mcw$lty <- if (is.null(specials$lty.AppErr)) 2 else specials$lty.AppErr
-        eval(mcw)
-      }
-      if ("OutOfBagErr" %in% specials$what){
-        mcw$what <- "OutOfBagErr"
-        mcw$lty <- if (is.null(specials$lty.OutOfBagErr)) 3 else specials$lty.OutOfBagErr
-        eval(mcw)
-      }
-      if (!is.null(specials$bench)){
-        mcbench$add <- TRUE
-        eval(mcbench)
-      }
-      mcw$what <- "PredErr"
-      mcw$lty <- if (is.null(specials$lty.632Err)) 1 else specials$lty.632Err
-      eval(mcw)
-    })
-    invisible(x)
-  }
-  else{
-    #    if (crps==TRUE)
-    #      y <- t(crps(x,who=who,what=what,times=X,print=FALSE))
-    #    else
-    y <- do.call("cbind",x[[what]][who])[at,,drop=FALSE]
-    ## y <- x[[what]][at,who,drop=FALSE]
+# --------------------------------------------------------------------
+# plot.pec function
+# last update: 24 Sep 2010 (11:20)
+# --------------------------------------------------------------------
 
-    if (length(y)==0) stop("No plotting values: check if x[[what]][who] is a list of numeric vectors.")
-    
-    if (!add)
-      if (missing(ylab)) ylab <- switch(grep(what,c("PredErr","R2","overfit","AppErr","OutOfBagErr")),
-                                        "Prediction error",
-                                        expression(R^2),
-                                        "Relative overfit",
-                                        "Prediction error",
-                                        "Prediction error")
+# {{{ function arguments
+plot.pec <- function(x,
+                     what,
+                     models,
+                     xlim=c(x$start,x$minmaxtime),
+                     ylim=c(0,0.3),
+                     xlab="Time",
+                     ylab,
+                     axes=TRUE,
+                     col,
+                     lty,
+                     lwd,
+                     type,
+                     smooth=FALSE,
+                     add.refline=FALSE,
+                     add=FALSE,
+                     legend=ifelse(add,FALSE,TRUE),
+                     special=FALSE,
+                     ...){
+  # }}}
+# {{{ backward compatibility 
+
+  allArgs <- match.call()
+  allArgs
+
+  # }}}
+  # {{{ find the estimate to be plotted
+  if (missing(what)){
+    ## backward compatibility
+    if (match("what",names(allArgs),nomatch=0)){
+      what <- eval(allArgs$what)
+    }
+    else{
+      # for backward compability
+      if (match("PredErr",names(x),nomatch=0))
+        what <- "PredErr"
+      else{
+        what <- switch(x$splitMethod$internal.name,
+                          "noPlan"="AppErr",
+                          paste(x$splitMethod$internal.name,"Err",sep=""))
+      }
+    }
+  }
+  if (0==(match(what,names(x),nomatch=0)))
+    stop("Estimate \"",what,"\" not found in object")
+  # }}}
+  # {{{ which models
+  # backward compability
+  if (missing(models))
+    if (match("who",names(allArgs),nomatch=0))
+      models <- eval(allArgs$who)
+    else
+      models <- 1:length(x$models)
+  if(!is.numeric(models))
+    models <- names(x$model)[match(models,names(x$models))]
+  
+  a  <- x$time >= xlim[1]
+  b <- x$time <= xlim[2]
+  at <- (a & b)
+  X <- x$time[at]
+  y <- do.call("cbind",x[[what]][models])[at,,drop=FALSE]
+   
+   if (length(y)==0) stop("No plotting values: check if x[[what]][models] is a list of numeric vectors.")
     uyps <- unlist(y)
     uyps <- uyps[!is.infinite(uyps)]
     max.y <- max(uyps,na.rm=T)
     ymax <- max(max.y,ylim[2])
-    xmin <- min(X)
     if (max.y>ylim[2])
       ylim <- if (what=="PredErr")
         c(0,ceiling(ymax*10)/10)
       else
         c(0,ceiling(max(unlist(y),na.rm=T)*10))/10
-    ##   ceiling(c(min(unlist(y),na.rm=T),max(unlist(y),na.rm=T)*10))/10
-    if (!add){
-      plot(0,0,ylab=ylab,xlab=xlab,type="n",ylim=ylim,xlim=xlim,axes=FALSE,...)
-      if (axes==TRUE){
-        ##       if (what=="pred.error" || max(unlist(y)>.25,na.rm=T))
-        ##         axis(2,at=seq(0,0.25,.05),labels=seq(0,0.25,.05))
-        ##       else
-        axis(2)  
-        axis(1)
-      }
-    }
-    
-    # adding the curves 
-    # --------------------------------------------------------------------
-
-    nfit <- ncol(y)
-    if (missing(lty)) lty <- 1
-    if(length(lty)<nfit) lty <- cbind(lty,1:nfit)[,1]
-    if (missing(col)) col <- 1:nfit
-    if(length(col)<nfit) col <- cbind(col,1:nfit)[,1]
-    for (f in 1:ncol(y)){
-      Yvals <- y[,f]
-      if (smooth==TRUE){
-        Yvals[!is.na(Yvals) & !is.infinite(Yvals)] <- smooth(Yvals[!is.na(Yvals) & !is.infinite(Yvals)],kind="3R")
-      }
-      points(X,Yvals,type=lines.type,col=col[f],lty=lty[f],lwd=lwd.lines)
-    }
-
-    if (add.refline) abline(h=.25,lty=3,lwd=2,col=1)
   
-    # legend
-    # --------------------------------------------------------------------
+# }}}
+# {{{ Check for missings 
+  nfit <- ncol(y)
+  if (missing(ylab)) ylab <- "Prediction error"
+  if (missing(xlab)) xlab <- "Time"
+  if (missing(col)) col <- 1:nfit
+  if (missing(lty)) lty <- rep(1, nfit)
+  if (missing(lwd)) lwd <- rep(2, nfit)
+  if (length(col)< nfit) col <- rep(col, nfit)
+  if (length(lty) < nfit) lty <- rep(lty, nfit)
+  if (length(lwd) < nfit) lwd <- rep(lwd, nfit)
+  if (missing(type))
+    if (!x$exact || smooth) type <- "l" else type <- "s"
+# }}}  
+# {{{ creating arguments
+axis1.DefaultArgs <- list()
+axis2.DefaultArgs <- list()  
+plot.DefaultArgs <- list(x=0,
+                         y=0,
+                         type = "n",
+                         ylim = ylim,
+                         xlim = xlim,
+                         xlab = xlab,
+                         ylab = ylab)
 
-    if (legend){
-      old.xpd <- par()$xpd
-      par(xpd=TRUE)
-      if (missing(legend.text) && !("legend" %in% names(legend.args)))
-        legend.args <- c(list(legend=names(x$models)[who]),legend.args)
-      else{
-        if (!("legend" %in% names(legend.args)) && length(legend.text==length(x$models)))
-          legend.args <- c(list(legend.text),legend.args)
-      }
+  special.DefaultArgs <- list(x=x,y=x[[what]],addprederr=NULL,models=models,bench=FALSE,benchcol=1,times=X,maxboot=NULL,bootcol="gray77",col=rep(1,4),lty=1:4,lwd=rep(2,4))  
+  if (special)
+    legend.DefaultArgs <- list(legend=NULL,lwd=NULL,col=NULL,lty=NULL,cex=1.5,bty="n",y.intersp=1,x=xlim[1],xjust=0,y=(ylim+.1*ylim)[2],yjust=1)
+  else
+    legend.DefaultArgs <- list(legend=if(is.numeric(models)) names(x$models)[models] else models,lwd=lwd,col=col,lty=lty,cex=1.5,bty="n",y.intersp=1,x=xlim[1],xjust=0,y=(ylim+.1*ylim)[2],yjust=1)
       
-      if (!("x" %in% names(legend.args))) legend.args <- c(list(x=0),legend.args)
-      if (!("y" %in% names(legend.args))) legend.args <- c(list(y=(ylim+.1*ylim)[2]),legend.args)
-      if (!("col" %in% names(legend.args))) legend.args <- c(list(col=col),legend.args)
-      if (!("lty" %in% names(legend.args))) legend.args <- c(list(lty=lty),legend.args)
-      if (!("lwd" %in% names(legend.args))) legend.args <- c(list(lwd=lwd.lines),legend.args)
-      if (!("cex" %in% names(legend.args))) legend.args <- c(list(cex=1.5),legend.args)
-      if (!("bty" %in% names(legend.args))) legend.args <- c(list(bty="n"),legend.args)
+# }}}
+# {{{ backward compatibility
 
-      do.call("legend",legend.args)  
-      invisible(x)
-      par(xpd=old.xpd)
+  if (match("legend.args",names(args),nomatch=FALSE)){
+    legend.DefaultArgs <- c(args[[match("legend.args",names(args),nomatch=FALSE)]],legend.DefaultArgs)
+    legend.DefaultArgs <- legend.DefaultArgs[!duplicated(names(legend.DefaultArgs))]
+  }
+  if (match("special.args",names(args),nomatch=FALSE)){
+    special.DefaultArgs <- c(args[[match("special.args",names(args),nomatch=FALSE)]],special.DefaultArgs)
+    special.DefaultArgs <- special.DefaultArgs[!duplicated(names(special.DefaultArgs))]
+  }
+  smartA <- prodlim:::SmartControl(call=list(...),
+                                   keys=c("plot","special","legend","axis1","axis2"),
+                                   defaults=list("plot"=plot.DefaultArgs,
+                                     "special"=special.DefaultArgs,
+                                     "legend"= legend.DefaultArgs,
+                                     "axis1"=axis1.DefaultArgs,
+                                     "axis2"=axis2.DefaultArgs),
+                                   forced=list("plot"=list(axes=FALSE),
+                                     "axis1"=list(side=1),
+                                     "axis2"=list(side=2)),
+                                   ignore.case=TRUE,
+                                   ignore=c("what","who"),
+                                   verbose=TRUE)
+  
+
+  # }}}
+  # {{{ generating an empty plot
+    if (!add) {
+    do.call("plot",smartA$plot)
+    if (axes){
+      do.call("axis",smartA$axis1)
+      do.call("axis",smartA$axis2)
     }
   }
+# }}}
+# {{{ adding the lines 
+   
+   if (special==TRUE){
+     if (!(x$splitMethod$internal.name=="Boot632plus"||x$splitMethod$internal.name=="Boot632"))
+       stop("Plotting method 'special' requires prediction error method 'Boot632plus' or 'Boot632'")
+    if (is.null(x$call$keep.matrix))
+      stop("Need keep.matrix")
+     do.call("Special", smartA$special)
+     }
+   else{
+    nlines <- ncol(y)
+    nix <- lapply(1:nlines, function(s) {
+      lines(x = X, y = y[,s], type = type, col = col[s], lty = lty[s], lwd = lwd[s])
+    })
+  }
+
+  if (add.refline) abline(h=.25,lty=3,lwd=2,col=1)
+# }}}
+# {{{ legend - crappy solution to legend to the option special (but works)
+
+if(legend==TRUE && !add && !is.null(names(x$models)[models])){
+     save.xpd <- par()$xpd
+     par(xpd=TRUE)
+
+     # Not very elegant solution but works:
+     if (special==TRUE){
+       # nameModels
+       if(is.numeric(models)) nameModels <- names(x$models)[smartA$special$models] else nameModels <- smartA$special$models
+       #legend.legend:
+       if (is.null(smartA$legend$legend))
+         if (smartA$special$bench == FALSE)
+           smartA$legend$legend <- c(paste(x$method$internal.name,"-",nameModels), paste(smartA$special$addprederr, "-", nameModels))
+         else{
+           if (is.numeric(smartA$special$bench))
+             benchName <- names(x$models)[smartA$special$bench] else benchName <- smartA$special$bench 
+           if (is.null(smartA$special$addprederr))
+             smartA$legend$legend <- c(paste(x$splitMethod$internal.name,"-",c(benchName, nameModels)))
+           else
+             smartA$legend$legend <- c(paste(x$splitMethod$internal.name,"-",c(benchName, nameModels)), paste(smartA$special$addprederr, "-", nameModels))
+         }
+       # legend.col
+       if (is.null(smartA$legend$col))
+         if (smartA$special$bench == FALSE)
+           smartA$legend$col <- smartA$special$col
+         else
+           smartA$legend$col <- c(smartA$special$benchcol,smartA$special$col)
+       if (is.null(smartA$legend$lty))
+         if (smartA$special$bench == FALSE)
+           smartA$legend$lty <- smartA$special$lty
+         else
+           smartA$legend$lty <- c(1,smartA$special$lty)
+       #legend.lwd
+       if (is.null(smartA$legend$lwd))
+         if (smartA$special$bench == FALSE)
+           smartA$legend$lwd <- smartA$special$lwd
+         else
+           smartA$legend$lwd <- c(smartA$special$lwd[1],smartA$special$lwd)
+       # run:
+       do.call("legend",smartA$legend)
+     }
+     
+      else
+        do.call("legend",smartA$legend)
+     par(xpd=save.xpd)
+   }
+
+
+# }}}  
+# {{{ returning invisible and close out
+   invisible(x)
 }
+# }}}
+

@@ -1,7 +1,7 @@
-checkModels <- function(object,model.args,model.parms,replan,verbose=TRUE){
+checkModels <- function(object,model.args,model.parms,splitMethod,verbose=TRUE){
   checkF <- lapply(1:length(object),function(f){
     fit <- object[[f]]
-    if(replan != "noinf" && is.null(fit$call))
+    if(splitMethod != "noinf" && is.null(fit$call))
       stop(paste("model",names(object)[f],"does not have a call argument."))
     else fit$call$data <- NULL
   })

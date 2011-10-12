@@ -7,71 +7,72 @@ predictSurvProb.default <- function(object,newdata,times,...){
 }
 
 
+predictSurvProb.numeric <- function(object,newdata,times,...){
+  if (NROW(object) != NROW(newdata) || NCOL(object) != length(times))
+    stop("Prediction failed")
+  object
+}
+
 predictSurvProb.matrix <- function(object,newdata,times,...){
   if (NROW(object) != NROW(newdata) || NCOL(object) != length(times))
     stop("Prediction failed")
   object
 }
 
-
 predictSurvProb.aalen <- function(object,newdata,times,...){
-#  require(timereg)
-  "survest.aalen" <- function(fit,newdata,times,...){
-    ##  Time-varying hazard 
-    time.coef <- data.frame(fit$cum)
-    ntime <- nrow(time.coef)
-    fittime <- time.coef[,1,drop=TRUE]
-    ntimevars <- ncol(time.coef)-2
-    time.vars <- cbind(1,newdata[,names(time.coef)[-(1:2)],drop=FALSE])
-    nobs <- nrow(newdata)
-    hazard <- .C("survest_cox_aalen",
-                 timehazard=double(ntime*nobs),
-                 as.double(unlist(time.coef[,-1])),
-                 as.double(unlist(time.vars)),
-                 as.integer(ntimevars+1),
-                 as.integer(nobs),
-                 as.integer(ntime),PACKAGE="pec")$timehazard
-    hazard <- matrix(hazard,ncol=ntime,nrow=nobs,dimnames=list(1:nobs,paste("TP",1:ntime,sep="")))
-    surv <- pmin(exp(-hazard),1)
-    if (missing(times)) times <- sort(unique(fittime))
-    pred <- surv[,sindex(jump.times=fittime,eval.times=times)]
-    #    class(pred) <- c("survest","cox.aalen")
-    pred
-  }
-  p <- survest.aalen(object,times=times,newdata=newdata)
-  if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+  ## require(timereg)
+  time.coef <- data.frame(object$cum)
+  ntime <- nrow(time.coef)
+  objecttime <- time.coef[,1,drop=TRUE]
+  ntimevars <- ncol(time.coef)-2
+  covanames <- names(time.coef)[-(1:2)]
+  notfound <- match(covanames,names(newdata),nomatch=0)==0
+  if (any(notfound))
+    stop("\nThe following predictor variables:\n\n",
+         paste(covanames[notfound],collapse=","),
+         "\n\nwere not found in newdata, which only provides the following variables:\n\n",
+         paste(names(newdata),collapse=","),
+         "\n\n")
+  time.vars <- cbind(1,newdata[,names(time.coef)[-(1:2)],drop=FALSE])
+  nobs <- nrow(newdata)
+  hazard <- .C("survest_cox_aalen",
+               timehazard=double(ntime*nobs),
+               as.double(unlist(time.coef[,-1])),
+               as.double(unlist(time.vars)),
+               as.integer(ntimevars+1),
+               as.integer(nobs),
+               as.integer(ntime),PACKAGE="pec")$timehazard
+  hazard <- matrix(hazard,ncol=ntime,nrow=nobs,dimnames=list(1:nobs,paste("TP",1:ntime,sep="")))
+  surv <- pmin(exp(-hazard),1)
+  if (missing(times)) times <- sort(unique(objecttime))
+  pred <- surv[,sindex(jump.times=objecttime,eval.times=times)]
+  pred
+  if (NROW(pred) != NROW(newdata) || NCOL(pred) != length(times))
     stop("Prediction failed")
-  p
+  pred
 }
 
 predictSurvProb.cox.aalen <- function(object,newdata,times,...){
   #  require(timereg)
   "survest.cox.aalen" <- function(fit,newdata,times,...){
-  
     ##  The time-constant effects first
     const <- c(fit$gamma)
     names(const) <- substr(dimnames(fit$gamma)[[1]],6,nchar(dimnames(fit$gamma)[[1]])-1)
     constant.part <- t(newdata[,names(const)])*const
     constant.part <- exp(colSums(constant.part))
-  
   ##  Then extract the time-varying effects
   time.coef <- data.frame(fit$cum)
   ntime <- nrow(time.coef)
   fittime <- time.coef[,1,drop=TRUE]
   ntimevars <- ncol(time.coef)-2
-  
   time.vars <- cbind(1,newdata[,names(time.coef)[-(1:2)],drop=FALSE])
   nobs <- nrow(newdata)
-  
   time.part <- .C("survest_cox_aalen",timehazard=double(ntime*nobs),as.double(unlist(time.coef[,-1])),as.double(unlist(time.vars)),as.integer(ntimevars+1),as.integer(nobs),as.integer(ntime),PACKAGE="pec")$timehazard
-  
   time.part <- matrix(time.part,
                       ncol=ntime,
                       nrow=nobs,
                       dimnames=list(1:nobs,paste("TP",1:ntime,sep="")))
-  
   surv <- pmin(exp(-time.part*constant.part),1)
-  
   if (missing(times)) times <- sort(unique(fittime))
   pred <- surv[,sindex(fittime,times)]
   class(pred) <- c("survest","cox.aalen")
@@ -93,7 +94,7 @@ predictSurvProb.mfp <- function(object,newdata,times,...){
 
 predictSurvProb.survnnet <- function(object,newdata,times,train.data,...){
 #predictSurvProb.survnnet <- function(object,newdata,times,...){
-  require(Design)
+  require(rms)
   learndat <- train.data
   learndat$nnetFactor <- predict(object,train.data,...)
   newdata$nnetFactor <- predict(object,newdata)
@@ -106,15 +107,13 @@ predictSurvProb.survnnet <- function(object,newdata,times,train.data,...){
 
 predictSurvProb.rpart <- function(object,newdata,times,train.data,...){
 #  require(rpart)
-  require(Design)
+  require(rms)
   learndat <- train.data
   nclass <- length(unique(object$where))
-  #  learndat$rpartFactor <- factor(object$where)
   learndat$rpartFactor <- factor(predict(object,newdata=train.data,...))
-  #  print(table(learndat$rpartFactor))
-  #  print(table(predict(object,newdata=newdata)))
   newdata$rpartFactor <- factor(predict(object,newdata=newdata))
-  rpart.form <- reformulate("rpartFactor",object$call$formula[[2]])
+  rpart.form <- reformulate("rpartFactor",eval(object$call$formula)[[2]])  
+  ##   rpart.form <- reformulate("rpartFactor",object$call$formula[[2]])
   #  fit.rpart <- cph(rpart.form,data=learndat,se.fit=FALSE,surv=TRUE,x=TRUE,y=TRUE)
   fit.rpart <- prodlim(rpart.form,data=learndat)
   p <- predictSurvProb(fit.rpart,newdata=newdata,times=times)
@@ -124,7 +123,7 @@ predictSurvProb.rpart <- function(object,newdata,times,train.data,...){
 
 
 predictSurvProb.coxph <- function(object,newdata,times,...){
- require(survival)
+  ## require(survival)
   survival.survfit.coxph <- getFromNamespace("survfit.coxph",ns="survival")
   survival.summary.survfit <- getFromNamespace("summary.survfit",ns="survival")
   survfit.object <- survival.survfit.coxph(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
@@ -137,11 +136,33 @@ predictSurvProb.coxph <- function(object,newdata,times,...){
   p
 }
 
+predictSurvProb.coxph.penal <- function(object,newdata,times,...){
+  ## require(survival)
+  frailhistory <- object$history$'frailty(cluster)'$history
+  frailVar <- frailhistory[NROW(frailhistory),1]
+  ## survfit.object <- survival.survfit.coxph(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
+  linearPred <- predict(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
+  basehaz <- basehaz(object)
+  bhTimes <- basehaz[,2]
+  bhValues <- basehaz[,1]
+  survPred <- do.call("rbind",lapply(1:NROW(newdata),function(i){
+    (1+frailVar*bhValues*exp(linearPred[i]))^{-1/frailVar}
+  }))
+  where <- sindex(jump.times=bhTimes,eval.times=times)
+  p <- cbind(1,survPred)[,where+1]
+  if ((miss.time <- (length(times) - NCOL(p)))>0)
+    p <- cbind(p,matrix(rep(NA,miss.time*NROW(p)),nrow=NROW(p)))
+  if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+    stop("Prediction failed")
+  p
+}
+
+
 
 predictSurvProb.cph <- function(object,newdata,times,...){
   if (!match("surv",names(object),nomatch=0)) stop("Argument missing: set surv=TRUE in the call to cph!")
   p <- survest(object,times=times,newdata=newdata,se.fit=FALSE,what="survival")$surv
-  if (is.null(dim(p))) p <- matrix(p,nrow=1)
+  if (is.null(dim(p))) p <- matrix(p,nrow=NROW(newdata))
   if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
     stop("Prediction failed")
   p
@@ -149,12 +170,20 @@ predictSurvProb.cph <- function(object,newdata,times,...){
 
 predictSurvProb.prodlim <- function(object,newdata,times,...){
   require(prodlim)
-  p <- predict(object=object,type="surv",newdata=newdata,times=times,mode="matrix",level.chaos=1)
-  if (NROW(p)==1 && class(p)=="list") p <- unlist(p)
-  p[is.na(p)] <- 0
+  p <- predict(object=object,
+               type="surv",
+               newdata=newdata,
+               times=times,
+               mode="matrix",
+               level.chaos=1)
+  if (NROW(p)==1 && class(p)=="list")
+    p <- unlist(p)
+  ## p[is.na(p)] <- 0
   if (is.null(dim(p)))
-    {if (length(p)!=length(times))
-       stop("Prediction failed")}
+    {
+      if (length(p)!=length(times))
+        stop("Prediction failed")
+    }
   else{
     if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
       stop("Prediction failed")
@@ -165,8 +194,7 @@ predictSurvProb.prodlim <- function(object,newdata,times,...){
 "predict.survfit" <- function(object,newdata,times,bytimes=TRUE,fill="last",...){
     if (length(class(object))!=1 || class(object)!="survfit" || object$typ !="right")
       stop("Predictions only available \nfor class 'survfit', possibly stratified Kaplan-Meier fits.\n For class 'cph' Cox models see survest.cph.")
-
-
+    
   if (missing(newdata))
     npat <- 1
   else
@@ -175,7 +203,7 @@ predictSurvProb.prodlim <- function(object,newdata,times,...){
     else stop("If argument `newdata' is supplied it must be a dataframe." )
   
   ntimes <- length(times)
-
+    
   sfit <- summary(object,times=times)
 
   if (is.na(fill))
@@ -233,6 +261,7 @@ predictSurvProb.survfit <- function(object,newdata,times,...){
   p
 }
 
+
 ## library randomSurvivalForest
 ## predictSurvProb.rsf <- function(object,newdata,times,...){
 ##   p <- predict.rsf(object,newdata=newdata,times=times,bytimes=TRUE,fill="last")
@@ -269,12 +298,11 @@ predictSurvProb.phnnet <- function(object,newdata,times,train.data,...){
   #  learndat$nnetFactor <- predict(object,train.data,...)
   #  newdata$nnetFactor <- predict(object,newdata)
   nnet.form <- reformulate("nnetFactor",object$call$formula[[2]])
-  require(Design)
+  ## require(rms)
   fit.nnet <- cph(nnet.form,data=learndat,se.fit=FALSE,surv=TRUE,x=TRUE,y=TRUE)
   p <- predictSurvProb.cph(fit.nnet,newdata=newdata,times=times)
   p
 }
-
 
 # methods for uncensored regression
 # --------------------------------------------------------------------
@@ -283,7 +311,7 @@ predictProb <- function(object,newdata,times,...){
   UseMethod("predictProb",object)
 }
 
-predictSurvProb.glm <- function(object,newdata,times,...){
+predictProb.glm <- function(object,newdata,times,...){
   ## no censoring -- only normal family with mu=0 and sd=sd(y)
   N <- NROW(newdata)
   NT <- length(times)
@@ -326,3 +354,15 @@ predictProb.randomForest <- function(object,newdata,times,...){
   p
 }
 
+
+
+## update.cox <- function(object,tstar,data){
+## object$call$data <- data[data$time>tstar,]
+## update <- eval(object$call)
+## class(update) <- "dynamicCox"
+## update
+## }
+## predictProb.dynamicCox <- function(object,newdata,cutpoints,learn.data,...){
+## p <- matrix(1,nrow=NROW(newdata),ncol=length(cutpoints))
+## p
+## }

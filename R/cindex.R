@@ -5,16 +5,21 @@ cindex <- function(object,...){
 cindex.list <- function(object,
                         formula,
                         data,
-                        times,
+                        eval.times,
+                        pred.times,
+                        starttime,
                         maxtime,
                         cens.model="marg",
-                        replan="noPlan",
+                        splitMethod="noPlan",
                         B,
                         M,
                         model.args=NULL,
                         model.parms=NULL,
+                        keepModels=FALSE,
+                        keep.weights=FALSE,
+                        keep.index=FALSE,
                         keep.matrix=FALSE,
-                        na.accept=0,
+                        ## na.accept=0,
                         verbose=FALSE,
                         ...){
 
@@ -73,10 +78,9 @@ cindex.list <- function(object,
   response <- model.response(m)
   if (survp==FALSE && NCOL(response)!=1) stop("Response must be one-dimensional.")
   if (survp==TRUE && NCOL(response)!=2) stop("Survival response must at least consist of two columns: time and status.")
-
+  
   # sort the data 
   # --------------------------------------------------------------------
-
   if (survp){
     neworder <- order(response[,"time"],-response[,"status"])
     response <- response[neworder,,drop=FALSE]
@@ -95,17 +99,23 @@ cindex.list <- function(object,
   N <- length(Y)
   NU <- length(unique.Y)
   
-  # find the range of the response 
+  # define the prediction time(s) and the evaluation time(s)
   # --------------------------------------------------------------------
+  if (missing(starttime) || is.null(starttime)) starttime <- 0
+  if (missing(maxtime) || is.null(maxtime)) maxtime <- unique.Y[NU]+1
+  if (missing(eval.times)) {
+    eval.times <- max(Y[status==1])
+  }
+  else{
+    eval.times <- eval.times[eval.times<=maxtime]
+  }
   
-  if (missing(maxtime) || is.null(maxtime))
-    maxtime <- unique.Y[NU]
-
-  ## FIXME: does the model change the risk order over time?
-  if (missing(times)){
-    sometime <- round(median(1:NU))
-    times <- unique.Y[c(sometime,sometime+1)]
-  }    
+  if (missing(pred.times))
+    pred.times <- median(unique.Y)
+  
+  ## FIXME: if the model changes the risk order over time, then we need to care about pred.times
+  
+  NT <-  length(eval.times)
   tindex <- match(Y,unique.Y)
   
   # find weights for right censored data (that are 1 if no censoring) 
@@ -121,25 +131,45 @@ cindex.list <- function(object,
         message("No covariates  specified: cens.model coerced to \"marginal\".\n")
       cens.model <- "marginal"}
   }
-
+  #  weights for T_i<=T_j
   #  FIXME: what are the correct weights??? G(T_i) or G(T_i-) or G(T_j-) or ...
-  
-  weight <- ipcw(formula=formula,data=data,model=cens.model,times=unique.Y,otimes=Y)$wt.obs
-  weight.lag <- ipcw(formula=formula,data=data,model=cens.model,times=unique.Y-min(diff(unique.Y))/2,otimes=Y)$wt.obs
-  
-  # replan
-  # --------------------------------------------------------------------
-  replan <- resolveReplan(replan=replan,B=B,N=N,M=M,k=k,import=NULL,export=NULL)
+  #  FIXED: the correct weights are G(T_i|X_?) and G(T_i-|X_?)
+  weight.i <- ipcw(formula=formula,
+                   data=data,
+                   method=cens.model,
+                   times=unique.Y,
+                   subjectTimes=Y,
+                   subjectTimesLag=1,
+                   what="IPCW.subjectTimes")$IPCW.subjectTimes
+  weight.j <- ipcw(formula=formula,
+                   data=data,
+                   method=cens.model,
+                   times=unique.Y,
+                   subjectTimes=Y,
+                   subjectTimesLag=0,
+                   what="IPCW.times")$IPCW.times
 
-  B <- replan$B
-  ResampleIndex <- replan$index
-  k <- replan$k
+  #  print(dim(weight.i))
+  #  print(dim(weight.j))
+  #  stop()
+  # method
+  # --------------------------------------------------------------------
+  
+  splitMethod <- resolvesplitMethod(splitMethod=splitMethod,B=B,N=N,M=M)
+  
+  B <- splitMethod$B
+  ResampleIndex <- splitMethod$index
+  if (!keep.index) splitMethod$index <- NULL
+  k <- splitMethod$k
   do.resample <- !(is.null(ResampleIndex))
   
   # checking the models for compatibility with resampling
   # --------------------------------------------------------------------
   if (do.resample){
-    cm <- checkModels(object=object,model.args=model.args,model.parms=model.parms,replan=replan$internal.name)
+    cm <- checkModels(object=object,
+                      model.args=model.args,
+                      model.parms=model.parms,
+                      splitMethod=splitMethod$internal.name)
     model.args <- cm$model.args
     model.parms <- cm$model.parms
   }
@@ -150,101 +180,116 @@ cindex.list <- function(object,
   list.out <- lapply(1:NF,function(f){
     if (verbose==TRUE) cat("\n",names(object)[f],"\n")
     fit <- object[[f]]
-    ##     print(fit)
     extract <- model.parms[[f]]
     
     # apparent error (use the same data for fitting and validation)
     # --------------------------------------------------------------------
+    #    otimes <- Y
+    pred <- do.call("predictSurvProb",
+                    c(list(object=fit,
+                           newdata=data,
+                           times=pred.times,
+                           train.data=data),
+                      model.args[[f]]))
     
-    if (is.null(model.args[[f]])){
-      pred <- predictSurvOrder(fit,newdata=data,times=times,train.data=data)
-    }
-    else{
-##       print(class(fit))
-      pred <- do.call("predictSurvOrder",c(list(object=fit,newdata=data,times=times,train.data=data),model.args[[f]]))
-    }
-    
-    AppCindex <- .C("cindex",cindex=double(1),as.integer(tindex),as.double(Y),as.integer(status),as.double(weight),as.double(weight.lag),as.double(pred),as.integer(N),as.double(maxtime),as.integer(!is.null(dim(weight))),NAOK=TRUE,package="pec")$cindex
-
-    #    print(AppCindex)
-    
-    if (replan$internal.name %in% c("boot632plus","outofbag","boot632")){
-      
-      # OutOfBagError or BootstrapCrossValidationCindexor
+    # print(cbind(Y,status,pred))
+    # stop()
+    if (length(pred.times)==1 && length(pred.times)<length(eval.times))
+      pred <- rep(pred,length(eval.times))
+    AppCindexResult <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.double(starttime),as.double(maxtime),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
+    AppCindex <- AppCindexResult$cindex
+    AppPairs <- AppCindexResult$pairs
+    AppConcordant <- AppCindexResult$conc
+    if (splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632")){
+      # BootCvError or BootstrapCrossValidationCindexor
       # --------------------------------------------------------------------
-      compute.OutOfBagCindexList <- lapply(1:B,function(b){
+      compute.BootCvCindexList <- lapply(1:B,function(b){
         if (verbose==TRUE) internalTalk(b,B)
-        vindex.b <- match(1:N,ResampleIndex[,b],nomatch=0)==0
+        vindex.b <- match(1:N,unique(ResampleIndex[,b]),nomatch=0)==0
         val.b <- data[vindex.b,,drop=FALSE]
         train.b <- data[ResampleIndex[,b],,drop=FALSE]
-        fit.b <- internalReevalFit(object=fit,data=train.b,step=b,silent=na.accept>0,verbose=verbose)
+        fit.b <- internalReevalFit(object=fit,data=train.b,step=b,silent=FALSE,verbose=verbose)
         if (!is.null(extract)) fit.parms <- fit.b[extract]
         else fit.parms <- NULL
         if (is.null(fit.b)){
           failed <- "fit"
-          innerOutOfBagCindex <- NA
+          innerBootCvCindex <- NA
+          innerBootCvPairs <- NA
+          innerBootCvConcordant <- NA
         }
         else{
-          if (is.null(model.args[[f]])){
-            try2predict <- try(pred.b <- predictSurvOrder(fit.b,newdata=val.b,times=times,train.data=train.b),silent=na.accept>0)
-          }
-          else{
-            try2predict <- try(pred.b <- do.call("predictSurvOrder",c(list(object=fit.b,newdata=val.b,times=times,train.data=train.b),model.args[[f]])))
-          }
+          try2predict <- try(pred.b <- do.call("predictSurvProb",c(list(object=fit.b,newdata=val.b,times=pred.times,train.data=train.b),model.args[[f]])))
           if (inherits(try2predict,"try-error")==TRUE){
             if (verbose==TRUE) warning(paste("During bootstrapping: prediction for model ",class(fit.b)," failed in step ",b),immediate.=TRUE)
             failed <- "prediction"
-            innerOutOfBagCindex <- NA
+            innerBootCvCindex <- NA
+            innerBootCvPairs <- NA
+            innerBootCvConcordant <- NA
           }
           else{
             failed <- NA
-            innerOutOfBagCindex <- .C("cindex",cindex=double(1),as.integer(tindex),as.double(Y[vindex.b]),as.integer(status[vindex.b]),as.double(weight[vindex.b]),as.double(weight.lag[vindex.b]),as.double(pred.b),as.integer(N),as.double(maxtime),as.integer(!is.null(dim(weight))),NAOK=TRUE,package="pec")$cindex
-            # print(innerOutOfBagCindex)
+            Y.b <- Y[vindex.b]
+            tindex.b <- match(Y.b,unique(Y.b))
+            innerBootCvLoop <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex.b),as.double(Y.b),as.integer(status[vindex.b]),as.double(eval.times),as.double(weight.i[vindex.b]),as.double(weight.j[vindex.b]),as.double(pred.b),as.integer(sum(vindex.b)),as.integer(NT),as.double(starttime),as.double(maxtime),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
+            innerBootCvCindex <- innerBootCvLoop$cindex
+            innerBootCvPairs <- innerBootCvLoop$pairs
+            innerBootCvConcordant <- innerBootCvLoop$conc
           }
         }
-        list("innerOutOfBagCindex"=innerOutOfBagCindex,"fit.parms"=fit.parms,"failed"=failed)
+        list("innerBootCvConcordant"=innerBootCvConcordant,
+             "innerBootCvPairs"=innerBootCvPairs,
+             "innerBootCvCindex"=innerBootCvCindex,
+             "fit.parms"=fit.parms,
+             "failed"=failed)
       })
       if (verbose==TRUE) cat("\n")
-      if (!is.null(extract)) fitParms <- lapply(compute.OutOfBagCindexList,function(x)x$fit.parms)
-      failed <- na.omit(sapply(compute.OutOfBagCindexList,function(x)x$failed))
-      OutOfBagCindexList <- do.call("cbind",lapply(compute.OutOfBagCindexList,function(x)x$innerOutOfBagCindex))
-      if (na.accept>0)
-        OutOfBagCindex <- apply(OutOfBagCindexList,1,function(b) mean(b,na.rm=sum(is.na(b))<na.accept))
-      else
-        OutOfBagCindex <- rowMeans(OutOfBagCindexList)
+      if (!is.null(extract)) fitParms <- lapply(compute.BootCvCindexList,function(x)x$fit.parms)
+      failed <- na.omit(sapply(compute.BootCvCindexList,function(x)x$failed))
+      BootCvCindexList <- do.call("cbind",lapply(compute.BootCvCindexList,function(x)x$innerBootCvCindex))
+      BootCvConcordantList <- do.call("cbind",lapply(compute.BootCvCindexList,function(x)x$innerBootCvConcordant))
+      BootCvPairsList <- do.call("cbind",lapply(compute.BootCvCindexList,function(x)x$innerBootCvPairs))
+      ##       if (na.accept>0)
+      ##         BootCvCindex <- apply(BootCvCindexList,1,function(b) mean(b,na.rm=sum(is.na(b))<na.accept))
+      ##       else
+      BootCvCindex <- rowMeans(BootCvCindexList)
+      ##       if (na.accept>0)
+      ##         BootCvConcordant <- apply(BootCvConcordantList,1,function(b) mean(b,na.rm=sum(is.na(b))<na.accept))
+      ##       else
+      BootCvConcordant <- rowMeans(BootCvConcordantList)
+      ##       if (na.accept>0)
+      ##         BootCvPairs <- apply(BootCvPairsList,1,function(b) mean(b,na.rm=sum(is.na(b))<na.accept))
+      ##       else
+      BootCvPairs <- rowMeans(BootCvPairsList)
     }
     # Bootstrap .632
     # --------------------------------------------------------------------
-    if (replan$internal.name=="boot632"){
-      B632Cindex <- .368 * AppCindex + .632 * OutOfBagCindex
+    if (splitMethod$internal.name=="Boot632"){
+      B632Cindex <- .368 * AppCindex + .632 * BootCvCindex
     }
-    # Bootstrap .632+
-    # --------------------------------------------------------------------
-    if (replan$internal.name=="boot632plus"){
-      stop("No .632+ estimate of the c-index available.")
-      #      Cindex1 <- pmin(OutOfBagCindex,NoInfCindex)
-      #      overfit <- (Cindex1 - AppCindex) / (NoInfCindex - AppCindex)
-      #      overfit[!(Cindex1>AppCindex)] <- 0
-      #      w <- .632 / (1 - .368 * overfit)
-      #      B632plusCindex <- (1-w) * AppCindex  + w * Cindex1
-    }
-    out <- switch(replan$internal.name,
-                  "noPlan"=list("PredCindex"=AppCindex),
-                  # "plain"=list("PredCindex"=BootCindex,"AppCindex"=AppCindex),
-                  # "boot632plus"=list("AppCindex"=AppCindex,"OutOfBagCindex"=OutOfBagCindex,"NoInfCindex"=NoInfCindex,"weight"=w,"overfit"=overfit,"PredCindex"=B632plusCindex),
-                  "boot632"=list("AppCindex"=AppCindex,"OutOfBagCindex"=OutOfBagCindex,"PredCindex"=B632Cindex),
-                  "outofbag"=list("AppCindex"=AppCindex,"PredCindex"=OutOfBagCindex),
-                  # "noinf"=list("AppCindex"=AppCindex,"PredCindex"=NoInfCindex)
-                  )
-    if (keep.matrix==TRUE && replan$internal.name!="no"){
-      #      if (replan$internal.name=="plain")
-      #        out <- c(out,"BootCindexList"=BootCindexList)
-      #      else
-      #      if (replan$internal.name!="noinf")
-      out <- c(out,list("OutOfBagCindexList"=OutOfBagCindexList))
+    out <- switch(splitMethod$internal.name,
+                  "noPlan"=list("PredCindex"=AppCindex,
+                    "Pairs"=AppPairs,
+                    "Concordant"=AppConcordant),
+                  "Boot632"=list("AppCindex"=AppCindex,
+                    "Pairs"=AppPairs,
+                    "Concordant"=AppConcordant,
+                    "BootCvCindex"=BootCvCindex,
+                    "PredCindex"=B632Cindex),
+                  "BootCv"=list("AppCindex"=AppCindex,
+                    "Pairs"=AppPairs,
+                    "Concordant"=AppConcordant,
+                    "PredCindex"=BootCvCindex,
+                    "BootCvConcordant"=BootCvConcordant,
+                    "BootCvPairs"=BootCvPairs
+                    ))
+    #    if (keep.pred==TRUE && splitMethod$internal.name!="no"){
+    #      out <- c(out,list("BootCvCindexList"=BootCvCindexList))
+    #    }
+    if (keep.matrix==TRUE && splitMethod$internal.name!="no"){
+      out <- c(out,list("BootCvCindexList"=BootCvCindexList))
     }
     if (!is.null(extract)) out <- c(out,list("fitParms"=fitParms))
-    if (na.accept>0) out <- c(out,list("failed"=failed))
+    ## if (na.accept>0) out <- c(out,list("failed"=failed))
     out
   })
   names.lout <- names(list.out[[1]])
@@ -254,67 +299,34 @@ cindex.list <- function(object,
     e
   })
   names(out) <- names.lout
+  if(keepModels==TRUE)
+    outmodels <- object
+  else if (keepModels=="Call"){
+    outmodels <- lapply(object,function(o)o$call)
+    names(outmodels) <- names(object)
+  }
+  else{
+    outmodels <- names(object)
+    names(outmodels) <- names(object)
+  }
+  if(keep.weights)
+    www <- list(weight.i,weight.j)
+  else
+    {www <- NULL
+   }
   out <- c(out,
            list(call=match.call(),
-                models=object,
-                method=replan))
+                time=eval.times,
+                pred.time=pred.times,
+                models=outmodels,
+                splitMethod=splitMethod,
+                weights=www,
+                cens.model=cens.model,
+                starttime=starttime,
+                maxtime=maxtime))
   if (verbose==TRUE) cat("\n")
   class(out) <- "Cindex"
   out
 }
     
   
-  #  if (!is.null(conf.int)){
-  #    if (!is.numeric(conf.int) || conf.int> 1  || conf.int<0) {
-  #      warning("Incorrect specification of conf.int (the level for confidence interval). Set to most popular value: 0.95!",immediate.=TRUE,call.=TRUE)
-  #      conf.int <- .95
-  #    }
-  #    boot <- matrix(sapply(1:B,function(b){sort(sample(1:N,replace=TRUE))}),nrow=N,ncol=B)
-  #    boot.cindex <- sapply(1:B,function(b){
-  #      who <- boot[,b,drop=TRUE]
-  #      if (!is.null(dim(weight))) {
-  #        weight.b <- weight[who,]
-  #        weight.lag.b <- weight.lag[who,]}
-  #      else{
-  #        weight.b <- weight
-  #        weight.lag.b <- weight.lag
-  #      }
-  #      cindex.b <- .C("cindex",
-  #                     cindex=double(1),
-  #                     as.integer(tindex[who]),
-  #                     as.double(Y[who]),
-  #                     as.integer(status[who]),
-  #                     as.double(weight.b),
-  #                     as.double(weight.lag.b),
-  #                     as.double(Z[who]),
-  #                     as.integer(N),
-  #                     as.double(maxtime),
-  #                     as.integer(!is.null(dim(weight))),
-  #                     NAOK=TRUE,
-  #                     package="pec")$cindex
-  #      cindex.b
-  #    })
-  #    alpha <- (1-conf.int)/2
-  #    conf.bounds <- quantile(boot.cindex - cindex,c(alpha,1-alpha))
-  #    #    print(conf.bounds)
-  #    list(cindex=cindex,lower=cindex-conf.bounds[2],upper=cindex-conf.bounds[1])
-  #  }
-  #  else
-#  cindex
-#}
-
-#harrell <- function(formula,
-#                    data,
-#                    maxtime=0){
-#  m <- surv.model.frame(formula,data)
-#  survobject <- model.response(m)
-#  data <- data[attr(m,"survorder"),]
-#  Y <- survobject[,1] 
-#  status <- survobject[,2]
-#  times <- unique(Y)
-#  N <- length(Y)
-#  Z <- m[,2,drop=TRUE]
-#  hindex <- .C("hindex",hindex=double(1),as.double(Y),as.integer(status),as.double(Z),as.integer(N),as.integer(maxtime),NAOK=FALSE,PACKAGE="pec")$hindex
-#  hindex
-#}
-

@@ -1,52 +1,70 @@
 pec <- function(object,...){
   UseMethod("pec",object=object)
 }
-
+# {{{ header pec.list
 pec.list <- function(object,
                      formula,
                      data,
                      times,
+                     cause,
                      start,
                      maxtime,
                      exact=TRUE,
                      exactness=100,
                      fillChar=NA,
                      cens.model="cox",
-                     replan="none",
+                     ipcw.refit=FALSE,
+                     splitMethod="none",
                      B,
                      M,
+                     reference=TRUE,
                      model.args=NULL,
                      model.parms=NULL,
+                     keep.index=FALSE,
                      keep.matrix=FALSE,
-                     import=NULL,
-                     export=NULL,
-                     na.accept=0,
+                     keep.models="Call",
+                     keep.residuals=FALSE,
+                     keep.pvalues=FALSE,
+                     noinf.permute=FALSE,
+                     multiSplitTest=FALSE,
+                     testIBS,
+                     testTimes,
+                     confInt=FALSE,
+                     confLevel=0.95,
                      verbose=TRUE,
-                     ...){
+                     savePath=NULL,
+                     ...)
+{
+  # }}}
+  # {{{ checking integrity some arguments
+  theCall=match.call()
+  if (match("replan",names(theCall),nomatch=FALSE))
+    stop("Argument name 'replan' has been replaced by 'splitMethod'.")
   
-  # models
-  # --------------------------------------------------------------------
-  NF <- length(object) 
-  if (is.null(names(object)))names(object) <- sapply(object,function(o)class(o)[1])
-  else{names(object)[(names(object)=="")] <- sapply(object[(names(object)=="")],function(o)class(o)[1])}
-  names(object) <- make.names(names(object),unique=TRUE)
-  
-  # formula
-  # --------------------------------------------------------------------
+  if (!missing(testIBS) && (!(is.logical(testIBS) || (length(testIBS)==2 && is.numeric(testIBS)))))
+    stop("Argument testIBS can be TRUE/FALSE or a vector of two numeric values.")
+  if (missing(testIBS)) testIBS <- FALSE
+  if (keep.residuals && missing(testTimes))
+    stop("To keep.residuals please specify testTimes.")
+  if (missing(splitMethod) && multiSplitTest==TRUE){
+    stop("Need data splitting to compute van de Wiel's test")
+  }
+  if (missing(M) && multiSplitTest) M <- NA
+  # }}}
+  # {{{ formula
 
   if (missing(formula)){
     formula <- eval(object[[1]]$call$formula)
     if (match("formula",class(formula),nomatch=0)==0)
       stop("Argument formula is missing.")
     else if (verbose)
-      warning("Argument formula is missing. I use the formula from the call to the first model instead.")
+      warning("Formula missing. Using formula from first model")
   }
-  
   formula.names <- try(all.names(formula),silent=TRUE)
   if (!(formula.names[1]=="~")
       ||
       (match("$",formula.names,nomatch=0)+match("[",formula.names,nomatch=0)>0)){
-    stop("Invalid specification of formula. Perhaps forgotten right hand side?\nNote that any subsetting, ie data$var or data[,\"var\"], is invalid for this function.")
+    stop("Invalid specification of formula.\n Could be that you forgot the right hand side:\n ~covariate1 + covariate2 + ...?\nNote that any subsetting, ie data$var or data[,\"var\"], is not supported by this function.")
   }
   else{
     if (!(formula.names[2] %in% c("Surv","Hist")))
@@ -55,10 +73,8 @@ pec.list <- function(object,
       survp <- TRUE
   }
 
-  
-  # data
-  # --------------------------------------------------------------------
-
+  # }}}
+  # {{{ data
   if (missing(data)){
     data <- eval(object[[1]]$call$data)
     if (match("data.frame",class(data),nomatch=0)==0)
@@ -67,23 +83,68 @@ pec.list <- function(object,
       if (verbose)
         warning("Argument data is missing. I use the data from the call to the first model instead.")
   }
-
-  # censoring model
-  # --------------------------------------------------------------------
+  # }}}
+  # {{{ censoring model
+  
   cens.model <- match.arg(cens.model,c("cox","marginal","nonpar","aalen","none"))
   
-  # response
-  # --------------------------------------------------------------------
-  m <- model.frame(formula,data,na.action=na.fail)
+  # }}}
+  # {{{ response
+  histformula <- formula
+  if (histformula[[2]][[1]]==as.name("Surv")){
+    histformula[[2]][[1]] <- as.name("Hist")
+  }
+  m <- model.frame(histformula,data,na.action=na.fail)
   response <- model.response(m)
-  if (survp==FALSE && NCOL(response)!=1) stop("Response must be one-dimensional.")
-  if (survp==TRUE && NCOL(response)!=2) stop("Survival response must at least consist of two columns: time and status.")
-  
-  # sort the data 
-  # --------------------------------------------------------------------
-  
+  if (match("Surv",class(response),nomatch=0)!=0){
+    attr(response,"model") <- "survival"
+    attr(response,"cens.type") <- "rightCensored"
+    model.type <- "survival"
+  }
+  model.type <- attr(response,"model")
+  if (model.type=="competing.risks"){
+    predictHandlerFun <- "predictEventProb"
+    if (missing(cause))
+      cause <- attr(response,"state")[1]
+  }
+  else{
+    if (survp==FALSE && NCOL(response)!=1) stop("Response must be one-dimensional.")
+    if (survp==TRUE && NCOL(response)!=2) stop("Survival response must have two columns: time and status.")
+    predictHandlerFun <- "predictSurvProb"
+  }
+
+  # }}}
+  # {{{ prediction models
+  if (reference==TRUE) {
+    ProdLimform <- reformulate("1",response=formula[[2]])
+    ## environment(ProdLimform) <- NULL
+    ProdLimfit <- prodlim(ProdLimform,data)
+    ProdLimfit$call$data <- NULL
+    ProdLimfit$formula <- NULL
+    ProdLimfit$call$formula=ProdLimform
+    if (model.type=="competing.risks")
+    object <- c(list(AalenJohansen=ProdLimfit),object)
+    else
+    object <- c(list(KaplanMeier=ProdLimfit),object)
+  }
+  if (is.null(names(object))){
+    names(object) <- sapply(object,function(o)class(o)[1])
+  }
+  else{
+    names(object)[(names(object)=="")] <- sapply(object[(names(object)=="")],function(o)class(o)[1])
+  }
+  names(object) <- make.names(names(object),unique=TRUE)
+  NF <- length(object) 
+
+  # }}}  
+  # {{{ sort the data 
+
   if (survp){
     neworder <- order(response[,"time"],-response[,"status"])
+    if (predictHandlerFun=="predictEventProb"){
+      event <- getEvent(response,mode="character")
+      event <- event[neworder]
+    }
     response <- response[neworder,,drop=FALSE]
     Y <- response[,"time"]
     status <- response[,"status"]
@@ -94,319 +155,347 @@ pec.list <- function(object,
     Y <- response[neworder]
     status <- rep(1,length(Y))
   }
+  ## for competing risks find the cause of interest.
+  if (predictHandlerFun=="predictEventProb"){
+    availableCauses <- unique(event)
+    if (!match(cause, availableCauses,nomatch=FALSE))
+      stop("Cause ",cause," is not among the available causes: ",paste(availableCauses,collapse=", "))
+    event <- event==cause
+  }
+  ##   else{
+  ##     event <- NULL
+  ##   }
   data <- data[neworder,]
-  
   unique.Y <- unique(Y)
   N <- length(Y)
   NU <- length(unique.Y)
-  
-  # find jumptimes in the range of the response 
-  # --------------------------------------------------------------------
-  
+  # }}}
+  # {{{ splitMethod
+  splitMethod <- resolvesplitMethod(splitMethod=splitMethod,B=B,N=N,M=M)
+  B <- splitMethod$B
+  ResampleIndex <- splitMethod$index
+  k <- splitMethod$k
+  do.resample <- !(is.null(ResampleIndex))
+  if (keep.matrix==TRUE & !do.resample){
+    warning("Argument keep.matrix set to FALSE, since no resampling/crossvalidation is requested.")
+    keep.matrix <- FALSE
+  }
+  # }}}      
+  # {{{ find maxtime, start, and jumptimes in the range of the response 
+
   if (missing(maxtime) || is.null(maxtime))
     maxtime <- unique.Y[NU]
-  
+  if (missing(start))
+    if (survp==TRUE)
+      start <- 0  ## survival times are positive
+    else
+      start <- min(unique.Y) 
   if (missing(times)){
     if (exact==TRUE)
-      times <- unique.Y
-    else{  
-      if (missing(start))
-        if (survp==TRUE) start <- 0 ## survival times are positive
-        else start <- min(unique.Y)
+      times <- unique(c(start,unique.Y))
+    else
       times <- seq(start,maxtime,(maxtime - start)/exactness)
-    }
   }
   else{
     if (exact==TRUE) 
-      times <- sort(c(unique(times),unique.Y))
+      times <- sort(c(start,unique(times),unique.Y))
     else
-      times <- sort(unique(times))
+      times <- sort(unique(c(start,times)))
   }
-  # print(times)
   times <- times[times<=maxtime]
   NT <-  length(times)
-  tindex <- sindex(jump.times=unique.Y,eval.times=times)
-  
-  # find weights for right censored data (that are 1 if no censoring) 
-  # --------------------------------------------------------------------
-  
+
+  # }}}
+  # {{{ IPCW (all equal to 1 without censoring) 
+
   if((cens.model %in% c("aalen","cox","nonpar"))){
     if (all(as.numeric(status)==1) || sum(status)==N){
+      if (verbose)
       message("No censored observations: cens.model coerced to \"none\".")
       cens.model <- "none"
     }
     if (length(attr(terms(formula),"factors"))==0){
       if (verbose==TRUE)
-        message("No covariates  specified: cens.model coerced to \"marginal\".\n")
+        message("No covariates  specified: Kaplan-Meier for censoring times used for weighting.")
       cens.model <- "marginal"}
   }
-  ipcw <- ipcw(formula=formula,data=data,model=cens.model,times=times,otimes=Y)
-  wt <- ipcw$wt
-  wt.obs <- ipcw$wt.obs
-  stopifnot(length(wt.obs)==N)
-  wt.dim <- if (cens.model%in% c("marginal","none")) 0 else 1
-  
+  if (predictHandlerFun=="predictEventProb"){
+    iFormula <- as.formula(paste("Surv(itime,istatus)","~",as.character(formula)[[3]]))
+    iData <- data
+    iData$itime <- response[,"time"]
+    iData$istatus <- response[,"status"]
+    if (ipcw.refit==TRUE)
+      stop("pec: internal refitting of censoring distribution not (not yet) supported for competing risks")
+    ipcw.call <- NULL
+    ipcw <- ipcw(formula=iFormula,data=iData,method=cens.model,times=times,subjectTimes=Y,subjectTimesLag=1)
+    ipcw$dim <- if (cens.model %in% c("marginal","none")) 0 else 1
+  }
+  else{
+    if (ipcw.refit==TRUE && splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632"))
+      ipcw.call <- list(formula=formula,data=NULL,method=cens.model,times=times,subjectTimes=NULL,subjectTimesLag=1)
+    else
+      ipcw.call <- NULL
+    ipcw <- ipcw(formula=formula,data=data,method=cens.model,times=times,subjectTimes=Y,subjectTimesLag=1)
+    ipcw$dim <- if (cens.model %in% c("marginal","none")) 0 else 1
+  }
+  #  wt <- ipcw$IPCW.times
+  #  wt.obs <- ipcw$IPCW.subjectTimes
   #  if (NCOL(wt)>1) {stopifnot(length(wt)==(N*NT))}  else{stopifnot(length(wt)==NT)}
 
-
-  # replan
-  # --------------------------------------------------------------------
-  replan <- resolveReplan(replan=replan,B=B,N=N,M=M,k=k,import=import,export=export)
-  B <- replan$B
-  ResampleIndex <- replan$index
-  k <- replan$k
-  do.resample <- !(is.null(ResampleIndex))
-
-  # checking the models for compatibility with resampling
-  # --------------------------------------------------------------------
+  # }}}
+  # {{{ checking the models for compatibility with resampling
   if (do.resample){
-    cm <- checkModels(object=object,model.args=model.args,model.parms=model.parms,replan=replan$internal.name)
+    cm <- checkModels(object=object,model.args=model.args,model.parms=model.parms,splitMethod=splitMethod$internal.name)
     model.args <- cm$model.args
     model.parms <- cm$model.parms
   }
-  
-  # computation of prediction error in a loop over the models 
-  # --------------------------------------------------------------------
-  
-  list.out <- lapply(1:NF,function(f){
-    
-    if (verbose==TRUE) cat("\n",names(object)[f],"\n")
+  # }}}
+  # {{{ ---------------------------Apparent error---------------------------
+
+  AppErr <- lapply(1:NF,function(f){
+    ## message(f)
     fit <- object[[f]]
-    extract <- model.parms[[f]]
-    
-    # apparent error (use the same data for fitting and validation)
-    # --------------------------------------------------------------------
-    
-    if (is.null(model.args[[f]])){
-      pred <- predictSurvProb(fit,newdata=data,times=times,train.data=data)
+    extraArgs <- model.args[[f]]
+    if (predictHandlerFun=="predictEventProb"){
+      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data,cause=cause),extraArgs))
+      ## if (f==2) browser()
+      .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred)>1),NAOK=TRUE,PACKAGE="pec")$pec
     }
     else{
-      print(class(fit))
-      pred <- do.call("predictSurvProb",c(list(object=fit,newdata=data,times=times,train.data=data),model.args[[f]]))
+      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
+      .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred)>1),NAOK=TRUE,PACKAGE="pec")$pec
     }
-    
-    AppErr <- .C("pec",
-                 pec=double(NT),
-                 as.double(Y),
-                 as.double(status),
-                 as.double(times),
-                 as.double(pred),
-                 as.double(wt),
-                 as.double(wt.obs),
-                 as.integer(N),
-                 as.integer(NT),
-                 as.integer(wt.dim),
-                 as.integer(NCOL(pred)>1),
-                 NAOK=TRUE,
-                 PACKAGE="pec")$pec
+  })
 
-    # No information error  
-    # --------------------------------------------------------------------
-    if (replan$internal.name %in% c("boot632plus","noinf")){
-      # if (NCOL(pred)==1) NoInfErr <- AppErr
-      NoInfErr <- .C("pec_noinf",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(wt),as.double(wt.obs),as.integer(N),as.integer(NT),as.integer(wt.dim),as.integer(NCOL(pred)>1),NAOK=TRUE,PACKAGE="pec")$pec
-    }
+  names(AppErr) <- names(object)
 
-    # resampling error 
-    # --------------------------------------------------------------------
-    if (replan$internal.name=="plain"){
-      compute.BootErrMat <- lapply(1:B,function(b){
-        if (verbose==TRUE) internalTalk(b,B)
-        index.b <- ResampleIndex[,b]
-        data.b <- data[index.b,,drop=FALSE]
-        wt.b <- if (wt.dim==1) wt[index.b,] else wt
-        fit.b <- internalReevalFit(object=fit,data=data.b,step=b,silent=na.accept>0,verbose=verbose)
-        if (!is.null(extract)) fit.parms <- fit.b[extract]
-        else fit.parms <- NULL
-        if (is.null(model.args[[f]])){
-          pred.b <- predictSurvProb(fit.b,newdata=data.b,times=times,train.data=data.b)
-        }
-        else{
-          pred.b <- do.call("predictSurvProb",c(list(object=fit.b,newdata=data.b,times=times,train.data=data.b),model.args[[f]]))
-        }
-        innerBootErr <- .C("pec",pec=double(NT),as.double(Y[index.b]),as.double(status[index.b]),as.double(times),as.double(pred.b),as.double(wt.b),as.double(wt.obs[index.b]),as.integer(M),as.integer(NT),as.integer(wt.dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pec
-        list("innerBootErr"=innerBootErr,"fit.parms"=fit.parms)
+  # }}}
+  # {{{------------------------No information error------------------------
+  if (splitMethod$internal.name %in% c("Boot632plus")){
+    if (verbose==TRUE){
+      message("Computing noinformation error using all permutations")
+    }
+    if (noinf.permute==FALSE){
+      NoInfErr <- lapply(1:NF,function(f){
+        fit <- object[[f]]
+        extraArgs <- model.args[[f]]
+        pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
+        extraArgs <- model.args[[f]]
+        if (predictHandlerFun=="predictEventProb")
+          .C("pec_noinfCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred)>1),NAOK=TRUE,PACKAGE="pec")$pec
+        else
+          .C("pec_noinf",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred)>1),NAOK=TRUE,PACKAGE="pec")$pec
       })
-      BootErrMat <- do.call("cbind",lapply(compute.BootErrMat,function(x)x$innerBootErr))
-      if (!is.null(extract))
-        fitParms <- lapply(compute.BootErrMat,function(x)x$fit.parms)
-      if (na.accept>0)
-        BootErr <- apply(BootErrMat,1,function(b) mean(b,na.rm=sum(is.na(b))<na.accept))
-      else
-        BootErr <- rowMeans(BootErrMat)
-    }
-    if (length(k)>0){
-      # k-fold CrossValidation
-      # --------------------------------------------------------------------
-      CrossValErrMat <- do.call("cbind",lapply(1:B,function(b){
-        if (verbose==TRUE) internalTalk(b,B)
-        groups <- ResampleIndex[,b,drop=TRUE]
-        ## each subject belongs to exactly one group
-        ## the prediction `p[i]' is obtained with the reduced data
-        pred.b <- do.call("rbind",lapply(1:k,function(g){
-          id <- groups==g
-          train.data <- data[!id,,drop=FALSE]
-          fit.k <- internalReevalFit(object=fit,data=train.data,step=paste("CV group=",k),silent=na.accept>0,verbose=verbose)
-          # fit.k <- with(train.data,eval(f$call))
-          val.data <- data[id,,drop=FALSE]
-        if (is.null(model.args[[f]])){
-            p.group <- predictSurvProb(fit.k,newdata=val.data,times=times,train.data=train.data)
-          }
-          else{
-            p.group <- do.call("predictSurvProb",c(list(object=fit.k,newdata=val.data,times=times,train.data=train.data),model.args[[f]]))
-          }
-          if(is.null(dim(p.group))) p.group <- do.call("rbind",lapply(1:NROW(val.data),function(x){p.group}))
-          p.group
-        }))
-        pred.b <- pred.b[order(order(groups)),]
-        innerCrossValErr <- .C("pec",
-                               pec=double(NT),
-                               as.double(Y),
-                               as.double(status),
-                               as.double(times),
-                               as.double(pred.b),
-                               as.double(wt),
-                               as.double(wt.obs),
-                               as.integer(N),
-                               as.integer(NT),
-                               as.integer(wt.dim),
-                               as.integer(NCOL(pred.b)>1),
-                               NAOK=TRUE,
-                               PACKAGE="pec")$pec
-        innerCrossValErr
-      }))
-      if (na.accept>0)
-        CrossValErr <- apply(CrossValErrMat,1,function(b) mean(b,na.rm=sum(is.na(b))<na.accept))
-      else
-        CrossValErr <- rowMeans(CrossValErrMat)
-    }
-    if (replan$internal.name %in% c("boot632plus","outofbag","boot632")){
-      
-      # OutOfBagError aka BootstrapCrossValidationError
-      # --------------------------------------------------------------------
-      compute.OutOfBagErrMat <- lapply(1:B,function(b){
-        if (verbose==TRUE) internalTalk(b,B)
-        vindex.b <- match(1:N,ResampleIndex[,b],nomatch=0)==0
-        val.b <- data[vindex.b,,drop=FALSE]
-        train.b <- data[ResampleIndex[,b],,drop=FALSE]
-        if (wt.dim==1) wt.b <- wt[vindex.b,] else wt.b <- wt
-        fit.b <- internalReevalFit(object=fit,
-                                   data=train.b,
-                                   step=b,
-                                   silent=na.accept>0,
-                                   verbose=verbose)
-        if (!is.null(extract)) fit.parms <- fit.b[extract]
-        else fit.parms <- NULL
-        if (is.null(fit.b)){
-          failed <- "fit"
-          innerOutOfBagErr <- rep(NA,NT)
+      names(NoInfErr) <- names(object)
+    }else{
+      if (verbose==TRUE){
+        message("Noinformation error simulation loop (B=",B,")")
+      }
+      NoInfErrList <- lapply(1:B,function(b){
+        if (verbose==TRUE){
+          internalTalk(b,B,sign=".")
         }
-        else{
-          if (is.null(model.args[[f]])){
-            try2predict <- try(pred.b <- predictSurvProb(fit.b,newdata=val.b,times=times,train.data=train.b),silent=na.accept>0)
+        responseNames <- colnames(response)
+        noinf.b <- data[sample(1:NROW(data),replace=FALSE),-match(responseNames,names(data))]
+        noinf.b[,responseNames] <- response
+        ipcw.b <- ipcw(formula=formula,data=noinf.b,method=cens.model,times=times,subjectTimes=Y,subjectTimesLag=1)
+        noinfPredErr <- lapply(1:NF,function(f){
+          fit.b <- internalReevalFit(object=object[[f]],data=noinf.b,step=b,silent=FALSE,verbose=verbose)
+          fit.b$call <- object[[f]]$call
+          extraArgs <- model.args[[f]]
+
+          pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data),extraArgs))
+          if (predictHandlerFun=="predictEventProb"){
+            pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data,cause=cause),extraArgs))
+            .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred.b),as.double(ipcw.b$IPCW.times),as.double(ipcw.b$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pec
           }
           else{
-            try2predict <- try(pred.b <- do.call("predictSurvProb",c(list(object=fit.b,newdata=val.b,times=times,train.data=train.b),model.args[[f]])))
+            pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data),extraArgs))
+            .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred.b),as.double(ipcw.b$IPCW.times),as.double(ipcw.b$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pec
           }
-          if (inherits(try2predict,"try-error")==TRUE){
-            if (verbose==TRUE) warning(paste("During bootstrapping: prediction for model ",class(fit.b)," failed in step ",b),immediate.=TRUE)
-            failed <- "prediction"
-            innerOutOfBagErr <- rep(NA,NT)
-          }
-          else{
-            failed <- NA
-            ## if (write.pred==TRUE && file.exists(write.path)){
-            ## write.table(pred.b,file=paste(write.path,"pred-oob-sample-",b,"-",names(object)[f],".txt",sep=""))
-            ## message(paste("prediction of ",names(object)[f],"for oob-sample",b,"saved"))
-            ## }
-            innerOutOfBagErr <- .C("pec",pec=double(NT),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(times),as.double(pred.b),as.double(wt.b),as.double(wt.obs[vindex.b]),as.integer(sum(vindex.b)),as.integer(NT),as.integer(wt.dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pec
-          }
-        }
-        list("innerOutOfBagErr"=innerOutOfBagErr,"fit.parms"=fit.parms,"failed"=failed)
+        })
+        noinfPredErr
       })
-      if (verbose==TRUE) cat("\n")
-      if (!is.null(extract)) fitParms <- lapply(compute.OutOfBagErrMat,function(x)x$fit.parms)
-      failed <- na.omit(sapply(compute.OutOfBagErrMat,function(x)x$failed))
-      OutOfBagErrMat <- do.call("cbind",lapply(compute.OutOfBagErrMat,function(x)x$innerOutOfBagErr))
-      if (na.accept>0)
-        OutOfBagErr <- apply(OutOfBagErrMat,1,function(b) mean(b,na.rm=sum(is.na(b))<na.accept))
-      else
-        OutOfBagErr <- rowMeans(OutOfBagErrMat)
+      NoInfErrMat <- lapply(1:NF,function(f){
+        do.call("rbind",lapply(NoInfErrList,function(x){
+          x[[f]]
+        }))})
+      NoInfErr <- lapply(NoInfErrMat,colMeans)
+      names(NoInfErr) <- names(object)
     }
-    # Bootstrap .632
-    # --------------------------------------------------------------------
-    if (replan$internal.name=="boot632"){
-      B632Err <- .368 * AppErr + .632 * OutOfBagErr
+  }
+  # }}}
+  # {{{--------------k-fold and leave-one-out CrossValidation-----------------------
+  
+  if (splitMethod$internal.name %in% c("crossval","loocv")){
+    kCV <- kFoldCrossValidation(object=object,data=data,Y=Y,status=status,event=event,times=times,cause=cause,ipcw=ipcw,splitMethod=splitMethod,giveToModel=model.args,predictHandlerFun=predictHandlerFun,keep=keep.matrix,verbose=verbose)
+    CrossValErr <- kCV$CrossValErr
+    if (keep.matrix && B>1)
+      CrossValErrMat <- kCV$CrossValErrMat
+  }
+
+  # }}}
+  # {{{ ----------------------BootstrapCrossValidation----------------------
+
+  if (splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632")){
+    if (verbose==TRUE){
+      message("Split sample loop (B=",B,")")
     }
-    # Bootstrap .632+
-    # --------------------------------------------------------------------
-    if (replan$internal.name=="boot632plus"){
-      Err1 <- pmin(OutOfBagErr,NoInfErr)
-      overfit <- (Err1 - AppErr) / (NoInfErr - AppErr)
-      overfit[!(Err1>AppErr)] <- 0
+    if (missing(testTimes)){
+      testTimes <- NULL
+    }
+    BootCv <- bootstrapCrossValidation(object=object,data=data,Y=Y,status=status,event=event,times=times,cause=cause,ipcw=ipcw,ipcw.refit=ipcw.refit,ipcw.call=ipcw.call,splitMethod=splitMethod,multiSplitTest=multiSplitTest,testIBS=testIBS,testTimes=testTimes,confInt=confInt,confLevel=confLevel,getFromModel=model.parms,giveToModel=model.args,predictHandlerFun=predictHandlerFun,keepMatrix=keep.matrix,keepResiduals=keep.residuals,verbose=verbose,savePath=savePath)
+    BootstrapCrossValErr <- BootCv$BootstrapCrossValErr
+    Residuals <- BootCv$Residuals
+    names(BootstrapCrossValErr) <- names(object)
+    if (multiSplitTest==TRUE){
+      comparisons <- allComparisons(names(object))
+      multiSplitTestResults <- list(testIBS=testIBS,B=B,M=M,N=N,testTimes=testTimes)
+      multiSplitTestResults$Comparisons <- lapply(1:length(comparisons),function(cc){
+        if (length(testTimes)>0){
+          allPairwisePvaluesTimes <- do.call("rbind",lapply(BootCv$testedResid,function(b){
+            b$pValue[[cc]]}))
+          out <- list(pValueTimes=apply(allPairwisePvaluesTimes,2,median))
+          if (keep.pvalues==TRUE){
+            out$allPairwisePvaluesTimes <- allPairwisePvaluesTimes
+          }
+        }
+        else out <- NULL
+        if(length(testIBS)>0){
+          allPairwisePvaluesIBS <- sapply(BootCv$testedResid,function(b){
+            b$IBSpValue[[cc]]
+          })
+          out$pValueIBS <- median(allPairwisePvaluesIBS)
+        }
+        if (keep.pvalues==TRUE){
+          out$allPairwisePvaluesIBS <- allPairwisePvaluesIBS}
+        out
+      })
+      names(multiSplitTestResults$Comparisons) <- names(comparisons)
+      ## multiSplitTest$splitMethod <- splitMethod
+      class(multiSplitTestResults) <- "multiSplitTest"
+    }
+    ## upperLimits <- lapply(BootCv$testedResid,function(x){x[,1:length(testTimes)]})
+    ##     if (testIBS==TRUE){
+    ##       wtestIBSpValues <- do.call("cbind",apply(BootCv$testedResid,function(x){x[,length(testTimes)+1]}))
+    ##     }
+    ## wtestIBSupper <- BootCv$testedResid$wtestIBSupper
+    ##   }
+    if (keep.matrix==TRUE){
+      BootstrapCrossValErrMat <- BootCv$BootstrapCrossValErrMat
+      names(BootstrapCrossValErr) <- names(object)
+    }
+  }
+
+  # }}}
+  # {{{ Bootstrap .632
+  if (splitMethod$internal.name=="Boot632"){
+    B632Err <- lapply(1:NF,function(f){
+      .368 * AppErr[[f]] + .632 * BootstrapCrossValErr[[f]]
+    })
+    names(B632Err) <- names(object)
+  }
+  # }}}    
+  # {{{ Bootstrap .632+
+
+  if (splitMethod$internal.name=="Boot632plus"){
+    B632plusErr <- lapply(1:NF,function(f){
+      Err1 <- pmin(BootstrapCrossValErr[[f]],NoInfErr[[f]])
+      overfit <- (Err1 - AppErr[[f]]) / (NoInfErr[[f]] - AppErr[[f]])
+      overfit[!(Err1>AppErr[[f]])] <- 0
       w <- .632 / (1 - .368 * overfit)
-      B632plusErr <- (1-w) * AppErr  + w * Err1
-      ## w[NoInfErr<=OutOfBagErr] <- 1
-      ## B632plus.error <- (1-w) * AppErr  + w * OutOfBagErr
-    }
-    if (length(k)>0){
-      out <- list("PredErr"=CrossValErr,"AppErr"=AppErr)
-      if (keep.matrix==TRUE)
+      B632plusErr <- (1-w) * AppErr[[f]]  + w * Err1
+      B632plusErr
+      ## w[NoInfErr<=BootstrapCrossValErr] <- 1
+      ## B632plus.error <- (1-w) * AppErr  + w * BootstrapCrossValErr
+    })
+    names(B632plusErr) <- names(object)
+  }
+
+  # }}}
+  # {{{ prepare output
+
+  out <- switch(splitMethod$internal.name,
+                "noPlan"=list("AppErr"=AppErr),
+                "Boot632plus"=list("AppErr"=AppErr,"BootCvErr"=BootstrapCrossValErr,"NoInfErr"=NoInfErr,"Boot632plusErr"=B632plusErr),
+                "Boot632"=list("AppErr"=AppErr,"BootCvErr"=BootstrapCrossValErr,"Boot632Err"=B632Err),
+                "BootCv"=list("AppErr"=AppErr,"BootCvErr"=BootstrapCrossValErr),
+                "loocv"=list("AppErr"=AppErr,"loocvErr"=CrossValErr),
+                "crossval"=list("AppErr"=AppErr,"crossvalErr"=CrossValErr),
+                "noinf"=list("AppErr"=AppErr,"NoInfErr"=NoInfErr))
+  observed.maxtime <- sapply(out,function(x){
+    ## lapply(x,function(y){times[length(y)-sum(is.na(y))-1]})
+    lapply(x,function(y){times[length(y)-sum(is.na(y))]})
+  })
+  minmaxtime <- min(unlist(observed.maxtime))
+  if (multiSplitTest==TRUE){
+    out <- c(out,list(multiSplitTest=multiSplitTestResults))
+  }
+  if (keep.residuals==TRUE){
+    out <- c(out,list(Residuals=Residuals))
+  }
+  if (keep.matrix==TRUE && splitMethod$internal.name!="noPlan"){
+    if (splitMethod$internal.name %in% c("crossval","loocv")){
+      if (B>1)
         out <- c(out,list("CrossValErrMat"=CrossValErrMat))
     }
     else{
-      out <- switch(replan$internal.name,
-                    "noPlan"=list("PredErr"=AppErr),
-                    "plain"=list("PredErr"=BootErr,"AppErr"=AppErr),
-                    "boot632plus"=list("AppErr"=AppErr,"OutOfBagErr"=OutOfBagErr,"NoInfErr"=NoInfErr,"weight"=w,"overfit"=overfit,"PredErr"=B632plusErr),
-                    "boot632"=list("AppErr"=AppErr,"OutOfBagErr"=OutOfBagErr,"PredErr"=B632Err),
-                    "outofbag"=list("AppErr"=AppErr,"PredErr"=OutOfBagErr),
-                    "noinf"=list("AppErr"=AppErr,"PredErr"=NoInfErr))
-      if (keep.matrix==TRUE && replan$internal.name!="no"){
-        if (replan$internal.name=="plain") out <- c(out,"BootErrMat"=BootErrMat)
-        else if (replan$internal.name!="noinf") out <- c(out,list("OutOfBagErrMat"=OutOfBagErrMat))
-      }
+      if (splitMethod$internal.name!="noinf")
+        out <- c(out,list("BootstrapCrossValErrMat"=BootstrapCrossValErrMat))
     }
-    if (!is.na(fillChar))
-      out <- lapply(out,function(o){
-        o[is.na(o)] <- fillChar
-        o
-      })
-    if (!is.null(extract)) out <- c(out,list("fitParms"=fitParms))
-    if (na.accept>0) out <- c(out,list("failed"=failed))
-    out
-  })
+  }
+  if (!is.na(fillChar))
+    out <- lapply(out,function(o){
+      o[is.na(o)] <- fillChar
+      o
+    })
+  if (!is.null(model.parms))
+    out <- c(out,list("ModelParameters"=BootCv$ModelParameters))
   
-  names.lout <- names(list.out[[1]])
-  out <- lapply(names.lout,function(w){
-    e <- lapply(list.out,function(x){x[[w]]})
-    names(e) <- names(object)
-    e
-  })
-  names(out) <- names.lout
-  
-  ## data.frame(matrix(unlist(lapply(list.out,function(x){x[[w]]})),ncol=length(fit.out),nrow=NT,dimnames=list(times,names(object))))
-  ##   PredErr <- pec$PredErr
-  ##   names(PredErr) <- names(object)
   n.risk <- N - sindex(Y,times)
   
+  if (!keep.index) splitMethod$index <- NULL
+
+  # }}}
+  # {{{ put out
+  if(keep.models==TRUE)
+    outmodels <- object
+  else if (keep.models=="Call"){
+    outmodels <- lapply(object,function(o){
+      cc <- try(o$call,silent=TRUE)
+      if(class(cc)=="try-error")
+        class(object)
+      else
+        cc
+    })
+    names(outmodels) <- names(object)
+  }
+  else{
+    outmodels <- names(object)
+    names(outmodels) <- names(object)
+  }
   out <- c(out,
-           list(call=match.call(),
+           list(call=theCall,
+                response=model.response(m),
                 time=times,
                 ipcw.fit=ipcw$fit,
                 n.risk=n.risk,
-                models=object,
+                models=outmodels,
                 maxtime=maxtime,
+                observed.maxtime=observed.maxtime,
+                minmaxtime=minmaxtime,
+                reference=reference,
                 start=min(times),
                 cens.model=cens.model,
                 exact=exact,
-                method=replan))
-
-  ##   if(length(pec)>1) out <- c(out,pec[-match("PredErr",names(pec))])
-  if (verbose==TRUE) cat("\n")
+                splitMethod=splitMethod))
+  ##   if (verbose==TRUE && splitMethod$internal.name %in% c("BootCv","Boot632","Boot632plus","crossval","loocv")) cat("\n")
   class(out) <- "pec"
   out
+
+  # }}}
 }
+
 
 pec.glm <- function(object,...){
   f <- eval(object$call$formula)
