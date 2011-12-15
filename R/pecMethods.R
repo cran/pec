@@ -259,7 +259,21 @@ pec.list <- function(object,
     if (predictHandlerFun=="predictEventProb"){
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data,cause=cause),extraArgs))
       ## if (f==2) browser()
-      .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred)>1),NAOK=TRUE,PACKAGE="pec")$pec
+      .C("pecCR",
+         pec=double(NT),
+         as.double(Y),
+         as.double(status),
+         as.double(event),
+         as.double(times),
+         as.double(pred),
+         as.double(ipcw$IPCW.times),
+         as.double(ipcw$IPCW.subjectTimes),
+         as.integer(N),
+         as.integer(NT),
+         as.integer(ipcw$dim),
+         as.integer(NCOL(pred)>1),
+         NAOK=TRUE,
+         PACKAGE="pec")$pec
     }
     else{
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
@@ -301,7 +315,7 @@ pec.list <- function(object,
         ipcw.b <- ipcw(formula=formula,data=noinf.b,method=cens.model,times=times,subjectTimes=Y,subjectTimesLag=1)
         noinfPredErr <- lapply(1:NF,function(f){
           fit.b <- internalReevalFit(object=object[[f]],data=noinf.b,step=b,silent=FALSE,verbose=verbose)
-          fit.b$call <- object[[f]]$call
+          ## fit.b$call <- object[[f]]$call
           extraArgs <- model.args[[f]]
 
           pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data),extraArgs))
@@ -336,7 +350,6 @@ pec.list <- function(object,
 
   # }}}
   # {{{ ----------------------BootstrapCrossValidation----------------------
-
   if (splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632")){
     if (verbose==TRUE){
       message("Split sample loop (B=",B,")")

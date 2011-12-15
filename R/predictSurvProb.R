@@ -14,8 +14,9 @@ predictSurvProb.numeric <- function(object,newdata,times,...){
 }
 
 predictSurvProb.matrix <- function(object,newdata,times,...){
-  if (NROW(object) != NROW(newdata) || NCOL(object) != length(times))
-    stop("Prediction failed")
+  if (NROW(object) != NROW(newdata) || NCOL(object) != length(times)){
+    stop(paste("Prediction matrix has wrong dimensions: ",NROW(object)," rows and ",NCOL(object)," columns.\n But requested are predicted probabilities for ",NROW(newdata), " subjects (rows) in newdata and ",NCOL(newdata)," time points (columns)",sep=""))
+  }
   object
 }
 
@@ -68,7 +69,7 @@ predictSurvProb.cox.aalen <- function(object,newdata,times,...){
   time.vars <- cbind(1,newdata[,names(time.coef)[-(1:2)],drop=FALSE])
   nobs <- nrow(newdata)
   time.part <- .C("survest_cox_aalen",timehazard=double(ntime*nobs),as.double(unlist(time.coef[,-1])),as.double(unlist(time.vars)),as.integer(ntimevars+1),as.integer(nobs),as.integer(ntime),PACKAGE="pec")$timehazard
-  time.part <- matrix(time.part,
+    time.part <- matrix(time.part,
                       ncol=ntime,
                       nrow=nobs,
                       dimnames=list(1:nobs,paste("TP",1:ntime,sep="")))
@@ -123,7 +124,11 @@ predictSurvProb.rpart <- function(object,newdata,times,train.data,...){
 
 
 predictSurvProb.coxph <- function(object,newdata,times,...){
+
+  ## baselineHazard.coxph(object,times)
   ## require(survival)
+  ## new feature of the survival package requires that the
+  ## original data are included
   survival.survfit.coxph <- getFromNamespace("survfit.coxph",ns="survival")
   survival.summary.survfit <- getFromNamespace("summary.survfit",ns="survival")
   survfit.object <- survival.survfit.coxph(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
@@ -304,6 +309,16 @@ predictSurvProb.phnnet <- function(object,newdata,times,train.data,...){
   p
 }
 
+
+predictSurvProb.riskRegression <- function(object,newdata,times,...){
+  if (missing(times))stop("Argument times is missing")
+  temp <- predict(object,newdata=newdata)
+  p <- 1-temp$cuminc
+  pos <- sindex(jump.times=temp$time,eval.times=times)
+  cbind(1,p)[,pos+1,drop=FALSE]
+}
+
+
 # methods for uncensored regression
 # --------------------------------------------------------------------
 
@@ -353,6 +368,8 @@ predictProb.randomForest <- function(object,newdata,times,...){
     stop("Prediction failed")
   p
 }
+
+
 
 
 

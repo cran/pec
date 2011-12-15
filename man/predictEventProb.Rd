@@ -1,8 +1,8 @@
 \name{predictEventProb}
 \alias{predictEventProb}
-\alias{predictEventProb.cumincCox}
-\alias{predictEventProb.CRR}
-\alias{predictEventProb.compRisk}
+\alias{predictEventProb.CauseSpecificCox}
+\alias{predictEventProb.riskRegression}
+\alias{predictEventProb.FGR}
 \alias{predictEventProb.prodlim}
 \title{
 Predicting event probabilities (cumulative incidences) in competing risk models.
@@ -19,10 +19,10 @@ Predicting event probabilities (cumulative incidences) in competing risk models.
 }
 \usage{
 predictEventProb(object, newdata, times, cause, ...)
-\method{predictEventProb}{cumincCox}(object, newdata, times, cause, ...)
-\method{predictEventProb}{CRR}(object, newdata, times, cause, ...)
+\method{predictEventProb}{CauseSpecificCox}(object, newdata, times, cause, ...)
+\method{predictEventProb}{riskRegression}(object, newdata, times, cause, ...)
+\method{predictEventProb}{FGR}(object, newdata, times, cause, ...)
 \method{predictEventProb}{prodlim}(object, newdata, times, cause, ...)
-\method{predictEventProb}{compRisk}(object, newdata, times, cause, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

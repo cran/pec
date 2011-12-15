@@ -258,7 +258,7 @@ pseudoPec.list <- function(object,
         noinf.b[,responseNames] <- response
         noinfPredErr <- lapply(1:NF,function(f){
           fit.b <- internalReevalFit(object=object[[f]],data=noinf.b,step=b,silent=FALSE,verbose=verbose)
-          fit.b$call <- object[[f]]$call
+          ## fit.b$call <- object[[f]]$call
           extraArgs <- model.args[[f]]
           pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data),extraArgs))
           if (predictHandlerFun=="predictEventProb")

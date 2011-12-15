@@ -61,12 +61,8 @@ CindexBootstrapCrossValidation <- function(object,
     # }}}
     # {{{ Building the models in training data
     trainModels <- lapply(1:NF,function(f){
-      fit.b <- internalReevalFit(object=object[[f]],
-                                 data=train.b,
-                                 step=b,
-                                 silent=FALSE,
-                                 verbose=verbose)
-      fit.b$call <- object[[f]]$call
+      fit.b <- internalReevalFit(object=object[[f]],data=train.b,step=b,silent=FALSE,verbose=verbose)
+      ## fit.b$call <- object[[f]]$call
       fit.b
     })
     # }}}

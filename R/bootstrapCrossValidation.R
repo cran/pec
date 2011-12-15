@@ -59,7 +59,18 @@ bootstrapCrossValidation <- function(object,
     # {{{ Building the models in training data
     trainModels <- lapply(1:NF,function(f){
       fit.b <- internalReevalFit(object=object[[f]],data=train.b,step=b,silent=FALSE,verbose=verbose)
-      fit.b$call <- object[[f]]$call
+      ## this was a good idea to reduce the memory usage:
+      ## fit.b$call <- object[[f]]$call
+      ## fit.b$call <- NULL
+      ## however, it does not work with the new version of the survival package
+      ## in which the survfit.coxph function checks the response 'y'
+      ## next try
+      ## print("before")
+      ## print(object.size(fit.b))
+      ## print("after")
+      ## browser()
+      ## fit.b$call$data <- substitute(train.b)
+      ## print(object.size(fit.b))
       fit.b
     })
     # }}}
@@ -93,7 +104,11 @@ bootstrapCrossValidation <- function(object,
         try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=times,cause=cause,train.data=train.b),extraArgs)))
       }
       else{
-        try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=times,train.data=train.b),extraArgs)))
+        try2predict <- try(pred.b <- do.call(predictHandlerFun,
+                                             c(list(object=fit.b,
+                                                    newdata=val.b,
+                                                    times=times,
+                                                    train.data=train.b),extraArgs)))
       }
       if (inherits(try2predict,"try-error")==TRUE){
         if (verbose==TRUE) warning(paste("During bootstrapping: prediction for model ",class(fit.b)," failed in step ",b),immediate.=TRUE)

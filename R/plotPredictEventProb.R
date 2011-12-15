@@ -1,18 +1,20 @@
 plotPredictEventProb <- function(x,
-                                newdata,
-                                times,
-                                xlim,
-                                ylim,
-                                xlab,
-                                ylab,
-                                axes=TRUE,
-                                col,
-                                lty,
-                                lwd,
-                                add=FALSE,
-                                legend=TRUE,
-                                percent=FALSE,
-                                ...){
+                                 newdata,
+                                 times,
+                                 cause=1,
+                                 xlim,
+                                 ylim,
+                                 xlab,
+                                 ylab,
+                                 axes=TRUE,
+                                 col,
+                                 density,
+                                 lty,
+                                 lwd,
+                                 add=FALSE,
+                                 legend=TRUE,
+                                 percent=FALSE,
+                                 ...){
   # {{{ call argument
 
   allArgs <- match.call()
@@ -40,9 +42,10 @@ plotPredictEventProb <- function(x,
 
   # }}}
   # {{{ newdata
-
-  if(missing(newdata))
-    stop("newdata argument is missing")
+  if(missing(newdata)){
+    newdata <- eval(x$call$data)
+  }
+  ## stop("newdata argument is missing")
 
   # }}}
   # {{{ xlim, ylim
@@ -54,8 +57,11 @@ plotPredictEventProb <- function(x,
   
   # }}}  
   # {{{ predict newdata at times
-
-  y <- predictEventProb(x, newdata=newdata, times=orig.X)
+  
+  y <- predictEventProb(object=x,
+                        newdata=newdata,
+                        times=orig.X,
+                        cause=cause)
   
   # }}}
   # {{{  plot arguments
@@ -66,7 +72,22 @@ plotPredictEventProb <- function(x,
   if (missing(xlab)) xlab <- "Time"
   if (missing(ylim)) ylim <- c(0, 1)
   if (missing(lwd)) lwd <- rep(3,nlines)
-  if (missing(col)) col <- 1:nlines
+  if (missing(col)) col <- rep(1,nlines)
+  if (missing(density)){
+    if (nlines>5){
+      density <- pmax(33,100-nlines)
+    }
+    else density <- 100
+  }
+  print(density)
+  if (density<100){
+    col <- sapply(col,function(coli){
+      ccrgb=as.list(col2rgb(coli,alpha=TRUE))
+      names(ccrgb) <- c("red","green","blue","alpha")
+      ccrgb$alpha=density
+      cc=do.call("rgb",c(ccrgb,list(max=255)))
+    })
+  }
   if (missing(lty)) lty <- rep(1, nlines)
   if (length(lwd) < nlines) lwd <- rep(lwd, nlines)
   if (length(lty) < nlines) lty <- rep(lty, nlines)
@@ -97,7 +118,7 @@ plotPredictEventProb <- function(x,
   
   # }}}
   # {{{ smart controls
- 
+
   if (match("legend.args",names(args),nomatch=FALSE)){
     legend.DefaultArgs <- c(args[[match("legend.args",names(args),nomatch=FALSE)]],legend.DefaultArgs)
     legend.DefaultArgs <- legend.DefaultArgs[!duplicated(names(legend.DefaultArgs))]

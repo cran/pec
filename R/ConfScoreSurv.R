@@ -39,9 +39,9 @@ ConfScoreSurv <- function(object,
     d <- data[ResampleIndex[,b],,drop=FALSE]
     for (j in 1:NF){
       model <- object[[j]]
-      fit.b <- pec:::internalReevalFit(model,data=d,silent=FALSE)
-      fit.b$call <- NULL
-      gc()
+      fit.b <- internalReevalFit(model,data=d,silent=FALSE)
+      ## fit.b$call <- NULL
+      ## gc()
       if (predTestSet==TRUE){
         vindex.b <- match(1:NTEST,unique(ResampleIndex[,b]),nomatch=0)==0
         newdata <- data[vindex.b,,drop=FALSE]

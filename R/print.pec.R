@@ -49,10 +49,7 @@
   tnames <- paste("time=",round(times,1),sep="")
   tnames[times<1] <- paste("time=",signif(times[times<1],2),sep="")
   cat("\nCumulative prediction error, aka Integrated Brier score  (IBS)\n aka Cumulative rank probability score\n\nRange of integration:",x$start,"and",tnames,":\n\n")
-  out <- crps(object=x,
-              times=times,
-              start=x$start,
-              what=what)
+  out <- crps(object=x,times=times,start=x$start,what=what)
   if (is.matrix(out))
     print(out,digits=digits,quote=FALSE)
   else{

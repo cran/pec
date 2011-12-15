@@ -1,13 +1,14 @@
-\name{plotPredictSurvProb}
-\alias{plotPredictSurvProb}
+\name{plotPredictEventProb}
+\alias{plotPredictEventProb}
 \title{ Plotting predicted survival curves.}
 \description{
-  Ploting prediction survival curves for one prediction model using \code{predictSurvProb} . 
+  Ploting time-dependent event risk predictions.
 }
 \usage{
-plotPredictSurvProb(x,
+plotPredictEventProb(x,
           newdata,
           times,
+          cause=1,
           xlim,
           ylim,
           xlab,
@@ -24,12 +25,15 @@ plotPredictSurvProb(x,
 }
 
 \arguments{
-  \item{x}{ A survival prediction model including \code{call} and \code{formula} object.
+  \item{x}{ Object specifying an event risk prediction model.
   }
   \item{newdata}{ A data frame with the same variable names as those that
     were used to fit the model \code{x}.
   }
   \item{times}{ Vector of times at which to return the estimated probabilities.
+  }
+  \item{cause}{Show predicted risk of
+    events of this cause
   }
   \item{xlim}{ Plotting range on the x-axis.
   }
@@ -72,7 +76,7 @@ plotPredictSurvProb(x,
   for the time axis whereas \code{axis2.pos}, \code{axis1.labels}, etc.
   are used for the y-axis.
 
-  These arguments are processed via  \code{\dots} of \code{plotPredictSurvProb}
+  These arguments are processed via  \code{\dots} of \code{plotPredictEventProb}
   and inside by using the function \code{SmartControl}.
 }
 
@@ -80,22 +84,10 @@ plotPredictSurvProb(x,
   The (invisible) object.
 }
 \author{Ulla B. Mogensen  \email{ulmo@biostat.ku.dk}, Thomas A. Gerds \email{tag@biostat.ku.dk} }
-\seealso{{\code{\link{predictSurvProb}}}{\code{\link{prodlim}}}}
+\seealso{{\code{\link{predictEventProb}}}{\code{\link{prodlim}}}}
 
 \examples{
-# generate some survival data
-d <- SimSurv(100)
-# then fit a Cox model 
-coxmodel <- cph(Surv(time,status)~X1+X2,data=d,surv=TRUE)
-# plot predicted survival probabilities for all time points
-ttt <- sort(unique(d$time))
-# and for selected predictor values:
- ndat <- data.frame(X1=c(0.25,0.25,-0.05,0.05),X2=c(0,1,0,1))
-plotPredictSurvProb(coxmodel,newdata=ndat,times=ttt)
 
-# the same can be done e.g. for a randomSurvivalForest model
-library(randomSurvivalForest)
-rsfmodel <- rsf(Survrsf(time,status)~X1+X2,data=d)
-plotPredictSurvProb(rsfmodel,newdata=ndat,times=ttt)
+# generate some competing risk data
 }
 \keyword{survival}

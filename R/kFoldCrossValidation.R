@@ -27,7 +27,6 @@ kFoldCrossValidation <- function(object,
     ## the prediction `p[i]' is obtained with the reduced data
     if (k==N-1) k <- N
     subjectPred <- lapply(1:k,function(g){
-      ## print(g)
       internalTalk(g,k)
       # {{{ training and validation data
       id <- groups==g
@@ -37,20 +36,27 @@ kFoldCrossValidation <- function(object,
       # {{{ Building the models in training data
       trainModels <- lapply(1:NF,function(f){
         fit.k <- internalReevalFit(object=object[[f]],data=train.k,step=paste("CV group=",k),silent=FALSE,verbose=verbose)
-        fit.k$call <- object[[f]]$call
+        ## this was a good idea to reduce the memory usage:
+        ## fit.k$call <- object[[f]]$call
+        ## fit.k$call <- NULL
+        ## however, it does not work with the new version of the survival package
+        ## in which the survfit.coxph function checks the response 'y'
+        fit.k$call$data <- substitute(train.k)
         fit.k
       })
       # }}}
       # {{{ Predicting the validation data
-      
       modelPred <- lapply(1:NF,function(f){
         fit.k <- trainModels[[f]]
         extraArgs <- giveToModel[[f]]
         if (predictHandlerFun == "predictEventProb"){      
-          p.group <- do.call(predictHandlerFun,c(list(object=fit.k,newdata=val.k,times=times,cause=cause,train.k=train.k),extraArgs))
+          p.group <- do.call(predictHandlerFun,c(list(object=fit.k,newdata=val.k,times=times,cause=cause,train.data=train.k),extraArgs))
         }
         else{
-          p.group <- do.call(predictHandlerFun,c(list(object=fit.k,newdata=val.k,times=times,train.k=train.k),extraArgs))
+          p.group <- do.call(predictHandlerFun,c(list(object=fit.k,
+                                                      newdata=val.k,
+                                                      times=times,
+                                                      train.data=train.k),extraArgs))
         }
         if(is.null(dim(p.group))) p.group <- do.call("rbind",lapply(1:NROW(val.k),function(x){p.group}))
         p.group

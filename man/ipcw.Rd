@@ -56,8 +56,9 @@ ipcw(formula,
   estimates the conditional survival
   function of the censoring times and derives the weights.
   
-  Currently the data set should be order by time to get the value \code{wt.obs} in
-  the right order for some choices of \code{method}!
+  IMPORTANT: the data set should be ordered, \code{order(time,-status)}
+  in order to get the values \code{IPCW.subjectTimes} in
+  the right order for some choices of \code{method}.
 }
 \value{
   \item{times}{The times at which weights are estimated}
