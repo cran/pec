@@ -33,7 +33,7 @@ predictEventProb.FGR <- function(object,newdata,times,cause,...){
 predictEventProb.riskRegression <- function(object,newdata,times,cause,...){
   if (missing(times))stop("Argument times is missing")
   temp <- predict(object,newdata=newdata,times=times)
-  p <- temp$cuminc
+  p <- temp$risk
   pos <- sindex(jump.times=temp$time,eval.times=times)
   cbind(0,p)[,pos+1,drop=FALSE]
 }

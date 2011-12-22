@@ -1,4 +1,4 @@
-0c6f9f4a5788534ddbf69632130fc3e9 *DESCRIPTION
+db62d9f3e0950ce598601f181d5e651f *DESCRIPTION
 477a339e0daf31295d7f41caa5c3d6d9 *NAMESPACE
 ffcae9a4338e9c40b91646d13c87da52 *R/CindexBootstrapCrossValidation.R
 0b56e93e3645402e8c42a1b892113c60 *R/ConfInt.Cindex.R
@@ -7,7 +7,7 @@ ffcae9a4338e9c40b91646d13c87da52 *R/CindexBootstrapCrossValidation.R
 75101f4ad18de16d60dd1ec81212616b *R/R2.R
 3e345d72e12dc00bb37e30212410848f *R/Special.R
 252760686d668dfef5b4ae18f4904527 *R/allComparisons.R
-e74358db18eb06819202f48596ad08a1 *R/baselineHazard.coxph.R
+ba44d73411fba621c31d1570526a4af5 *R/baselineHazard.coxph.R
 d259dededed9b6c6b1fa77c742b4dbab *R/bootstrapCrossValidation.R
 99a58921d9bb2e4f9423ff6b472d7e97 *R/calPlot.R
 9d4684755ef1c04faec9a4e7bc538e3c *R/checkModels.R
@@ -18,18 +18,18 @@ d88a201572688988db7ee208cfcc17ed *R/crps.R
 161e4983351dfa525f3123222b46225a *R/ipcw.R
 153865c192a1440995cefd67b137f29a *R/kFoldCrossValidation.R
 e98aed97a63f4718644437443a0f124b *R/marginal.prodlim.R
-079aaf40a27d8186f186ea00a93ea313 *R/pecMethods.R
+037fca88f386a9f476adb2cfb7255f1d *R/pecMethods.R
 a433f95275ab629c1e67ee109f3d71a5 *R/plot.CiCindex.R
 7b3582b8e4827376c548c8729514d787 *R/plot.Cindex.R
 fde1c820e9838b6e6d21e8f98bbb53db *R/plot.confScoreSurv.R
 88b5bc2196efbbc77ab5e77a3ef6316f *R/plot.pec.R
-b229c660e9621ad817e075b0ef83eb96 *R/plotPredictEventProb.R
+e20141e8dae00d766310011e42a0ee84 *R/plotPredictEventProb.R
 b12cad7f455cf3f08b9319cd28cd6d2a *R/plotPredictSurvProb.R
 bc568ec8627d56bdce1ef14c9dcd10df *R/ppp.R
-7ecc7025067eb4312772b29276d503b9 *R/predictEventProb.R
+f718726604b11d63880ca55e81e14e5c *R/predictEventProb.R
 b501aedba05fc503133c3e304ba54d5c *R/predictEventProb.rsf.R
 f9ac8d85a398792c4712465c67f0fc3a *R/predictSurvProb.FastBw.R
-71797142df514527711c93dc50ade0fc *R/predictSurvProb.R
+beeda62c373a11fc935f4d5ab3881e66 *R/predictSurvProb.R
 092884df062d726f395c6e7bd0fb7378 *R/predictSurvProb.cforest.R
 b49ce8ec509772009f55b256254e3662 *R/predictSurvProb.ctree.R
 10f80a21d28d4195fba3b04878ba7651 *R/predictSurvProb.penfitS3.R

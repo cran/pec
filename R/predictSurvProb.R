@@ -124,7 +124,6 @@ predictSurvProb.rpart <- function(object,newdata,times,train.data,...){
 
 
 predictSurvProb.coxph <- function(object,newdata,times,...){
-
   ## baselineHazard.coxph(object,times)
   ## require(survival)
   ## new feature of the survival package requires that the

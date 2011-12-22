@@ -115,7 +115,7 @@ pec.list <- function(object,
 
   # }}}
   # {{{ prediction models
-  if (reference==TRUE) {
+if (reference==TRUE) {
     ProdLimform <- reformulate("1",response=formula[[2]])
     ## environment(ProdLimform) <- NULL
     ProdLimfit <- prodlim(ProdLimform,data)

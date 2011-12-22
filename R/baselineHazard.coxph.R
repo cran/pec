@@ -10,10 +10,11 @@ baselineHazard.coxph <- function(object,x,y,times=NULL){
       object$strata <- NULL
       baselineHazard.coxph(object=object,times=times)
     }))}
+  browser()
   beta <- coef(object)
   if (missing(x)) x <- object$x
   if (missing(y)) y <- object$y
-  elp <- exp(apply(x,1,function(y)sum(y*beta)))
+  ## elp <- exp(apply(x,1,function(y)sum(y*beta)))
   elp <- exp(x%*%beta)
   response <- unclass(object$y)
   time <- response[,1,drop=TRUE]

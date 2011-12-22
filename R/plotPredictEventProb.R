@@ -57,7 +57,6 @@ plotPredictEventProb <- function(x,
   
   # }}}  
   # {{{ predict newdata at times
-  
   y <- predictEventProb(object=x,
                         newdata=newdata,
                         times=orig.X,
@@ -79,7 +78,7 @@ plotPredictEventProb <- function(x,
     }
     else density <- 100
   }
-  print(density)
+  ## print(density)
   if (density<100){
     col <- sapply(col,function(coli){
       ccrgb=as.list(col2rgb(coli,alpha=TRUE))
