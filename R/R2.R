@@ -16,7 +16,7 @@ R2 <- function(object,
   # }}}
   # {{{ what errors
   if (missing(what) || is.null(what)){
-    what <- grep(c("Err$"),names(object),val=TRUE)
+    what <- grep(c("Err$"),names(object),value=TRUE)
   }
   # }}}
   # {{{ find the times

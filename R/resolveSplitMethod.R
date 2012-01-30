@@ -1,6 +1,6 @@
 resolvesplitMethod <- function(splitMethod,B,N,M){
   splitMethodName <- NULL
-  k <- as.numeric(substring(grep("^cv[0-9]+$",splitMethod,val=TRUE,ignore.case=TRUE),3))
+  k <- as.numeric(substring(grep("^cv[0-9]+$",splitMethod,value=TRUE,ignore.case=TRUE),3))
   if (length(k)==0) k <- NULL
   if (!is.null(k)){ ## classical cross-validation
     splitMethod <- "crossval"
@@ -14,14 +14,14 @@ resolvesplitMethod <- function(splitMethod,B,N,M){
     }
     else{
       ## some form of bootstrap
-      match.BootCv <- length(grep("boot|outofbag",splitMethod,val=FALSE,ignore.case=TRUE))>0
+      match.BootCv <- length(grep("boot|outofbag",splitMethod,value=FALSE,ignore.case=TRUE))>0
       if (match.BootCv==FALSE){
         splitMethod <- "noPlan"
         splitMethodName <- "no plan"
       }
       else{
-        match.632 <- length(grep("632",splitMethod,val=FALSE,ignore.case=TRUE))>0
-        match.plus <- length(grep("plus|\\+",splitMethod,val=FALSE,ignore.case=TRUE))>0
+        match.632 <- length(grep("632",splitMethod,value=FALSE,ignore.case=TRUE))>0
+        match.plus <- length(grep("plus|\\+",splitMethod,value=FALSE,ignore.case=TRUE))>0
         if (match.632==TRUE){
           if (match.plus==TRUE){
             splitMethod <- "Boot632plus"

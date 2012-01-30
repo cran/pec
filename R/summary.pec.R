@@ -8,7 +8,7 @@
   
   if (missing(models)) models <- names(object$models)
   if (missing(what) || is.null(what)){
-    what <- grep(c("Err$"),names(object),val=TRUE)
+    what <- grep(c("Err$"),names(object),value=TRUE)
   }
   if (print) cat("\nPrediction error curves\n\n")
   if (print) print(object$splitMethod)

@@ -2,7 +2,11 @@ cindex <- function(object,...){
   UseMethod("cindex",object=object)
 }
 # {{{ header cindex.list
-
+cindex.default <- function(object,...){
+  new.obj <- list(object)
+  names(new.obj) <- paste(class(object),"model",sep=".")
+  cindex(new.obj,...)
+}
 cindex.list <- function(object,
                         formula,
                         data,
@@ -11,6 +15,7 @@ cindex.list <- function(object,
                         cause,
                         cens.model="marginal",
                         ipcw.refit=FALSE,
+                        ipcw.limit,
                         tiedPredictionsIn=TRUE,
                         tiedOutcomeIn=TRUE,
                         tiedMatchIn=TRUE,
@@ -34,7 +39,7 @@ cindex.list <- function(object,
                         ...){
 
   # }}}
-  # {{{ checking integrity some arguments
+# {{{ checking integrity some arguments
   theCall=match.call()
   if (match("replan",names(theCall),nomatch=FALSE))
     stop("Argument name 'replan' has been replaced by 'splitMethod'.")
@@ -49,8 +54,11 @@ cindex.list <- function(object,
   stopifnot(as.numeric(tiedOutcomeIn) %in% c(0,1))
   stopifnot(as.numeric(tiedMatchIn) %in% c(0,1))
   # }}}
-  # {{{  formula
+# {{{  formula
   if (missing(formula)){
+    if (match("call",names(object[[1]]),nomatch=0)==0||is.null(object[[1]]$call$formula)){
+      stop("Formula missing and cannot borrow a formula from the first object :(")
+    }
     formula <- eval(object[[1]]$call$formula)
     if (class(formula)!="formula")
       stop("Argument formula is missing.")
@@ -70,8 +78,11 @@ cindex.list <- function(object,
       survp <- TRUE
   }
   # }}}
-  # {{{  data
+# {{{  data
   if (missing(data)){
+    if (match("call",names(object[[1]]),nomatch=0)==0||is.null(object[[1]]$call$data)){
+      stop("Data missing and cannot borrow data from the first object :(")
+    }
     data <- eval(object[[1]]$call$data)
     if (match("data.frame",class(data),nomatch=0)==0)
       stop("Argument data is missing.")
@@ -81,7 +92,7 @@ cindex.list <- function(object,
   }
 
 # }}}
-  # {{{  censoring model
+# {{{  censoring model
   
   cens.model <- match.arg(cens.model,c("cox","marginal","nonpar","aalen","none"))
   
@@ -98,6 +109,7 @@ cindex.list <- function(object,
     attr(response,"cens.type") <- "rightCensored"
     model.type <- "survival"
   }
+  censType <- attr(response,"cens.type")
   model.type <- attr(response,"model")
   if (model.type=="competing.risks"){
     predictHandlerFun <- "predictEventProb"
@@ -110,10 +122,10 @@ cindex.list <- function(object,
     predictHandlerFun <- "predictSurvProb"
   }
   if (predictHandlerFun=="predictEventProb")
-    stop("Not yet defined: cindex for competing risks")
-  # }}}
-  # {{{ prediction models
-  NF <- length(object) 
+    if (verbose==TRUE) message("Cindex for competing risks")
+    # }}}
+    # {{{ prediction models
+    NF <- length(object) 
   if (is.null(names(object)))names(object) <- sapply(object,function(o)class(o)[1])
   else{names(object)[(names(object)=="")] <- sapply(object[(names(object)=="")],function(o)class(o)[1])}
   names(object) <- make.names(names(object),unique=TRUE)
@@ -128,7 +140,13 @@ cindex.list <- function(object,
     }
     response <- response[neworder,,drop=FALSE]
     Y <- response[,"time"]
-    status <- response[,"status"]
+    if (censType=="uncensored"){
+      status <- rep(1,length(Y))
+      cens.model <- "none"
+    }
+    else{
+      status <- response[,"status"]
+    }
   }
   else{
     cens.model <- "none"
@@ -194,16 +212,48 @@ cindex.list <- function(object,
         message("No covariates  specified: cens.model coerced to \"marginal\".\n")
       cens.model <- "marginal"}
   }
-  #  weights for T_i<=T_j
-  #  FIXME: what are the correct weights??? 
-  #  FIXED: the correct weights are G(T_i|X_j) and G(T_i-|X_i)
-  if (ipcw.refit==TRUE && splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632"))
-    ipcw.call <- list(weight.i=list(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes"),
-                      weight.j=list(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=Y,subjectTimesLag=0,what="IPCW.times"))
-  else
+  if (predictHandlerFun=="predictEventProb"){
+    iFormula <- as.formula(paste("Surv(itime,istatus)","~",as.character(formula)[[3]]))
+    iData <- data
+    iData$itime <- response[,"time"]
+    iData$istatus <- response[,"status"]
+    weight.i <- ipcw(formula=iFormula,data=iData,method=cens.model,times=NULL,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes")$IPCW.subjectTimes
+    weight.j <- ipcw(formula=iFormula,data=iData,method=cens.model,times=unique.Y,subjectTimes=NULL,subjectTimesLag=0,what="IPCW.times")$IPCW.times
     ipcw.call <- NULL
-  weight.i <- ipcw(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes")$IPCW.subjectTimes
-  weight.j <- ipcw(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=Y,subjectTimesLag=0,what="IPCW.times")$IPCW.times
+  }
+  else{
+    #  weights for T_i<=T_j
+    #  FIXED: the correct weights are G(T_i|X_j) and G(T_i-|X_i)
+    weight.i <- ipcw(formula=formula,data=data,method=cens.model,times=NULL,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes")$IPCW.subjectTimes
+    weight.j <- ipcw(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=NULL,subjectTimesLag=0,what="IPCW.times")$IPCW.times
+  }
+  if (ipcw.refit==TRUE)
+    stop("pec: internal refitting of censoring distribution not (not yet) supported for competing risks")
+  ## if (ipcw.refit==TRUE && splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632"))
+  ## ipcw.call <- list(weight.i=list(formula=formula,data=data,method=cens.model,times=NULL,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes"),
+  ## weight.j=list(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=NULL,subjectTimesLag=0,what="IPCW.times"))
+  ## else
+  ipcw.call <- NULL
+  ## print(weight.j)
+  # truncate the weights
+  if (!missing(ipcw.limit) && ipcw.limit!=0){
+    pfit <- prodlim(update(formula,".~1"),data=data)
+    limit.i <- 1/(1+c(0,cumsum(pfit$n.lost))[1+sindex(jump.times=pfit$time,eval.times=Y-min(diff(Y))/2)])
+    limit.times <- 1/(1+c(0,cumsum(pfit$n.lost))[1+sindex(jump.times=pfit$time,eval.times=unique.Y)])
+    if (ipcw.limit<1 && ipcw.limit>0){
+      limit.i <- pmax(ipcw.limit,limit.i)
+      limit.times <- pmax(ipcw.limit,limit.times)
+    }
+    weight.i <- pmax(weight.i,limit.i)
+    if (is.null(dim(weight.j))){
+      weight.j <- pmax(weight.j,limit.times)
+    }
+    else{
+      weight.j <- t(apply(weight.j,1,function(wj){
+        pmax(limit.times,wj)
+      }))
+    }
+  }
   weights <- list(weight.i=weight.i,weight.j=weight.j)
   # }}}
   # {{{  checking the models for compatibility with resampling
@@ -218,53 +268,62 @@ cindex.list <- function(object,
   AppCindexList <- lapply(1:NF,function(f){
     fit <- object[[f]]
     extraArgs <- model.args[[f]]
-    pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times,train.data=data),extraArgs))
-    if (length(pred.times)==1 && length(pred.times)<length(eval.times))
-      pred <- rep(pred,length(eval.times))
     if (predictHandlerFun=="predictEventProb"){
-      stop("Not yet defined: cindex for competing risks")
+      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times,train.data=data,cause=cause),extraArgs))
+      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
+      if (length(pred.times)==1 && length(pred.times)<length(eval.times))
+        pred <- rep(pred,length(eval.times))
+      ## stop("Not yet defined: cindex for competing risks")
+      AppCindexResult <- .C("ccr",cindex=double(NT),concA=double(NT),pairsA=double(NT),concB=double(NT),pairsB=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.integer(event),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
+      AppCindex <- AppCindexResult$cindex
+      AppPairsA <- AppCindexResult$pairsA
+      AppConcordantA <- AppCindexResult$concA
+      AppPairsB <- AppCindexResult$pairsB
+      AppConcordantB <- AppCindexResult$concB
+      list(AppCindex=AppCindex,
+           AppPairs=list(A=AppPairsA,B=AppPairsB),
+           AppConcordant=list(A=AppConcordantA,B=AppConcordantB))
     }
     else{
-      AppCindexResult <- .C("cindex",
-                            cindex=double(NT),
-                            conc=double(NT),
-                            pairs=double(NT),
-                            as.integer(tindex),
-                            as.double(Y),
-                            as.integer(status),
-                            as.double(eval.times),
-                            as.double(weight.i),
-                            as.double(weight.j),
-                            as.double(pred),
-                            as.integer(N),
-                            as.integer(NT),
-                            as.integer(tiedPredictionsIn),
-                            as.integer(tiedOutcomeIn),
-                            as.integer(tiedMatchIn),
-                            as.integer(!is.null(dim(weight.j))),
-                            NAOK=TRUE,
-                            package="pec")
+      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times,train.data=data),extraArgs))
+      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
+      if (length(pred.times)==1 && length(pred.times)<length(eval.times))
+        pred <- rep(pred,length(eval.times))
+      AppCindexResult <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
       AppCindex <- AppCindexResult$cindex
       AppPairs <- AppCindexResult$pairs
       AppConcordant <- AppCindexResult$conc
-      list(AppCindex=AppCindex,AppPairs=AppPairs,AppConcordant=AppConcordant)
+      list(AppCindex=AppCindex,
+           AppPairs=AppPairs,
+           AppConcordant=AppConcordant)
     }
+
   })
   AppCindex <- lapply(AppCindexList,function(x){
     x$AppCindex
   })
-  AppPairs <- lapply(AppCindexList,function(x){
-    2*x$AppPairs
-  })
-  AppConcordant <- lapply(AppCindexList,function(x){
-    2*x$AppConcordant
-  })
+  if (predictHandlerFun=="predictSurvProb"){
+    AppPairs <- lapply(AppCindexList,function(x){
+      2*x$AppPairs
+    })
+    AppConcordant <- lapply(AppCindexList,function(x){
+      2*x$AppConcordant
+    })
+  }else{
+        AppPairs <- lapply(AppCindexList,function(x){
+      x$AppPairs
+    })
+    AppConcordant <- lapply(AppCindexList,function(x){
+      x$AppConcordant
+    })
+  }
   names(AppCindex) <- names(object)
   names(AppPairs) <- names(object)
   names(AppConcordant) <- names(object)
 
   # }}}
   # {{{ ----------------------BootstrapCrossValidation----------------------
+
   if (splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632")){
     if (missing(testTimes)){
       testTimes <- NULL
@@ -276,6 +335,7 @@ cindex.list <- function(object,
                                              event=event,
                                              eval.times=eval.times,
                                              pred.times=pred.times,
+                                             cause=cause,
                                              weights=weights,
                                              ipcw.refit=ipcw.refit,
                                              ipcw.call=ipcw.call,
@@ -324,7 +384,7 @@ cindex.list <- function(object,
   }
 
   # }}}
-  # {{{ Bootstrap .632
+# {{{ Bootstrap .632
   if (splitMethod$internal.name=="Boot632"){
     B632Cindex <- lapply(1:NF,function(f){
       .368 * AppCindex[[f]] + .632 * BootstrapCrossValCindex[[f]]
@@ -402,10 +462,10 @@ cindex.list <- function(object,
                     cens.model=cens.model,
                     minmaxtime=minmaxtime,
                     maxtime=maxtime))
-  if (verbose==TRUE && do.resample==TRUE) cat("\n")
+  ## if (verbose==TRUE && do.resample==TRUE) cat("\n")
   # }}}
-  class(out) <- "Cindex"
-  out
+class(out) <- "Cindex"
+out
 }
     
   

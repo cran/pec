@@ -50,7 +50,13 @@ kFoldCrossValidation <- function(object,
         fit.k <- trainModels[[f]]
         extraArgs <- giveToModel[[f]]
         if (predictHandlerFun == "predictEventProb"){      
-          p.group <- do.call(predictHandlerFun,c(list(object=fit.k,newdata=val.k,times=times,cause=cause,train.data=train.k),extraArgs))
+          p.group <- do.call(predictHandlerFun,
+                             c(list(object=fit.k,
+                                    newdata=val.k,
+                                    times=times,
+                                    cause=cause,
+                                    train.data=train.k),
+                               extraArgs))
         }
         else{
           p.group <- do.call(predictHandlerFun,c(list(object=fit.k,
@@ -58,7 +64,11 @@ kFoldCrossValidation <- function(object,
                                                       times=times,
                                                       train.data=train.k),extraArgs))
         }
-        if(is.null(dim(p.group))) p.group <- do.call("rbind",lapply(1:NROW(val.k),function(x){p.group}))
+        if(is.null(dim(p.group))) {
+          p.group <- do.call("rbind",
+                             lapply(1:NROW(val.k),
+                                    function(x){p.group}))
+        }
         p.group
       })
       # }}}

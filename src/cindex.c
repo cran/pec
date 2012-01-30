@@ -16,7 +16,7 @@ void cindex(double *C,
 	    int *tiedmatchIn,
 	    int *cens_model){
   int i,j,s;
-  double wi, wj, lasttime=0;
+  double wi, wj, ww, lasttime=0;
   for (s=0; s<(*NT);s++) {
     conc[s]=0;
     pairs[s]=0;
@@ -32,7 +32,7 @@ void cindex(double *C,
 	      G(T_i-) for i
 	      G(T_i)  for j
 	    */
-	    wi = weight_i[(tindex[i]-1)];
+	    wi = weight_i[i];
 	    wj = weight_j[(tindex[i]-1)];
 	  }
 	  else{
@@ -40,10 +40,28 @@ void cindex(double *C,
 	      conditional censoring survival weights:
 	      G(T_i-|X_i) for i
 	      G(T_i|X_j)  for j
+
+	      NOTE: there is one weight for each person in weight.i
+	            and one row for each person in weight.j
+		    we need the value at time Y[i]
 	    */
-	    wi = weight_i[(tindex[i]-1)];
+	    /* wi = weight_i[(tindex[i]-1)]; */
+	    wi = weight_i[i];
 	    wj = weight_j[(j + (tindex[i]-1) * (*N))];
 	  }
+	  ww = (wi * wj);
+	  /* Rprintf("i=%d\twi=%1.8f\n",i,wi); */
+	  /* if ((1/wi)>1000) Rprintf("Large wi=%1.8f\n",wi); */
+	  /* if ((1/ww)>100) Rprintf("Yi=%1.2f\tYj=%1.2f\tt=%1.2f\tLarge wj=%1.8f\twi=%1.8f\n",Y[i],Y[j],times[s],wi,wj);  */
+	  /* if ((1/ww)>((*N)*(*N))) ww=1/((*N)*(*N)); */
+	  /* if ((1/ww)>trunc[1]) {	   */
+	  /* ww=1/trunc[1]; */
+	  /* } */
+	  /* if ((1/ww)>(*N)) { */
+	  /* Rprintf("Warning: truncated weights"); */
+	  /* Rprintf("Yi=%1.2f\tYj=%1.2f\twj=%1.8f\twi=%1.8f\n",Y[i],Y[j],wj,wi); */
+	  /* ww=1/((double)(*N)); */
+	  /* } */
 	  /*
 	    pair unusuable if any weight==0
 	  */
@@ -54,8 +72,8 @@ void cindex(double *C,
 	      tiedmatchIn == TRUE
 	    */
 	    if (*tiedmatchIn==1 && (Y[i]==Y[j] && status[j]==1 && (pred[i + s * (*N)] == pred[j + s * (*N)]))){
-	      pairs[s] += 1/(wi * wj);
-	      conc[s] += 1/(wi * wj);
+	      pairs[s] += (1/ww);
+	      conc[s] += (1/ww);
 	    }
 	    else{
 	      /*
@@ -69,17 +87,17 @@ void cindex(double *C,
 		    call pair unusuable if same predictions
 		  */
 		  if (*tiedpredIn==1){ 
-		    pairs[s] += 1/(wi * wj);
-		    conc[s] += 1/(2* wi * wj);
+		    pairs[s] += 1/ww;
+		    conc[s] += 1/(2* ww);
 		  }
 		}
 		else{
 		  /*
 		    call pair concordant if p_i < p_j
 		  */
-		  pairs[s] += 1/(wi * wj);
+		  pairs[s] += 1/ww;
 		  if (pred[i + s * (*N)] < pred[j + s * (*N)]) {
-		    conc[s] += 1/(wi * wj);
+		    conc[s] += 1/ww;
 		  }
 		}
 	      }

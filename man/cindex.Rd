@@ -25,6 +25,7 @@ cindex(object,...)
                         cause,
                         cens.model="marginal",
                         ipcw.refit=FALSE,
+                        ipcw.limit,
                         tiedPredictionsIn=TRUE,
                         tiedOutcomeIn=TRUE,
                         tiedMatchIn=TRUE,
@@ -123,6 +124,11 @@ corresponding
   \item{ipcw.refit}{
     If \code{TRUE} the inverse probability of
     censoring weigths are estimated separately in each training set during cross-validation.
+  }
+  \item{ipcw.limit}{
+    Value between 0 and 1 (but no equal to 0!) used to cut for small
+    weights in order to stabilize the estimate at late times were few
+    individuals are observed.
   }
   \item{tiedPredictionsIn}{If \code{FALSE} pairs with identical predictions
     are excluded, unless also the event times are identical and uncensored and
@@ -252,7 +258,7 @@ Copenhagen
  # note: low number of trees for the purpose of illustration 
  library(survival)
  library(randomSurvivalForest)
- rsf.default=randomSurvivalForest:::rsf.default
+ #rsf.default=randomSurvivalForest:::rsf.default
  cox12 <- coxph(Surv(time,status)~X1+X2,data=dat)
  cox1 <- coxph(Surv(time,status)~X1,data=dat)
  cox2 <- coxph(Surv(time,status)~X2,data=dat)

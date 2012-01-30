@@ -6,6 +6,13 @@ predictEventProb <- function(object,newdata,times,cause,...){
   UseMethod("predictEventProb",object)
 }
 
+predictEventProb.matrix <- function(object,newdata,times,...){
+  if (NROW(object) != NROW(newdata) || NCOL(object) != length(times)){
+    stop(paste("Prediction matrix has wrong dimensions: ",NROW(object)," rows and ",NCOL(object)," columns.\n But requested are predicted probabilities for ",NROW(newdata), " subjects (rows) in newdata and ",NCOL(newdata)," time points (columns)",sep=""))
+  }
+  object
+}
+
 predictEventProb.prodlim <- function(object,newdata,times,cause,...){
   require(prodlim)
   p <- predict(object=object,cause=cause,type="cuminc",newdata=newdata,times=times,mode="matrix",level.chaos=1)

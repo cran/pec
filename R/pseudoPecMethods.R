@@ -223,9 +223,11 @@ pseudoPec.list <- function(object,
 
     if (predictHandlerFun=="predictEventProb"){
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data,cause=cause),extraArgs))
+      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
     }
     else{
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
+      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
     }
     if (NCOL(pred)==1) pred <- matrix(rep(pred,N),byrow=TRUE,ncol=NT,nrow=N)
     pec <- colMeans(pred^2) + colMeans((1-2*pred) * YY)

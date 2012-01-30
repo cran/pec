@@ -17,10 +17,10 @@ ipcw.none <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wha
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
-  length.times <- length(times)
-  stopifnot(length.times>0)
   #  weigths at requested times
   if (match("IPCW.times",what,nomatch=FALSE)){
+    length.times <- length(times)
+    stopifnot(length.times>0)
     IPCW.times <- rep(1,length(times))
     names(IPCW.times) <- paste("t",1:length(IPCW.times),sep="")
   }
@@ -49,12 +49,12 @@ ipcw.marginal <- function(formula,data,method,times,subjectTimes,subjectTimesLag
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
-  length.times <- length(times)
-  stopifnot(length.times>0)
   formula <- update.formula(formula,"~1")
   fit <- prodlim(formula,data=data,reverse=TRUE)
   #  weigths at requested times
   if (match("IPCW.times",what,nomatch=FALSE)){
+    length.times <- length(times)
+    stopifnot(length.times>0)
     IPCW.times <- predict(fit,newdata=data,times=times,level.chaos=1,mode="matrix",type="surv")
     names(IPCW.times) <- paste("t",1:length(IPCW.times),sep="")
   }
@@ -81,12 +81,12 @@ ipcw.nonpar <- function(formula,data,method,times,subjectTimes,subjectTimesLag,w
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
-  length.times <- length(times)
-  stopifnot(length.times>0)
   ## browser()
   fit <- prodlim(formula,data=data,reverse=TRUE,bandwidth="smooth")
   #  weigths at requested times
   if (match("IPCW.times",what,nomatch=FALSE)){
+    length.times <- length(times)
+    stopifnot(length.times>0)
     IPCW.times <- predict(fit,newdata=data,times=times,level.chaos=1,mode="matrix",type="surv")
     colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
     rownames(IPCW.times) <- 1:NROW(IPCW.times)
@@ -148,8 +148,6 @@ ipcw.cox <- function(formula,data,method,times,subjectTimes,subjectTimesLag,what
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
-  length.times <- length(times)
-  stopifnot(length.times>0)
   require(rms)
   status.name <- all.vars(formula)[2]
   reverse.data <- data
@@ -158,6 +156,8 @@ ipcw.cox <- function(formula,data,method,times,subjectTimes,subjectTimesLag,what
   fit <- cph(formula,data=reverse.data,surv=TRUE,x=TRUE,y=TRUE)
   #  weigths at requested times
   if (match("IPCW.times",what,nomatch=FALSE)){
+    length.times <- length(times)
+    stopifnot(length.times>0)
     IPCW.times <- survest(fit,newdata=data,times=times,se.fit=FALSE)$surv
     colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
     rownames(IPCW.times) <- 1:NROW(IPCW.times)
@@ -191,8 +191,6 @@ ipcw.aalen <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wh
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
-  length.times <- length(times)
-  stopifnot(length.times>0)
   require(timereg)
   require(rms)
   status.name <- all.vars(formula)[2]
@@ -201,6 +199,8 @@ ipcw.aalen <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wh
   fit <- do.call(method,list(formula=formula,data=reverse.data,n.sim=0))
   #  weigths at requested times
   if (match("IPCW.times",what,nomatch=FALSE)){
+    length.times <- length(times)
+    stopifnot(length.times>0)
     IPCW.times <- predictSurvProb(fit,newdata=data,times=times)
     colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
     rownames(IPCW.times) <- 1:NROW(IPCW.times)

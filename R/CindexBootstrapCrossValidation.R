@@ -5,6 +5,7 @@ CindexBootstrapCrossValidation <- function(object,
                                            event,
                                            eval.times,
                                            pred.times,
+                                           cause,
                                            weights,
                                            ipcw.refit=FALSE,
                                            ipcw.call,
@@ -57,11 +58,15 @@ CindexBootstrapCrossValidation <- function(object,
       ipcw.b.i <- weights$weight.i[vindex.b]
       ipcw.b.j <- weights$weight.j[vindex.b]
     }
-
+    
     # }}}
     # {{{ Building the models in training data
     trainModels <- lapply(1:NF,function(f){
-      fit.b <- internalReevalFit(object=object[[f]],data=train.b,step=b,silent=FALSE,verbose=verbose)
+      fit.b <- internalReevalFit(object=object[[f]],
+                                 data=train.b,
+                                 step=b,
+                                 silent=FALSE,
+                                 verbose=verbose)
       ## fit.b$call <- object[[f]]$call
       fit.b
     })
@@ -92,7 +97,12 @@ CindexBootstrapCrossValidation <- function(object,
     predVal <- lapply(1:NF,function(f){
       fit.b <- trainModels[[f]]
       extraArgs <- giveToModel[[f]]
-      try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=pred.times,train.data=train.b),extraArgs)))
+      if (predictHandlerFun=="predictEventProb"){
+        try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=pred.times,train.data=train.b,cause=cause),extraArgs)))
+      }
+      else{
+        try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=pred.times,train.data=train.b),extraArgs)))
+      }
       if (inherits(try2predict,"try-error")==TRUE){
         if (verbose==TRUE) warning(paste("During bootstrapping: prediction for model ",class(fit.b)," failed in step ",b),immediate.=TRUE)
         NULL}
@@ -126,33 +136,26 @@ CindexBootstrapCrossValidation <- function(object,
         if (is.null(pred.b))
           NA
         else{
-          if (predictHandlerFun=="predictEventProb")
-            stop("Not yet defined: cindex for competing risks")
-          else{
-            cindexOut <- .C("cindex",
-                            cindex=double(NT),
-                            conc=double(NT),
-                            pairs=double(NT),
-                            as.integer(tindex.b),
-                            as.double(Y.b),
-                            as.integer(status[vindex.b]),
-                            as.double(eval.times),
-                            as.double(ipcw.b.i),
-                            as.double(ipcw.b.j),
-                            as.double(pred.b),
-                            as.integer(sum(vindex.b)),
-                            as.integer(NT),
-                            as.integer(tiedPredictionsIn),
-                            as.integer(tiedOutcomeIn),
-                            as.integer(tiedMatchIn),
-                            as.integer(!is.null(dim(ipcw.b.j))),
-                            NAOK=TRUE,
-                            package="pec")            
+          if (predictHandlerFun=="predictEventProb"){
+            Step.b.CindexResult <- .C("ccr",cindex=double(NT),concA=double(NT),pairsA=double(NT),concB=double(NT),pairsB=double(NT),as.integer(tindex.b),as.double(Y.b),as.integer(status[vindex.b]),as.integer(event[vindex.b]),as.double(eval.times),as.double(ipcw.b.i),as.double(ipcw.b.j),as.double(pred.b),as.integer(sum(vindex.b)),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(ipcw.b.j))),NAOK=TRUE,package="pec")
+            Step.b.Cindex <- Step.b.CindexResult$cindex
+            Step.b.PairsA <- Step.b.CindexResult$pairsA
+            Step.b.ConcordantA <- Step.b.CindexResult$concA
+            Step.b.PairsB <- Step.b.CindexResult$pairsB
+            Step.b.ConcordantB <- Step.b.CindexResult$concB
+            list(Cindex.b=Step.b.Cindex,
+                 Pairs.b=list(A=Step.b.PairsA,B=Step.b.PairsB),
+                 Concordant.b=list(A=Step.b.ConcordantA,B=Step.b.ConcordantB))
           }
-          Cindex.b <- cindexOut$cindex
-          Pairs.b <- cindexOut$pairs 
-          Concordant.b <- cindexOut$conc
-          list(Cindex.b=Cindex.b,Pairs.b=Pairs.b,Concordant.b=Concordant.b)
+          else{
+            cindexOut <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex.b),as.double(Y.b),as.integer(status[vindex.b]),as.double(eval.times),as.double(ipcw.b.i),as.double(ipcw.b.j),as.double(pred.b),as.integer(sum(vindex.b)),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(ipcw.b.j))),NAOK=TRUE,package="pec")            
+            Cindex.b <- cindexOut$cindex
+            Pairs.b <- cindexOut$pairs 
+            Concordant.b <- cindexOut$conc
+            list(Cindex.b=Cindex.b,
+                 Pairs.b=Pairs.b,
+                 Concordant.b=Concordant.b)
+          }
         }
       })
     }
@@ -171,6 +174,7 @@ CindexBootstrapCrossValidation <- function(object,
     ##       loopOut=c(loopOut,list(Residuals=lapply(Residuals,function(R){
     ##         R[,sindex(eval.times=testTimes,jump.times=times)]
     ##       })))
+
     if (!is.null(getFromModel)){
       loopOut=c(loopOut,list(ModelParameters=ModelParameters))
     }
@@ -183,7 +187,7 @@ CindexBootstrapCrossValidation <- function(object,
   ##    1. a list of NF matrices each with B (rows) and NT columns
   ##       the prediction error curves
   ## 
-  if (verbose==TRUE && B>1) cat("\n")
+  ## if (verbose==TRUE && B>1) cat("\n")
   BootstrapCrossValCindexMat <- lapply(1:NF,function(f){
     ## matrix with NT columns and b rows
     do.call("rbind",lapply(Looping,function(b){
@@ -196,7 +200,7 @@ CindexBootstrapCrossValidation <- function(object,
   ## 
   ##    2. a list of NF average out-of-bag prediction error curves
   ##       with length NT
-  ## 
+  ##
   BootstrapCrossValCindex <- lapply(BootstrapCrossValCindexMat,colMeans)
   out <- list(BootstrapCrossValCindex=BootstrapCrossValCindex)
   ## 

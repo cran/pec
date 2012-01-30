@@ -25,7 +25,7 @@ crps <- function(object,
   # }}}
   # {{{ what errors
   if (missing(what) || is.null(what)){
-    what <- grep(c("Err$"),names(object),val=TRUE)
+    what <- grep(c("Err$"),names(object),value=TRUE)
   }
   # }}}
   # {{{ for each element of what: evaluate crps at times

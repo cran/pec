@@ -176,6 +176,7 @@ calPlot <- function(object,
     else{
       p=do.call(predictHandlerFun,list(object[[f]],newdata=data,times=predTime))
     }
+    if (class(object[[f]])=="matrix") p <- p[neworder,]
     if (showPseudo) points(p,jack,col="gray")
     switch(method,
            "fixed"={

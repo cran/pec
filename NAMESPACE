@@ -16,6 +16,7 @@ export("pec",
        "plotPredictSurvProb",
        "plotPredictEventProb")
 
+S3method(cindex,default)
 S3method(cindex,list)
 
 S3method(pec,list)
@@ -71,3 +72,4 @@ S3method(predictEventProb,prodlim)
 S3method(predictEventProb,FGR)
 S3method(predictEventProb,riskRegression)
 S3method(predictEventProb,CauseSpecificCox)
+S3method(predictEventProb,matrix)

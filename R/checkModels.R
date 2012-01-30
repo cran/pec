@@ -1,8 +1,8 @@
 checkModels <- function(object,model.args,model.parms,splitMethod,verbose=TRUE){
   checkF <- lapply(1:length(object),function(f){
     fit <- object[[f]]
-    if(splitMethod != "noinf" && is.null(fit$call))
-      stop(paste("model",names(object)[f],"does not have a call argument."))
+    if(splitMethod != "noinf" && (match("call",names(fit),nomatch=0)==0))
+      stop(paste("pec:::checkModels -> Model",names(object)[f],"does not have a call argument."),call.=FALSE)
     else fit$call$data <- NULL
   })
   

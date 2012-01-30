@@ -11,6 +11,13 @@ c=pec:::resolvesplitMethod(splitMethod="bootcv",N=100,M=63,B=3)$index
 stopifnot(all.equal(b,c))
 # }}}
 
+## library(party)
+## h <- cforest(Surv(time,status)~X2,data=d)
+## isS4(h)
+## f <- cph(Surv(time,status)~X2,data=d,surv=TRUE)
+## set.seed(19)
+## A <- pec(f,splitMethod="cv5",B=1,M=63,keep.index=TRUE,verbose=F)
+
 # {{{ testing ipcw
 set.seed(18)
 A=pec(f,B=30,splitMethod="bootcv")
