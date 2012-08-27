@@ -18,8 +18,8 @@ crps <- function(object,
     warning(paste("You asked to integrate until times where prediction error curves are not defined.", object$maxtime))
     times <- times[times<=object$maxtime]
   }
-  if (!(object$exact || length(object.times)>100))
-    warning("Only ", length(time)," time point",ifelse(length(times)==1,"","s")," used")
+  ## if (!(object$exact))
+  ## warning("Exact Only ", length(object.times)," time point",ifelse(length(times)==1,"","s")," used for computation of ")
   ##  time range
   if (missing(start)) start <- object$start
   # }}}
@@ -43,6 +43,9 @@ crps <- function(object,
       tnames[times<1] <- paste("time=",signif(times[times<1],2),sep="")
       colnames(y) <- paste("IBS[",start,";",tnames,"]",sep="")
       y}
+    else{
+      y
+    }
   })
   # }}}
   # {{{ prepare output

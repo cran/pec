@@ -116,10 +116,25 @@ ndat <- data.frame(X1=c(0.25,0.25,-0.05,0.05),X2=c(0,1,0,1))
 # as follows
 predictSurvProb(coxmodel,newdata=ndat,times=ttt)
 
+## simulate some learning and some validation data
+learndat <- SimSurv(100)
+valdat <- SimSurv(100)
+## use the learning data to fit a Cox model
+fitCox <- coxph(Surv(time,status)~X1+X2,data=learndat)
+## suppose we want to predict the survival probabilities for all patients
+## in the validation data at the following time points:
+## 0, 12, 24, 36, 48, 60
+psurv <- predictSurvProb(fitCox,newdata=valdat,times=seq(0,60,12))
+## This is a matrix with survival probabilities
+## one column for each of the 5 time points
+## one row for each validation set individual
+
+
 # the same can be done e.g. for a randomSurvivalForest model
 library(randomSurvivalForest)
 rsfmodel <- rsf(Survrsf(time,status)~X1+X2,data=d)
 predictSurvProb(rsfmodel,newdata=ndat,times=ttt)
+
 }
 
 \keyword{survival}% at least one, from doc/KEYWORDS

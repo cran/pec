@@ -13,6 +13,7 @@ export("pec",
        "selectCox",
        "pecCforest",
        "resolvesplitMethod",
+       ## "plotSurvProb",
        "plotPredictSurvProb",
        "plotPredictEventProb")
 
@@ -65,6 +66,7 @@ S3method(predictSurvProb,survfit)
 S3method(predictSurvProb,survnnet)
 ## S3method(predictSurvProb,ARR)
 S3method(predictSurvProb,riskRegression)
+
 S3method(predictEventProb,prodlim)
 ## S3method(predictEventProb,compRisk)
 ## S3method(predictEventProb,LRR)

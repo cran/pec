@@ -120,11 +120,11 @@ CindexBootstrapCrossValidation <- function(object,
         else{
           if (predictHandlerFun == "predictEventProb"){
             1
-            ## matrix(.C("pecResidualsCR",pec=double(NT),resid=double(NT*NV),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(event[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
+            ## matrix(.C("pecResidualsCR",pec=double(NT),resid=double(NT*NV),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(event[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
           }
           else{
             1
-            ## matrix(.C("pecResiduals",pec=double(NT),resid=double(NT*NV),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
+            ## matrix(.C("pecResiduals",pec=double(NT),resid=double(NT*NV),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
           }
         }
       })

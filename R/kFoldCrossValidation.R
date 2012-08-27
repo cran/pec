@@ -81,9 +81,9 @@ kFoldCrossValidation <- function(object,
         pred.b <- pred.b[order(order(groups)),]
       }
       if (predictHandlerFun=="predictEventProb")
-        innerCrossValErr <- .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred.b),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pec
+        innerCrossValErr <- .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred.b),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
       else
-        innerCrossValErr <- .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred.b),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pec
+        innerCrossValErr <- .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred.b),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
       innerCrossValErr
     })
     names(pec) <- names(object)

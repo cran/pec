@@ -46,7 +46,8 @@ ipcw(formula,
     If equal to \code{"IPCW.times"} then weights are estimated
     at given \code{times}.
     If equal to \code{"IPCW.subjectTimes"} then weights are estimated
-    at individual \code{subjectTimes}. 
+    at individual \code{subjectTimes}.
+    If missing then produce both.
   }
 }
 \details{Inverse of the probability of censoring weights (IPCW) usually 

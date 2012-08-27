@@ -22,7 +22,12 @@ ipcw.none <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wha
     length.times <- length(times)
     stopifnot(length.times>0)
     IPCW.times <- rep(1,length(times))
-    names(IPCW.times) <- paste("t",1:length(IPCW.times),sep="")
+    if (is.null(dim(IPCW.times))){
+      names(IPCW.times) <- NULL
+    }
+    else{
+      names(IPCW.times) <- paste("t",1:length(IPCW.times),sep="")
+    }
   }
   else
     IPCW.times <- NULL
@@ -56,7 +61,12 @@ ipcw.marginal <- function(formula,data,method,times,subjectTimes,subjectTimesLag
     length.times <- length(times)
     stopifnot(length.times>0)
     IPCW.times <- predict(fit,newdata=data,times=times,level.chaos=1,mode="matrix",type="surv")
-    names(IPCW.times) <- paste("t",1:length(IPCW.times),sep="")
+    if (length(times)==1){
+      names(IPCW.times) <- NULL
+    }
+    else{
+      names(IPCW.times) <- paste("t",1:length(IPCW.times),sep="")
+    }
   }
   else
     IPCW.times <- NULL
@@ -88,8 +98,13 @@ ipcw.nonpar <- function(formula,data,method,times,subjectTimes,subjectTimesLag,w
     length.times <- length(times)
     stopifnot(length.times>0)
     IPCW.times <- predict(fit,newdata=data,times=times,level.chaos=1,mode="matrix",type="surv")
-    colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
-    rownames(IPCW.times) <- 1:NROW(IPCW.times)
+    if (is.null(dim(IPCW.times))){
+      names(IPCW.times) <- NULL
+    }
+    else{
+      colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
+      rownames(IPCW.times) <- 1:NROW(IPCW.times)
+    }
   }
   else
     IPCW.times <- NULL
@@ -159,8 +174,12 @@ ipcw.cox <- function(formula,data,method,times,subjectTimes,subjectTimesLag,what
     length.times <- length(times)
     stopifnot(length.times>0)
     IPCW.times <- survest(fit,newdata=data,times=times,se.fit=FALSE)$surv
-    colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
-    rownames(IPCW.times) <- 1:NROW(IPCW.times)
+    if (is.null(dim(IPCW.times))){
+      names(IPCW.times) <- NULL
+    } else{
+      colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
+      rownames(IPCW.times) <- 1:NROW(IPCW.times)
+    }
   }
   else
     IPCW.times <- NULL
@@ -202,8 +221,13 @@ ipcw.aalen <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wh
     length.times <- length(times)
     stopifnot(length.times>0)
     IPCW.times <- predictSurvProb(fit,newdata=data,times=times)
-    colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
-    rownames(IPCW.times) <- 1:NROW(IPCW.times)
+    if (is.null(dim(IPCW.times))){
+      names(IPCW.times) <- NULL
+    }
+    else{
+      colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
+      rownames(IPCW.times) <- 1:NROW(IPCW.times)
+    }
   }
   else
     IPCW.times <- NULL

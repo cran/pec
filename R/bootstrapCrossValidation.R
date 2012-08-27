@@ -13,6 +13,7 @@ bootstrapCrossValidation <- function(object,
                                      keepResiduals,
                                      testIBS,
                                      testTimes,
+                                     newdata,
                                      confInt,
                                      confLevel,
                                      getFromModel,
@@ -36,7 +37,7 @@ bootstrapCrossValidation <- function(object,
     val.b <- data[vindex.b,,drop=FALSE]
     train.b <- data[ResampleIndex[,b],,drop=FALSE]
     ## print(c(NROW(train.b), NROW(val.b)))
-    NV=sum(vindex.b) # NROW(val.b)
+    NV=sum(vindex.b)                    # NROW(val.b)
     # }}}
     # {{{ IPCW
     if (ipcw.refit==TRUE){
@@ -129,10 +130,24 @@ bootstrapCrossValidation <- function(object,
           NA
         else{
           if (predictHandlerFun == "predictEventProb"){
-            matrix(.C("pecResidualsCR",pec=double(NT),resid=double(NT*NV),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(event[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
+            matrix(.C("pecResidualsCR",pec=double(NT),resid=double(NT*NV),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(event[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(NROW(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
           }
           else{
-            matrix(.C("pecResiduals",pec=double(NT),resid=double(NT*NV),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
+            matrix(.C("pecResiduals",
+                      pec=double(NT),
+                      resid=double(NT*NV),
+                      as.double(Y[vindex.b]),
+                      as.double(status[vindex.b]),
+                      as.double(times),
+                      as.double(pred.b),
+                      as.double(ipcwTimes.b),
+                      as.double(IPCW.subjectTimes.b),
+                      as.integer(NV),
+                      as.integer(NT),
+                      as.integer(ipcw$dim),
+                      as.integer(NROW(pred.b)>1),
+                      NAOK=TRUE,
+                      PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
           }
         }
       })
@@ -145,9 +160,9 @@ bootstrapCrossValidation <- function(object,
           NA
         else{
           if (predictHandlerFun=="predictEventProb")
-            pecOut <- .C("pecCR",pec=double(NT),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(event[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pec
+            pecOut <- .C("pecCR",pec=double(NT),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(event[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
           else
-            pecOut <- .C("pec",pec=double(NT),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pec
+            pecOut <- .C("pec",pec=double(NT),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
         }
       })
     }

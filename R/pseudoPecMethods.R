@@ -245,9 +245,9 @@ pseudoPec.list <- function(object,
         pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
         extraArgs <- model.args[[f]]
         if (predictHandlerFun=="predictEventProb")
-          .C("pseudoPec_noinfCR",pseudoPec=double(NT),as.double(YY),as.double(event),as.double(times),as.double(pred),as.integer(N),as.integer(NT),as.integer(NCOL(pred)>1),NAOK=TRUE,PACKAGE="pec")$pseudoPec
+          .C("pseudoPec_noinfCR",pseudoPec=double(NT),as.double(YY),as.double(event),as.double(times),as.double(pred),as.integer(N),as.integer(NT),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pseudoPec
         else
-          .C("pseudoPec_noinf",pseudoPec=double(NT),as.double(YY),as.double(times),as.double(pred),as.integer(N),as.integer(NT),as.integer(NCOL(pred)>1),NAOK=TRUE,PACKAGE="pec")$pseudoPec
+          .C("pseudoPec_noinf",pseudoPec=double(NT),as.double(YY),as.double(times),as.double(pred),as.integer(N),as.integer(NT),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pseudoPec
       })
       names(NoInfErr) <- names(object)
     }else{
@@ -264,9 +264,9 @@ pseudoPec.list <- function(object,
           extraArgs <- model.args[[f]]
           pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data),extraArgs))
           if (predictHandlerFun=="predictEventProb")
-            .C("pseudoPecCR",pseudoPec=double(NT),as.double(YY),as.double(event),as.double(times),as.double(pred.b),as.integer(N),as.integer(NT),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pseudoPec
+            .C("pseudoPecCR",pseudoPec=double(NT),as.double(YY),as.double(event),as.double(times),as.double(pred.b),as.integer(N),as.integer(NT),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pseudoPec
           else
-            .C("pseudoPec",pseudoPec=double(NT),as.double(YY),as.double(times),as.double(pred.b),as.integer(N),as.integer(NT),as.integer(NCOL(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$pseudoPec
+            .C("pseudoPec",pseudoPec=double(NT),as.double(YY),as.double(times),as.double(pred.b),as.integer(N),as.integer(NT),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pseudoPec
         })
         noinfPredErr
       })

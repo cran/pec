@@ -25,7 +25,7 @@ calPlot <- function(object,
                     ...){
   
   # {{{ find number of objects and lines
-  cobj=class(object)
+  cobj=class(object)[[1]]
   if (cobj!="list"){
     object <- list(object)
   }
@@ -176,16 +176,14 @@ calPlot <- function(object,
     else{
       p=do.call(predictHandlerFun,list(object[[f]],newdata=data,times=predTime))
     }
-    if (class(object[[f]])=="matrix") p <- p[neworder,]
+    if (class(object[[f]][[1]])=="matrix") p <- p[neworder,]
     if (showPseudo) points(p,jack,col="gray")
+    print(method)
     switch(method,
            "fixed"={
-             ## x <- p
-             ## y <- sapply(unique(p),function(prob){
-             ## nbh <- (1:NROW(p)) prob
-             ## jack
-             ## }
-             ## browser()
+             groups <- quantile(p,seq(0.1,0.9,0.1))
+             y <- tapply(jack,cut(p,c(-1,groups,2)),mean)
+             lines(c(0,groups),y,col=col[f],lty=lty[f],lwd=lwd[f],type="b")             
            },
            "snne"={
              plotFrame=meanNeighbors(x=p,y=jack,bandwidth=bandwidth)
@@ -212,7 +210,9 @@ calPlot <- function(object,
   # {{{ legend
   ## if (missing(legend)) legend=ifelse(length(object)==1,FALSE,TRUE)
   ## if (missing(legend.legend)) legend.legend=names(object)
-  do.call("legend",smartA$legend)
+  if(legend){
+    do.call("legend",smartA$legend)
+  }
   ## if (legend)
   ## legend(0,1,legend=legend.legend,lwd=lwd,col=col,bty="n")
   # }}}

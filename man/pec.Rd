@@ -389,12 +389,17 @@ pec(object,...)
   
   Thomas A. Gerds, Martin Schumacher (2007)
   Efron-Type Measures of Prediction Error for Survival Analysis
-  Biometrics (OnlineEarly Articles).
+  Biometrics, 63(4), 1283--1287
   doi:10.1111/j.1541-0420.2007.00832.x
 
   Martin Schumacher, Harald Binder, and Thomas Gerds. Assessment of
   survival prediction models based on microarray data. Bioinformatics,
   23(14):1768-74, 2007.
+
+  Mark A. van de Wiel, Johannes Berkhof, and Wessel N. van Wieringen
+  Testing the prediction error difference between 2 predictors
+  Biostatistics (2009) 10(3): 550-560
+  doi:10.1093/biostatistics/kxp011 
 }
 
 \author{Thomas Alexander Gerds \email{tag@biostat.ku.dk} }
@@ -444,6 +449,7 @@ PredError.632plus <- pec(object=Models,
 print(PredError.632plus,times=seq(5,30,5))
 summary(PredError.632plus)
 plot(PredError.632plus,xlim=c(0,30))
+
 \dontrun{
 # do the same again but now parallized
 set.seed(17100)
@@ -459,19 +465,32 @@ PredError.632plus <- pec(object=Models,
                   verbose=TRUE)
 }
 
+# assessing parametric survival models in learn/validation setting
+learndat <- SimSurv(500)
+testdat <- SimSurv(300)
+library(rms)
+f1 <- psm(Surv(time,status)~X1+X2,data=learndat)
+f2 <- psm(Surv(time,status)~X1,data=learndat)
+pf <- pec(list(f1,f2),formula=Surv(time,status)~1,data=testdat,maxtime=200)
+plot(pf)
+summary(pf)
+
+
+
 # ---------------- competing risks -----------------
 
 \dontrun{
 library(survival)
-library(compRisk)
+library(riskRegression)
 library(cmprsk)
 library(pec)
 data(pbc)
-f1  <- CRR(Hist(time,status)~sex+edema,cause=2,data=pbc)
-f2  <- CRR(Hist(time,status)~sex,cause=2,data=pbc)
-f3  <- compRisk(Hist(time,status)~sex+edema,cause=2,data=pbc)
-f4  <- compRisk(Hist(time,status)~sex+edema,cause=2,data=pbc,link="prop")
-p1 <- pec(list(f1,f2,f3,f4),formula=Hist(time,status)~1,data=pbc,cause=2)
+f1  <- CSC(Hist(time,status)~sex+edema,cause=1,data=pbc)
+f1a  <- CSC(Hist(time,status)~sex+edema,cause=1,data=pbc,survtype="surv")
+f2  <- CSC(Hist(time,status)~sex,data=pbc)
+f3  <- FGR(Hist(time,status)~sex+edema,cause=2,data=pbc)
+f4  <- FGR(Hist(time,status)~sex+edema,cause=2,data=pbc)
+p1 <- pec(list(f1,f1a,f2,f3,f4),formula=Hist(time,status)~1,data=pbc,cause=2)
 }
 }
 \keyword{survival}% at least one, from doc/KEYWORDS

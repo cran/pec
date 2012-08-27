@@ -29,5 +29,8 @@ print.multiSplitTest <- function(x,eps=0.0001,pdigits=4,...){
     colnames(mat) <- paste("t=",showTimes)
     print(mat,quote=FALSE,...)
   }
+  else{
+    mat <- NULL
+  }
   invisible(mat)
 }

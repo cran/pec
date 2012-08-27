@@ -61,28 +61,28 @@ predictSurvProb.cox.aalen <- function(object,newdata,times,...){
     names(const) <- substr(dimnames(fit$gamma)[[1]],6,nchar(dimnames(fit$gamma)[[1]])-1)
     constant.part <- t(newdata[,names(const)])*const
     constant.part <- exp(colSums(constant.part))
-  ##  Then extract the time-varying effects
-  time.coef <- data.frame(fit$cum)
-  ntime <- nrow(time.coef)
-  fittime <- time.coef[,1,drop=TRUE]
-  ntimevars <- ncol(time.coef)-2
-  time.vars <- cbind(1,newdata[,names(time.coef)[-(1:2)],drop=FALSE])
-  nobs <- nrow(newdata)
-  time.part <- .C("survest_cox_aalen",timehazard=double(ntime*nobs),as.double(unlist(time.coef[,-1])),as.double(unlist(time.vars)),as.integer(ntimevars+1),as.integer(nobs),as.integer(ntime),PACKAGE="pec")$timehazard
+    ##  Then extract the time-varying effects
+    time.coef <- data.frame(fit$cum)
+    ntime <- nrow(time.coef)
+    fittime <- time.coef[,1,drop=TRUE]
+    ntimevars <- ncol(time.coef)-2
+    time.vars <- cbind(1,newdata[,names(time.coef)[-(1:2)],drop=FALSE])
+    nobs <- nrow(newdata)
+    time.part <- .C("survest_cox_aalen",timehazard=double(ntime*nobs),as.double(unlist(time.coef[,-1])),as.double(unlist(time.vars)),as.integer(ntimevars+1),as.integer(nobs),as.integer(ntime),PACKAGE="pec")$timehazard
     time.part <- matrix(time.part,
-                      ncol=ntime,
-                      nrow=nobs,
-                      dimnames=list(1:nobs,paste("TP",1:ntime,sep="")))
-  surv <- pmin(exp(-time.part*constant.part),1)
-  if (missing(times)) times <- sort(unique(fittime))
-  pred <- surv[,sindex(fittime,times)]
-  class(pred) <- c("survest","cox.aalen")
-  pred
-}
-p <- survest.cox.aalen(object,times=times,newdata=newdata)
-if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
-  stop("Prediction failed")
-p
+                        ncol=ntime,
+                        nrow=nobs,
+                        dimnames=list(1:nobs,paste("TP",1:ntime,sep="")))
+    surv <- pmin(exp(-time.part*constant.part),1)
+    if (missing(times)) times <- sort(unique(fittime))
+    pred <- surv[,sindex(fittime,times)]
+    class(pred) <- c("survest","cox.aalen")
+    pred
+  }
+  p <- survest.cox.aalen(object,times=times,newdata=newdata)
+  if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+    stop("Prediction failed")
+  p
 }
 
 
@@ -180,14 +180,18 @@ predictSurvProb.prodlim <- function(object,newdata,times,...){
                times=times,
                mode="matrix",
                level.chaos=1)
-  if (NROW(p)==1 && class(p)=="list")
+  if (NROW(newdata)==1 && class(p)=="list"){
     p <- unlist(p)
-  ## p[is.na(p)] <- 0
-  if (is.null(dim(p)))
-    {
-      if (length(p)!=length(times))
-        stop("Prediction failed")
-    }
+  }
+  if (is.null(dim(p)) && NROW(newdata)>1){
+    ## if the model has no covariates
+    ## then all cases get the same prediction
+    ## in this exceptional case we proceed a vector
+    ## p[is.na(p)] <- 0
+    p <- as.vector(p)
+    if (length(p)!=length(times))
+      stop("Prediction failed")
+  }
   else{
     if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
       stop("Prediction failed")
@@ -195,7 +199,7 @@ predictSurvProb.prodlim <- function(object,newdata,times,...){
   p
 }
 
-"predict.survfit" <- function(object,newdata,times,bytimes=TRUE,fill="last",...){
+predict.survfit <- function(object,newdata,times,bytimes=TRUE,fill="last",...){
     if (length(class(object))!=1 || class(object)!="survfit" || object$typ !="right")
       stop("Predictions only available \nfor class 'survfit', possibly stratified Kaplan-Meier fits.\n For class 'cph' Cox models see survest.cph.")
     
@@ -228,7 +232,7 @@ predictSurvProb.prodlim <- function(object,newdata,times,...){
   }
   else{
     covars <- attr(terms(eval.parent(object$call$formula)),"term.labels")
-    if (!all(match(covars,names(newdata),nomatch=FALSE)))
+    ## if (!all(match(covars,names(newdata),nomatch=FALSE)))
       stop("Not all strata defining variables occur in newdata.")
 
     ## FIXME there are different ways to build strata levels
@@ -312,9 +316,11 @@ predictSurvProb.phnnet <- function(object,newdata,times,train.data,...){
 predictSurvProb.riskRegression <- function(object,newdata,times,...){
   if (missing(times))stop("Argument times is missing")
   temp <- predict(object,newdata=newdata)
-  p <- 1-temp$cuminc
   pos <- sindex(jump.times=temp$time,eval.times=times)
-  cbind(1,p)[,pos+1,drop=FALSE]
+  p <- cbind(1,1-temp$cuminc)[,pos+1,drop=FALSE]
+  if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+    stop("Prediction failed")
+  p
 }
 
 

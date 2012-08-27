@@ -9,8 +9,7 @@ void pecResiduals(double *pec,
 		  double *weight_obs,
 		  int *N,
 		  int *NT,
-		  int *cmodel,
-		  int *pmodel)
+		  int *cmodel)
 {
   int s, i;
   double p, brier, gs, gi;
@@ -19,11 +18,7 @@ void pecResiduals(double *pec,
     for (i=0; i<*N;i++){
       
       /* prediction */
-      if (*pmodel==1)
 	p = pred[i + s * (*N)];
-      else
-	p = pred[s];
-      
       /* weights */
       gs = weight[(i + s * (*N)) * (*cmodel) + s * (1-(*cmodel))];
       gi = weight_obs[i];
@@ -49,8 +44,7 @@ void pecResidualsCR(double *pec,
 		    double *weight_obs,
 		    int *N,
 		    int *NT,
-		    int *cmodel,
-		    int *pmodel)
+		    int *cmodel)
 {
   int s, i;
   double p, brier, gs, gi;
@@ -59,10 +53,7 @@ void pecResidualsCR(double *pec,
     for (i=0; i<*N;i++){
       
       /* prediction */
-      if (*pmodel==1)
 	p = pred[i + s * (*N)];
-      else
-	p = pred[s];
       
       /* weights */
       gs = weight[(i + s * (*N)) * (*cmodel) + s * (1-(*cmodel))];

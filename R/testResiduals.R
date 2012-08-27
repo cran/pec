@@ -22,7 +22,7 @@ testResiduals <- function(object,
       })})
     ## naFractionIBS <- lapply(integratedResiduals,function(x)mean(is.na(x)))
   }
-
+  
   # }}}
   # {{{ extract residuals at testTimes
   if (!is.null(testTimes)){
