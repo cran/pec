@@ -1,4 +1,4 @@
-d176d3704bddce46279488b5c2856e29 *DESCRIPTION
+a606e2fbef6e112f9c950803e8a5c5a7 *DESCRIPTION
 f83d9a945b0a8e682820ba411a18837d *NAMESPACE
 83ba57b06b543e56d8fd09c7eead15ac *R/CindexBootstrapCrossValidation.R
 0b56e93e3645402e8c42a1b892113c60 *R/ConfInt.Cindex.R
@@ -18,7 +18,7 @@ d6d36ee72bbe0018a7c736d135ae8bb0 *R/checkModels.R
 fbd2493bf6dedae522fc9132357cc2eb *R/ipcw.R
 6dc1a92cf9a82f5bb8122b644216cdb4 *R/kFoldCrossValidation.R
 e98aed97a63f4718644437443a0f124b *R/marginal.prodlim.R
-1754d1162af6f86c194ec32784c1a6e1 *R/pecMethods.R
+26de730d4975c76a87f32299998bdefe *R/pecMethods.R
 a433f95275ab629c1e67ee109f3d71a5 *R/plot.CiCindex.R
 4cd65470826263b6203db03c68bf839d *R/plot.Cindex.R
 fde1c820e9838b6e6d21e8f98bbb53db *R/plot.confScoreSurv.R
@@ -82,7 +82,7 @@ bac0642b9ebcbfb40919e786f94c6b45 *src/SNull.c
 6536f812d8e39c9eba7cc0b7b9dca534 *src/brier_score.c
 96f85d39f20df06560456e5c1426d26e *src/ccr.c
 3c7cd3e3a6f5c241db7d42ba82d7d4a5 *src/cindex.c
-84fc83c42cc1f389ade0db8dfc247db2 *src/pec.c
+35ee3dc5894278bb79b69bf596c0a6b7 *src/pec.c
 fc6bfd5df6080babd25fbdb85ba942e4 *src/pecResiduals.c
 ed690ddbac39ed44510f20af4ac5a6a1 *src/survest_cox_aalen.c
 434b960a0559d0b07eff594800502638 *test/test-CompRisk-pec.R

@@ -139,7 +139,11 @@ void pec_noinf(double *pec,
     for (j=0; j<*N; j++){
       
       /* prediction */
-      p = pred[(j + s * (*N)) * (*ConstantPrediction) + s * (1-(*ConstantPrediction))];
+
+      if (*ConstantPrediction==0)
+	p = pred[j + s * (*N)];
+      else
+	p = pred[s];      
       
       for (i=0; i<(*N); i++){
 	/* weights */
@@ -175,7 +179,10 @@ void pec_noinfCR(double *pec,
     for (j=0; j<*N; j++){
       
       /* prediction */
-      p = pred[(j + s * (*N)) * (*ConstantPrediction) + s * (1-(*ConstantPrediction))];
+      if (*ConstantPrediction==0)
+	p = pred[j + s * (*N)];
+      else
+	p = pred[s];
       
       for (i=0; i<(*N); i++){
 	/* weights */
