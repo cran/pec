@@ -9,20 +9,24 @@ void pecResiduals(double *pec,
 		  double *weight_obs,
 		  int *N,
 		  int *NT,
-		  int *cmodel)
+		  int *cmodel,
+		  int *ConstantPrediction)
 {
   int s, i;
   double p, brier, gs, gi;
   
   for (s=0; s<(*NT);s++) {
     for (i=0; i<*N;i++){
-      
       /* prediction */
+      if (*ConstantPrediction==0){
 	p = pred[i + s * (*N)];
+      }
+      else{
+	p = pred[s];
+      }
       /* weights */
       gs = weight[(i + s * (*N)) * (*cmodel) + s * (1-(*cmodel))];
       gi = weight_obs[i];
-      
       if (Y[i] <= times[s])
 	brier = D[i] * p * p / gi;
       else
@@ -44,16 +48,21 @@ void pecResidualsCR(double *pec,
 		    double *weight_obs,
 		    int *N,
 		    int *NT,
-		    int *cmodel)
+		    int *cmodel,
+		    int *ConstantPrediction)
 {
   int s, i;
   double p, brier, gs, gi;
   
   for (s=0; s<(*NT);s++) {
     for (i=0; i<*N;i++){
-      
       /* prediction */
+      if (*ConstantPrediction==0){
 	p = pred[i + s * (*N)];
+      }
+      else{
+	p = pred[s];
+      }
       
       /* weights */
       gs = weight[(i + s * (*N)) * (*cmodel) + s * (1-(*cmodel))];

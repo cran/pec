@@ -24,9 +24,9 @@ This function first calls \code{cph} then \code{fastbw} and finally
 \code{cph} again.
 }
 \references{
-Mogensen, UB and Ishwaran, H and Gerds, TA (2010)
-Evaluating random forests for survival analysis using prediction error curves
-Research report 10/8. Department of Biostatistics, University of Copenhagen
+  Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012). Evaluating Random Forests
+  for Survival Analysis Using Prediction Error Curves. Journal of Statistical Software,
+  50(11), 1-23. URL http://www.jstatsoft.org/v50/i11/.
 }
 \examples{
 

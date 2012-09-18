@@ -46,6 +46,7 @@ cindex(object,...)
                         confLevel=0.95,
                         verbose=TRUE,
                         savePath=NULL,
+                        slaveseed=NULL,
                         ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -223,6 +224,9 @@ Experimental.
   }
   \item{savePath}{Place in your filesystem (directory) where training models fitted during
     cross-validation are saved. If \code{missing} training models are not saved.
+  }
+    \item{slaveseed}{
+    Vector of seeds, as long as \code{B}, to be given to the slaves in parallel computing.
   }
   \item{...}{Not used.}
 }

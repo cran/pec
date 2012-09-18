@@ -84,7 +84,11 @@
   A matrix with as many rows as \code{NROW(newdata)} and as many columns
   as \code{length(times)}. Each entry should be a probability and in
   rows the values should be decreasing.}
-% \references{ ~put references to the literature/web site here ~ }
+\references{
+  Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012). Evaluating Random Forests
+  for Survival Analysis Using Prediction Error Curves. Journal of Statistical Software,
+  50(11), 1-23. URL http://www.jstatsoft.org/v50/i11/.
+}
 
 \author{Thomas A. Gerds \email{tag@biostat.ku.dk}}
 \note{

@@ -21,7 +21,7 @@ bootstrapCrossValidation <- function(object,
                                      predictHandlerFun,
                                      keepMatrix,
                                      verbose,
-                                     savePath){
+                                     savePath,slaveseed){
   # {{{ initializing
   B <- splitMethod$B
   N <- splitMethod$N
@@ -30,7 +30,7 @@ bootstrapCrossValidation <- function(object,
   NF <- length(object) 
   ResampleIndex <- splitMethod$index
   # }}}
-  step <- function(b){
+  step <- function(b,seed){
     if (verbose==TRUE) internalTalk(b,B)
     # {{{ training and validation data
     vindex.b <- match(1:N,unique(ResampleIndex[,b]),nomatch=0)==0
@@ -58,12 +58,12 @@ bootstrapCrossValidation <- function(object,
     
     # }}}
     # {{{ Building the models in training data
+    if (!is.null(seed)) {
+      set.seed(seed)
+      ## if (verbose) message("seed:",seed)
+    }
     trainModels <- lapply(1:NF,function(f){
-      fit.b <- internalReevalFit(object=object[[f]],
-                                 data=train.b,
-                                 step=b,
-                                 silent=FALSE,
-                                 verbose=verbose)
+      fit.b <- internalReevalFit(object=object[[f]],data=train.b,step=b,silent=FALSE,verbose=verbose)
       ## this was a good idea to reduce the memory usage:
       ## fit.b$call <- object[[f]]$call
       ## fit.b$call <- NULL
@@ -130,7 +130,22 @@ bootstrapCrossValidation <- function(object,
           NA
         else{
           if (predictHandlerFun == "predictEventProb"){
-            matrix(.C("pecResidualsCR",pec=double(NT),resid=double(NT*NV),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(event[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(NROW(pred.b)>1),NAOK=TRUE,PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
+            matrix(.C("pecResidualsCR",
+                      pec=double(NT),
+                      resid=double(NT*NV),
+                      as.double(Y[vindex.b]),
+                      as.double(status[vindex.b]),
+                      as.double(event[vindex.b]),
+                      as.double(times),
+                      as.double(pred.b),
+                      as.double(ipcwTimes.b),
+                      as.double(IPCW.subjectTimes.b),
+                      as.integer(NV),
+                      as.integer(NT),
+                      as.integer(ipcw$dim),
+                      as.integer(is.null(dim(pred.b))),
+                      NAOK=TRUE,
+                      PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
           }
           else{
             matrix(.C("pecResiduals",
@@ -145,7 +160,7 @@ bootstrapCrossValidation <- function(object,
                       as.integer(NV),
                       as.integer(NT),
                       as.integer(ipcw$dim),
-                      as.integer(NROW(pred.b)>1),
+                      as.integer(is.null(dim(pred.b))),
                       NAOK=TRUE,
                       PACKAGE="pec")$resid,ncol=NT,byrow=FALSE)
           }
@@ -160,7 +175,21 @@ bootstrapCrossValidation <- function(object,
           NA
         else{
           if (predictHandlerFun=="predictEventProb")
-            pecOut <- .C("pecCR",pec=double(NT),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(event[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
+            pecOut <- .C("pecCR",
+                         pec=double(NT),
+                         as.double(Y[vindex.b]),
+                         as.double(status[vindex.b]),
+                         as.double(event[vindex.b]),
+                         as.double(times),
+                         as.double(pred.b),
+                         as.double(ipcwTimes.b),
+                         as.double(IPCW.subjectTimes.b),
+                         as.integer(NV),
+                         as.integer(NT),
+                         as.integer(ipcw$dim),
+                         as.integer(is.null(dim(pred.b))),
+                         NAOK=TRUE,
+                         PACKAGE="pec")$pec
           else
             pecOut <- .C("pec",pec=double(NT),as.double(Y[vindex.b]),as.double(status[vindex.b]),as.double(times),as.double(pred.b),as.double(ipcwTimes.b),as.double(IPCW.subjectTimes.b),as.integer(NV),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
         }
@@ -188,10 +217,12 @@ bootstrapCrossValidation <- function(object,
   }
   b <- 1
   if (require(foreach)){
-    Looping <- foreach (b= 1:B) %dopar% step(b)
+    if (missing(slaveseed)||is.null(slaveseed))
+      slaveseed <- sample(1:1000000,size=B,replace=FALSE)
+    Looping <- foreach (b= 1:B) %dopar% step(b,slaveseed[[b]])
   }
   else{
-    Looping <- lapply(1:B,function(b){step(b)})
+    Looping <- lapply(1:B,function(b){step(b,seed=NULL)})
   }
   # }}}
   # {{{ output

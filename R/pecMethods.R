@@ -35,6 +35,7 @@ pec.list <- function(object,
                      confLevel=0.95,
                      verbose=TRUE,
                      savePath=NULL,
+                     slaveseed=NULL,
                      ...)
 {
   # }}}
@@ -276,20 +277,7 @@ pec.list <- function(object,
     else{
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
       if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,,drop=FALSE]
-      .C("pec",
-         pec=double(NT),
-         as.double(Y),
-         as.double(status),
-         as.double(times),
-         as.double(pred),
-         as.double(ipcw$IPCW.times),
-         as.double(ipcw$IPCW.subjectTimes),
-         as.integer(N),
-         as.integer(NT),
-         as.integer(ipcw$dim),
-         as.integer(is.null(dim(pred))),
-         NAOK=TRUE,
-         PACKAGE="pec")$pec
+      .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
     }
   })
 
@@ -371,7 +359,7 @@ pec.list <- function(object,
     if (missing(testTimes)){
       testTimes <- NULL
     }
-    BootCv <- bootstrapCrossValidation(object=object,data=data,Y=Y,status=status,event=event,times=times,cause=cause,ipcw=ipcw,ipcw.refit=ipcw.refit,ipcw.call=ipcw.call,splitMethod=splitMethod,multiSplitTest=multiSplitTest,testIBS=testIBS,testTimes=testTimes,confInt=confInt,confLevel=confLevel,getFromModel=model.parms,giveToModel=model.args,predictHandlerFun=predictHandlerFun,keepMatrix=keep.matrix,keepResiduals=keep.residuals,verbose=verbose,savePath=savePath)
+    BootCv <- bootstrapCrossValidation(object=object,data=data,Y=Y,status=status,event=event,times=times,cause=cause,ipcw=ipcw,ipcw.refit=ipcw.refit,ipcw.call=ipcw.call,splitMethod=splitMethod,multiSplitTest=multiSplitTest,testIBS=testIBS,testTimes=testTimes,confInt=confInt,confLevel=confLevel,getFromModel=model.parms,giveToModel=model.args,predictHandlerFun=predictHandlerFun,keepMatrix=keep.matrix,keepResiduals=keep.residuals,verbose=verbose,savePath=savePath,slaveseed=slaveseed)
     BootstrapCrossValErr <- BootCv$BootstrapCrossValErr
     Residuals <- BootCv$Residuals
     names(BootstrapCrossValErr) <- names(object)

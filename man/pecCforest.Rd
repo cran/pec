@@ -24,10 +24,9 @@ pecCforest(formula, data, ...)
     See \code{cforest} of the \code{party} package.
 }
 \references{
-Mogensen, UB and Ishwaran, H and Gerds, TA (2010)
-Evaluating random forests for survival analysis using prediction error curves
-Research report 10/8. Department of Biostatistics, University of
-Copenhagen
+  Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012). Evaluating Random Forests
+  for Survival Analysis Using Prediction Error Curves. Journal of Statistical Software,
+  50(11), 1-23. URL http://www.jstatsoft.org/v50/i11/.
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

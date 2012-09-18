@@ -2,7 +2,7 @@
 ## rsf.default=randomSurvivalForest:::rsf.default 
 predictSurvProb.rsf <- function (object, newdata, times, ...)  { 
   N <- NROW(newdata) 
-  class(object) <- c("rsf", "grow")
+  ## class(object) <- c("rsf", "grow")
   S <- exp(-predict.rsf(object, test=newdata)$ensemble)
   if (N==1) S <- matrix(S,nrow=1)
   Time <- object$timeInterest 
