@@ -94,19 +94,12 @@ calPlot <- function(object,
   }
   margForm <- reformulate("1",response=formula[[2]])
   margFit <- prodlim(margForm,data=data)
-  jack <- jackknife(margFit,times=predTime)
+  jack <- jackknife(margFit,cause=cause,times=predTime)
   # }}}
   # {{{ call smartControls
   axis1.DefaultArgs <- list(side=1,las=1)
   axis2.DefaultArgs <- list(side=2,las=2)
-  legend.DefaultArgs <- list(legend=names(object),
-                             lwd=lwd,
-                             col=col,
-                             lty=lty,
-                             cex=1.5,
-                             bty="n",
-                             y.intersp=1.3,
-                             x="topleft")
+  legend.DefaultArgs <- list(legend=names(object),lwd=lwd,col=col,lty=lty,cex=1.5,bty="n",y.intersp=1.3,x="topleft")
   Grid.DefaultArgs <- list(vertical=NULL,horizontal=NULL,col=c("gray88","gray99"))
   background.DefaultArgs <- list(col="gray77")
   lines.DefaultArgs <- list(type="l")
@@ -120,13 +113,7 @@ calPlot <- function(object,
     xlim <- c(0,1)
   }
   plot.DefaultArgs <- list(x=0,y=0,type = "n",ylim = ylim,xlim = xlim,xlab = "Predicted probabilities",ylab = "Observed probabilities")
-  smartA <- prodlim:::SmartControl(call= list(...),
-                                   keys=c("plot","lines","legend","Grid","background","axis1","axis2"),
-                                   ignore=NULL,
-                                   ignore.case=TRUE,
-                                   defaults=list("plot"=plot.DefaultArgs,"lines"=lines.DefaultArgs,"legend"=legend.DefaultArgs,"Grid"=Grid.DefaultArgs,"background"=background.DefaultArgs,"axis1"=axis1.DefaultArgs,"axis2"=axis2.DefaultArgs),
-                                   forced=list("plot"=list(axes=FALSE),"axis1"=list(side=1)),
-                                   verbose=TRUE)
+  smartA <- prodlim:::SmartControl(call= list(...),keys=c("plot","lines","legend","Grid","background","axis1","axis2"),ignore=NULL,ignore.case=TRUE,defaults=list("plot"=plot.DefaultArgs,"lines"=lines.DefaultArgs,"legend"=legend.DefaultArgs,"Grid"=Grid.DefaultArgs,"background"=background.DefaultArgs,"axis1"=axis1.DefaultArgs,"axis2"=axis2.DefaultArgs),forced=list("plot"=list(axes=FALSE),"axis1"=list(side=1)),verbose=TRUE)
   # }}}
   # {{{ plot an empty frame
   if (add==FALSE){
@@ -168,7 +155,7 @@ calPlot <- function(object,
   
   # }}}
   # {{{ add one smoothed calibration line for each model
-  method <- match.arg(method,c("fixed","snne","loess","kernel"))
+  method <- match.arg(method,c("deciles","snne","loess","kernel"))
   predictions <- lapply(1:nlines,function(f){
     if (model.type=="competing.risks"){
       p=do.call(predictHandlerFun,list(object[[f]],newdata=data,times=predTime,cause=cause))
@@ -178,9 +165,8 @@ calPlot <- function(object,
     }
     if (class(object[[f]][[1]])=="matrix") p <- p[neworder,]
     if (showPseudo) points(p,jack,col="gray")
-    print(method)
     switch(method,
-           "fixed"={
+           "deciles"={
              groups <- quantile(p,seq(0.1,0.9,0.1))
              y <- tapply(jack,cut(p,c(-1,groups,2)),mean)
              lines(c(0,groups),y,col=col[f],lty=lty[f],lwd=lwd[f],type="b")             

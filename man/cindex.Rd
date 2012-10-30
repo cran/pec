@@ -313,6 +313,13 @@ harrelC12 <- rcorr.cens(p12,with(dat,Surv(time,status)))
 harrelC1[["C Index"]]==Cpec$AppCindex[["Cox.X1"]]
 harrelC2[["C Index"]]==Cpec$AppCindex[["Cox.X2"]]
 harrelC12[["C Index"]]==Cpec$AppCindex[["Cox.X1.X2"]]
+ #
+ # competing risks 
+ #
+require(lava)
+m <- lvm()
+X <- paste("X",seq(5),sep="")
+
 }
 }
 

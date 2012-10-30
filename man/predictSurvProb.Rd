@@ -133,12 +133,12 @@ psurv <- predictSurvProb(fitCox,newdata=valdat,times=seq(0,60,12))
 ## one column for each of the 5 time points
 ## one row for each validation set individual
 
-
+\dontrun{
 # the same can be done e.g. for a randomSurvivalForest model
 library(randomSurvivalForest)
 rsfmodel <- rsf(Survrsf(time,status)~X1+X2,data=d)
 predictSurvProb(rsfmodel,newdata=ndat,times=ttt)
-
+}
 }
 
 \keyword{survival}% at least one, from doc/KEYWORDS

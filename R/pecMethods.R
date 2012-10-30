@@ -2,8 +2,8 @@ pec <- function(object,...){
   UseMethod("pec",object=object)
 }
 
-
 # {{{ header pec.list
+
 pec.list <- function(object,
                      formula,
                      data,
@@ -38,6 +38,7 @@ pec.list <- function(object,
                      slaveseed=NULL,
                      ...)
 {
+
   # }}}
   # {{{ checking integrity some arguments
   theCall=match.call()
@@ -57,8 +58,8 @@ pec.list <- function(object,
   # {{{ formula
 
   if (missing(formula)){
-    formula <- eval(object[[1]]$call$formula)
-    if (match("formula",class(formula),nomatch=0)==0)
+    ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
+    if ((class(ftry)=="try-error") || match("formula",class(formula),nomatch=0)==0)
       stop("Argument formula is missing.")
     else if (verbose)
       warning("Formula missing. Using formula from first model")
@@ -93,6 +94,7 @@ pec.list <- function(object,
   
   # }}}
   # {{{ response
+
   histformula <- formula
   if (histformula[[2]][[1]]==as.name("Surv")){
     histformula[[2]][[1]] <- as.name("Hist")
@@ -118,6 +120,7 @@ pec.list <- function(object,
 
   # }}}
   # {{{ prediction models
+
   if (reference==TRUE) {
     ProdLimform <- reformulate("1",response=formula[[2]])
     ## environment(ProdLimform) <- NULL
@@ -126,9 +129,9 @@ pec.list <- function(object,
     ProdLimfit$formula <- NULL
     ProdLimfit$call$formula=ProdLimform
     if (model.type=="competing.risks")
-      object <- c(list(AalenJohansen=ProdLimfit),object)
+      object <- c(list(Reference=ProdLimfit),object)
     else
-      object <- c(list(KaplanMeier=ProdLimfit),object)
+      object <- c(list(Reference=ProdLimfit),object)
   }
   if (is.null(names(object))){
     names(object) <- sapply(object,function(o)class(o)[1])
@@ -185,7 +188,6 @@ pec.list <- function(object,
   }
   # }}}      
   # {{{ find maxtime, start, and jumptimes in the range of the response 
-
   if (missing(maxtime) || is.null(maxtime))
     maxtime <- unique.Y[NU]
   if (missing(start))

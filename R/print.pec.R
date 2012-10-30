@@ -34,7 +34,9 @@
       what <- paste(x$splitMethod$internal.name,"Err",sep="")
   # }}}
   # {{{ echo estimation splitMethod
-  if (!is.null(x$splitMethod)) print(x$splitMethod)
+  if (!is.null(x$splitMethod)) {
+    cat("\n")
+    print(x$splitMethod)}
   if (missing(times)){
     ## times <- x$maxtime ## times <- quantile(x$time,.9)
     times <- x$minmaxtime
@@ -45,15 +47,27 @@
   }
   # }}}
   # {{{ cumulative prediction errors
-  cat("\n",paste(rep("_",options()$width/2),collapse=""),"\n")
-  tnames <- paste("time=",round(times,1),sep="")
-  tnames[times<1] <- paste("time=",signif(times[times<1],2),sep="")
-  cat("\nCumulative prediction error, aka Integrated Brier score  (IBS)\n aka Cumulative rank probability score\n\nRange of integration:",x$start,"and",tnames,":\n\n")
-  out <- crps(object=x,times=times,start=x$start,what=what)
-  if (is.matrix(out))
-    print(out,digits=digits,quote=FALSE)
+    ## cat("\n",paste(rep("_",options()$width),collapse=""),"\n")
+    tnames <- paste("time=",round(times,1),sep="")
+    tnames[times<1] <- paste("time=",signif(times[times<1],2),sep="")
+  if (x$exact==TRUE){
+    cat("\nCumulative prediction error, aka Integrated Brier score  (IBS)\n aka Cumulative rank probability score\n\nRange of integration:",x$start,"and",tnames,":\n\n")
+    out <- crps(object=x,times=times,start=x$start,what=what)
+    if (is.matrix(out))
+      print(out,digits=digits,quote=FALSE)
+    else{
+      print.listof(out,digits=digits,quote=FALSE)
+    }
+  }
   else{
-    print.listof(out,digits=digits,quote=FALSE)
+    sx <- summary(x,times=times,what=what,digits=digits,print=FALSE)
+    if (length(sx)==1)
+      print(round(sx[[1]],digits=digits))
+    else{
+    names(sx) <- c("AppErr"="Apparent prediction error","Boot632plusErr"="Boostrap .632+","Boot632Err"="Bootstrap .632","BootCvErr"="Bootstrap cross-validation","loocvErr"="Leave one out cross validation","crossval"="cross-validation","NoInfErr"="No information error")[names(sx)]
+    cat("\nPrediction error at",tnames,":\n\n",sep="")
+    print.listof(sx,digits=digits,quote=FALSE)
+  }
   }
   # }}}
   # {{{ warn about failed computations

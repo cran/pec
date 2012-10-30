@@ -40,29 +40,37 @@ CindexBootstrapCrossValidation <- function(object,
     Y.b <- Y[vindex.b]
     tindex.b <- match(Y.b,unique(Y.b))
     val.b <- data[vindex.b,,drop=FALSE]
+    ## browser()
     train.b <- data[ResampleIndex[,b],,drop=FALSE]
+    ## if (b==1) print(train.b$days)
+    ## if (b==1) print(val.b$days)
     NV=sum(vindex.b)                    # NROW(val.b)
     # }}}
     # {{{ IPCW
-    if (ipcw.refit==TRUE){
-      ipcw.call.b.i <- ipcw.call$weight.i
-      ipcw.call.b.j <- ipcw.call$weight.j
-      ipcw.call.b.i$data <- val.b
-      ipcw.call.b.j$data <- val.b
-      ipcw.call.b.i$subjectTimes <- Y.b
-      ipcw.call.b.j$subjectTimes <- Y.b
-      ipcw.b.i <- do.call("ipcw",ipcw.call.b.i)$IPCW.subjectTimes
-      ipcw.b.j <- do.call("ipcw",ipcw.call.b.j)$IPCW.times
+    ## if (ipcw.refit==TRUE){
+    ## ipcw.call.b.i <- ipcw.call$weight.i
+    ## ipcw.call.b.j <- ipcw.call$weight.j
+    ## ipcw.call.b.i$data <- val.b
+    ## ipcw.call.b.j$data <- val.b
+    ## ipcw.call.b.i$subjectTimes <- Y.b
+    ## ipcw.call.b.j$subjectTimes <- Y.b
+    ## ipcw.b.i <- do.call("ipcw",ipcw.call.b.i)$IPCW.subjectTimes
+    ## ipcw.b.j <- do.call("ipcw",ipcw.call.b.j)$IPCW.times
+    ## }
+    ## else{
+    ipcw.b.i <- weights$weight.i[vindex.b]
+    if (is.null(dim(weights$weight.j))){
+      ipcw.b.j <- weights$weight.j
     }
     else{
-      ipcw.b.i <- weights$weight.i[vindex.b]
-      ipcw.b.j <- weights$weight.j[vindex.b]
+      ipcw.b.j <- weights$weight.j[vindex.b,]
     }
+    ## }
     # }}}
     # {{{ Building the models in training data
- if (!is.null(seed)) {
+    if (!is.null(seed)) {
       set.seed(seed)
-      ## if (verbose) message("seed:",seed)
+      ## message("seed:",seed)
     }
     trainModels <- lapply(1:NF,function(f){
       fit.b <- internalReevalFit(object=object[[f]],
@@ -106,6 +114,8 @@ CindexBootstrapCrossValidation <- function(object,
       else{
         try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=pred.times,train.data=train.b),extraArgs)))
       }
+      ## browser()
+      ## print(pred.b[1:5])
       if (inherits(try2predict,"try-error")==TRUE){
         if (verbose==TRUE) warning(paste("During bootstrapping: prediction for model ",class(fit.b)," failed in step ",b),immediate.=TRUE)
         NULL}
@@ -147,12 +157,12 @@ CindexBootstrapCrossValidation <- function(object,
             Step.b.ConcordantA <- Step.b.CindexResult$concA
             Step.b.PairsB <- Step.b.CindexResult$pairsB
             Step.b.ConcordantB <- Step.b.CindexResult$concB
-            list(Cindex.b=Step.b.Cindex,
-                 Pairs.b=list(A=Step.b.PairsA,B=Step.b.PairsB),
-                 Concordant.b=list(A=Step.b.ConcordantA,B=Step.b.ConcordantB))
+            list(Cindex.b=Step.b.Cindex,Pairs.b=list(A=Step.b.PairsA,B=Step.b.PairsB),Concordant.b=list(A=Step.b.ConcordantA,B=Step.b.ConcordantB))
           }
           else{
             cindexOut <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex.b),as.double(Y.b),as.integer(status[vindex.b]),as.double(eval.times),as.double(ipcw.b.i),as.double(ipcw.b.j),as.double(pred.b),as.integer(sum(vindex.b)),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(ipcw.b.j))),NAOK=TRUE,package="pec")            
+            ## if (b==1) print(ipcw.b.j)
+            ## browser()
             Cindex.b <- cindexOut$cindex
             Pairs.b <- cindexOut$pairs 
             Concordant.b <- cindexOut$conc
@@ -220,7 +230,7 @@ CindexBootstrapCrossValidation <- function(object,
   ## 
   ##   3. the results of B residual tests 
   ##
-  print(str(Looping))
+  ##   print(str(Looping))
   if (multiSplitTest==TRUE){
     out$testedResid <- lapply(Looping,function(x)x$testedResid)
   }

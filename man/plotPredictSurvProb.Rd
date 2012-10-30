@@ -87,6 +87,7 @@ plotPredictSurvProb(x,
 \seealso{{\code{\link{predictSurvProb}}}{\code{\link{prodlim}}}}
 
 \examples{
+\dontrun{
 # generate some survival data
 d <- SimSurv(100)
 # then fit a Cox model 
@@ -101,5 +102,6 @@ plotPredictSurvProb(coxmodel,newdata=ndat,times=ttt)
 library(randomSurvivalForest)
 rsfmodel <- rsf(Survrsf(time,status)~X1+X2,data=d)
 plotPredictSurvProb(rsfmodel,newdata=ndat,times=ttt)
+}
 }
 \keyword{survival}

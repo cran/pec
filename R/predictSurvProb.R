@@ -131,8 +131,8 @@ predictSurvProb.coxph <- function(object,newdata,times,...){
   survival.survfit.coxph <- getFromNamespace("survfit.coxph",ns="survival")
   survival.summary.survfit <- getFromNamespace("summary.survfit",ns="survival")
   survfit.object <- survival.survfit.coxph(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
-  inflated.pred <- survival.summary.survfit(survfit.object,times=times)
-  p <- t(inflated.pred$surv)
+  inflated.pred <- survival.summary.survfit(survfit.object,times=times)$surv
+  p <- t(inflated.pred)
   if ((miss.time <- (length(times) - NCOL(p)))>0)
     p <- cbind(p,matrix(rep(NA,miss.time*NROW(p)),nrow=NROW(p)))
   if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
@@ -318,6 +318,15 @@ predictSurvProb.riskRegression <- function(object,newdata,times,...){
   temp <- predict(object,newdata=newdata)
   pos <- sindex(jump.times=temp$time,eval.times=times)
   p <- cbind(1,1-temp$cuminc)[,pos+1,drop=FALSE]
+  if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+    stop("Prediction failed")
+  p
+}
+
+predictSurvProb.rfsrc <- function(object, newdata, times, ...){
+  ptemp <- predict(object,newdata=newdata,...)$survival
+  pos <- sindex(jump.times=object$time.interest,eval.times=times)
+  p <- cbind(1,ptemp)[,pos+1]
   if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
     stop("Prediction failed")
   p

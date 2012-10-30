@@ -443,7 +443,7 @@ PredError <- pec(object=Models,
 print(PredError,times=seq(5,30,5))
 summary(PredError)
 plot(PredError,xlim=c(0,30))
-
+\dontrun{
 # compute the .632+ estimate of the generalization error 
 set.seed(17100)
 PredError.632plus <- pec(object=Models,
@@ -458,7 +458,7 @@ PredError.632plus <- pec(object=Models,
 print(PredError.632plus,times=seq(5,30,5))
 summary(PredError.632plus)
 plot(PredError.632plus,xlim=c(0,30))
-
+}
 \dontrun{
 # do the same again but now parallized
 set.seed(17100)

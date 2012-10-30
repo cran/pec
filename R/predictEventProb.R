@@ -7,7 +7,16 @@ predictEventProb <- function(object,newdata,times,cause,...){
 
 predictEventProb.matrix <- function(object,newdata,times,...){
   if (NROW(object) != NROW(newdata) || NCOL(object) != length(times)){
-    stop(paste("Prediction matrix has wrong dimensions: ",NROW(object)," rows and ",NCOL(object)," columns.\n But requested are predicted probabilities for ",NROW(newdata), " subjects (rows) in newdata and ",NCOL(newdata)," time points (columns)",sep=""))
+    stop(paste("Prediction matrix has wrong dimensions: ",
+               NROW(object),
+               " rows and ",
+               NCOL(object),
+               " columns.\n But requested are predicted probabilities for ",
+               NROW(newdata),
+               " subjects (rows) in newdata and ",
+               length(times),
+               " time points (columns)",
+               sep=""))
   }
   object
 }
@@ -101,6 +110,16 @@ predictEventProb.CauseSpecificCox <- function (object, newdata, times, cause, ..
   p
 }
 
+predictEventProb.rfsrc <- function(object, newdata, times, cause, ...){
+  if (missing(cause)) stop("missing cause")
+  ptemp <- predict(object,newdata=newdata,...)$cif[,,cause]
+  pos <- sindex(jump.times=object$time.interest,eval.times=times)
+  p <- cbind(0,ptemp)[,pos+1]
+  if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+    stop("Prediction failed")
+  p
+}
+
 ## predictUpdateProb.CSC <- function (object, newdata,times,horizon, cause, ...) {
   ## survtype <- object$survtype
   ## N <- NROW(newdata)
@@ -128,3 +147,4 @@ predictEventProb.CauseSpecificCox <- function (object, newdata, times, cause, ..
   ## pos <- sindex(jump.times=eTimes, eval.times=times)
   ## cbind(0,cuminc1)[,pos+1,drop=FALSE]
 ## }
+

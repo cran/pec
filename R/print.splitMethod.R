@@ -4,7 +4,7 @@ print.splitMethod <- function(x){
   cat("\nMethod for estimating the prediction error:\n")
   if (x$internal.name=="crossval"){
     cat("\n",x$name,"\n\n")
-    cat("Repeat: ",x$B,"\n")
+    cat("Repeated: ",x$B,ifelse(x$B==1," time","times"),"\n")
   }
   else{
     if (x$internal.name=="loocv"){

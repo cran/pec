@@ -197,7 +197,8 @@ cindex.list <- function(object,
     }
   }
   if (missing(pred.times))
-    pred.times <- median(unique.Y)
+    ## pred.times <- median(unique.Y)
+    pred.times <- eval.times
   ## FIXME: if the model changes the risk order over time, then we need to care about pred.times
   NT <-  length(eval.times)
   tindex <- match(Y,unique.Y)
@@ -291,6 +292,8 @@ cindex.list <- function(object,
       if (length(pred.times)==1 && length(pred.times)<length(eval.times))
         pred <- rep(pred,length(eval.times))
       AppCindexResult <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
+      ## print(weight.j)
+      ## browser()
       AppCindex <- AppCindexResult$cindex
       AppPairs <- AppCindexResult$pairs
       AppConcordant <- AppCindexResult$conc

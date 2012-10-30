@@ -39,14 +39,13 @@ testResiduals <- function(object,
       Rdiff <- testTimeResiduals[[cc[2]]]-testTimeResiduals[[cc[1]]]
       wtest <- lapply(1:length(testTimes),function(t){
         d <- Rdiff[,t]
-        if (any(is.na(d)))
+        if (any(is.na(d))){
           list(p.value=NA,conf.int=c(NA,NA))
-        else
-          suppressWarnings(wilcox.test(d,
-                                       alternative="less",
-                                       exact=testExact,
-                                       conf.int=confInt,
-                                       conf.level=confLevel))
+        }
+        else{
+          browser()
+          suppressWarnings(wilcox.test(d,alternative="less",exact=testExact,conf.int=confInt,conf.level=confLevel))
+        }
       })
       loopOut <- list(pValue=sapply(wtest,function(w)w$p.value))
       if (confInt==TRUE){

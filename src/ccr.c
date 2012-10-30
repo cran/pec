@@ -40,9 +40,9 @@ void ccr(double *C,
     weightedConcPairs=0; /* weighted concordant pairs */
     weightedPairs=0;     /* weighted pairs */
     for (i=0;i<(*N);i++){
-      /* for all pairs one of the times must be uncensored */
+      /* for all pairs one of the times must be uncensored and cause 1 */
       if (T[i]<=times[s] && Delta[i]==1 && D[i]==1){
-	/* Rprintf("\n\ni=%d\n",i+1); */
+	 Rprintf("\n\ni=%d\n",i+1); 
 	for (j=0;j<*N;j++){
 	  if (j!=i){
 	    Aij=0;
@@ -55,9 +55,11 @@ void ccr(double *C,
 	      WAij = weight_i[i] * weight_j[(j + (tindex[i]-1) * (*N))];
 	    }
 	    WBij = weight_i[i] * weight_i[j];
-	    /* time j must either be greater than time i */
+	    /* time_j is either greater than time_i
+	       or censored and equal
+	     */
 	    if (T[i]<T[j] || (T[j]==T[i] && Delta[j]==0)){
-	       /* Rprintf("case A i=%d\tj=%d\tT.i=%1.0f\tT.j=%1.0f\t\tD.i=%d\tD.j=%d\n",i+1,j+1,T[i],T[j],D[i],D[j]);  */
+	      /* Rprintf("case A i=%d\tj=%d\tT.i=%1.0f\tT.j=%1.0f\t\tD.i=%d\tD.j=%d\n",i+1,j+1,T[i],T[j],D[i],D[j]);   */
 	      Aij=1;
 	      weightedA=Aij/WAij;
 	      Bij=0;
@@ -65,14 +67,14 @@ void ccr(double *C,
 	    }
 	    else{ /* or competing risk */
 	      if(Delta[j]==1 && D[j]!=1){
-		 /* Rprintf("case B i=%d\tj=%d\tT.i=%1.0f\tT.j=%1.0f\t\tD.i=%d\tD.j=%d\n",i+1,j+1,T[i],T[j],D[i],D[j]);  */
+		 /* Rprintf("case B i=%d\tj=%d\tT.i=%1.0f\tT.j=%1.0f\t\tD.i=%d\tD.j=%d\n",i+1,j+1,T[i],T[j],D[i],D[j]);    */
 		Bij=1;
 		weightedB=Bij/WBij;
 		Aij=0;
 		weightedA=0;
 	      }
 	      else{
-		 /* Rprintf("case C i=%d\tj=%d\tT.i=%1.0f\tT.j=%1.0f\t\tD.i=%d\tD.j=%d\n",i+1,j+1,T[i],T[j],D[i],D[j]);  */
+		 /* Rprintf("case C i=%d\tj=%d\tT.i=%1.0f\tT.j=%1.0f\t\tD.i=%d\tD.j=%d\n",i+1,j+1,T[i],T[j],D[i],D[j]);    */
 		Aij=0;
 		Bij=0;
 		weightedA=0;
@@ -86,9 +88,7 @@ void ccr(double *C,
 	    pairsB[s] += Bij;
 	    weightedPairs += (weightedA+weightedB);
 	    /*
-
 	      concordant pairs
-
 	    */
 	    if (pred[i + s * (*N)] > pred[j + s * (*N)]) {
 	      concA[s] +=Aij;
@@ -101,10 +101,13 @@ void ccr(double *C,
 	      count 1/2 or nothing
 	    */
 	    if (pred[i + s * (*N)] == pred[j + s * (*N)]) {
-	      if (*tiedpredIn==1 ){ 
-		concA[s] += (1/2) * Aij;
-		concB[s] += (1/2) * Bij;
-		weightedConcPairs += (1/2) * (weightedA+weightedB);
+	       /* Rprintf("here\n");  */
+	      if (*tiedpredIn==1 ){
+		concA[s] += Aij/2;
+		concB[s] += Bij/2;
+		/* Rprintf("wa=%1.2f\twb=%1.2f\twconc=%1.2f\n",weightedA,weightedB,weightedConcPairs);  */
+		weightedConcPairs += (weightedA+weightedB)/2;
+		/* Rprintf("wa=%1.2f\twb=%1.2f\twconc=%1.2f\n",weightedA,weightedB,weightedConcPairs);  */
 	      }
 	    }
 	  }

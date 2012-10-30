@@ -29,8 +29,9 @@ This function first calls \code{cph} then \code{fastbw} and finally
   50(11), 1-23. URL http://www.jstatsoft.org/v50/i11/.
 }
 \examples{
-
+\dontrun{
 data(GBSG2)
 f <- selectCox(Surv(time,cens)~horTh + age + menostat + tsize + tgrade + pnodes + progrec + estrec ,data=GBSG2)
+}
 }
 \keyword{survival}

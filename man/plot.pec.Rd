@@ -110,7 +110,7 @@
 
 # simulate an artificial data frame
 # with survival response and two predictors
-
+\dontrun{
 set.seed(280180)
 N <- 300
 X1 <- rnorm(N,mean=10,sd=5)
@@ -147,7 +147,7 @@ plot(PredError.632plus,xlim=c(0,30))
 # and Apparent error for the Cox model 'Cox.X1' with the 'Cox.X2' model
 # as benchmark
 plot(PredError.632plus,xlim=c(0,30), models="Cox.X1", special=TRUE, special.bench="Cox.X2", special.benchcol=2, special.addprederr="AppErr")
-
+}
 
 }
 
