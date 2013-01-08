@@ -1,4 +1,4 @@
-465d3f3b761184b45d56146b2adc0aa2 *DESCRIPTION
+61b551c812cc428c07a30a46b7cea23b *DESCRIPTION
 dff7a6df033f572502c31d7c7b69047f *NAMESPACE
 f8772752bf1dd72c599c55df064cdf3c *R/CindexBootstrapCrossValidation.R
 0b56e93e3645402e8c42a1b892113c60 *R/ConfInt.Cindex.R
@@ -26,7 +26,7 @@ fde1c820e9838b6e6d21e8f98bbb53db *R/plot.confScoreSurv.R
 e20141e8dae00d766310011e42a0ee84 *R/plotPredictEventProb.R
 b12cad7f455cf3f08b9319cd28cd6d2a *R/plotPredictSurvProb.R
 58e30af6211c7444eeae9054bf7d507e *R/predictEventProb.R
-0b25f2f82bc0d38267d5f5ddeed13380 *R/predictEventProb.rsf.R
+d9374cad5bf54ef4cbc57f5fd42bf5e3 *R/predictEventProb.rsf.R
 199a6eb50c20a03cf6bfce8ef68df913 *R/predictSurvProb.FastBw.R
 71d3b2edded86eae40ac421d219a5a8d *R/predictSurvProb.R
 092884df062d726f395c6e7bd0fb7378 *R/predictSurvProb.cforest.R
