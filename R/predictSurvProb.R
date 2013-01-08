@@ -95,7 +95,7 @@ predictSurvProb.mfp <- function(object,newdata,times,...){
 
 predictSurvProb.survnnet <- function(object,newdata,times,train.data,...){
 #predictSurvProb.survnnet <- function(object,newdata,times,...){
-  require(rms)
+  ## require(rms)
   learndat <- train.data
   learndat$nnetFactor <- predict(object,train.data,...)
   newdata$nnetFactor <- predict(object,newdata)
@@ -108,7 +108,7 @@ predictSurvProb.survnnet <- function(object,newdata,times,train.data,...){
 
 predictSurvProb.rpart <- function(object,newdata,times,train.data,...){
 #  require(rpart)
-  require(rms)
+  ## require(rms)
   learndat <- train.data
   nclass <- length(unique(object$where))
   learndat$rpartFactor <- factor(predict(object,newdata=train.data,...))
@@ -173,7 +173,7 @@ predictSurvProb.cph <- function(object,newdata,times,...){
 }
 
 predictSurvProb.prodlim <- function(object,newdata,times,...){
-  require(prodlim)
+  ## require(prodlim)
   p <- predict(object=object,
                type="surv",
                newdata=newdata,
@@ -324,7 +324,7 @@ predictSurvProb.riskRegression <- function(object,newdata,times,...){
 }
 
 predictSurvProb.rfsrc <- function(object, newdata, times, ...){
-  ptemp <- predict(object,newdata=newdata,...)$survival
+  ptemp <- predict(object,newdata=newdata,importance="none",...)$survival
   pos <- sindex(jump.times=object$time.interest,eval.times=times)
   p <- cbind(1,ptemp)[,pos+1]
   if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))

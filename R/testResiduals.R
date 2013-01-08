@@ -22,13 +22,12 @@ testResiduals <- function(object,
       })})
     ## naFractionIBS <- lapply(integratedResiduals,function(x)mean(is.na(x)))
   }
-  
   # }}}
   # {{{ extract residuals at testTimes
   if (!is.null(testTimes)){
     timePos <- sindex(times,testTimes)
     testTimeResiduals <- lapply(object,function(x){
-      x[,timePos]
+      x[,timePos,drop=FALSE]
     })
     ## naFractionTestTimes <- lapply(testTimeResiduals,function(x)colMeans(is.na(x)))
   }
@@ -38,12 +37,11 @@ testResiduals <- function(object,
     if (!is.null(testTimes)){
       Rdiff <- testTimeResiduals[[cc[2]]]-testTimeResiduals[[cc[1]]]
       wtest <- lapply(1:length(testTimes),function(t){
-        d <- Rdiff[,t]
+        d <- Rdiff[,t,drop=TRUE]
         if (any(is.na(d))){
           list(p.value=NA,conf.int=c(NA,NA))
         }
         else{
-          browser()
           suppressWarnings(wilcox.test(d,alternative="less",exact=testExact,conf.int=confInt,conf.level=confLevel))
         }
       })

@@ -51,7 +51,7 @@ predictSurvProb.penfitS3 <- function(object,
   pCovaNames <- names(penfit@penalized)
   newPen <- newdata[,pCovaNames]
   ptemp <- predict(penfit,penalized=newPen,data=newdata)
-  require(prodlim)
+  ## require(prodlim)
   pos <- sindex(jump.times=ptemp@time,eval.times=times)
   ## Remark: currently it is possible, but theoretically
   ## not allowed to carry predictions forward beyond the

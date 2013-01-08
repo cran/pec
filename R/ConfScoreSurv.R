@@ -11,7 +11,7 @@ ConfScoreSurv <- function(object,
   N <- NROW(data)
   # {{{ Find splits
 
-  require(pec)
+  ## require(pec)
   splitMethod <- resolvesplitMethod(splitMethod=splitMethod,B=B,N=NROW(data),M=M)
   ResampleIndex <- splitMethod$index
 

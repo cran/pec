@@ -212,14 +212,14 @@ bootstrapCrossValidation <- function(object,
     loopOut
   }
   b <- 1
-  if (require(foreach)){
+  ## if (require(foreach)){
     if (missing(slaveseed)||is.null(slaveseed))
       slaveseed <- sample(1:1000000,size=B,replace=FALSE)
     Looping <- foreach (b= 1:B) %dopar% step(b,slaveseed[[b]])
-  }
-  else{
-    Looping <- lapply(1:B,function(b){step(b,seed=NULL)})
-  }
+  ## }
+  ## else{
+    ## Looping <- lapply(1:B,function(b){step(b,seed=NULL)})
+  ## }
   # }}}
   # {{{ output
   ## 

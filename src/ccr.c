@@ -42,7 +42,7 @@ void ccr(double *C,
     for (i=0;i<(*N);i++){
       /* for all pairs one of the times must be uncensored and cause 1 */
       if (T[i]<=times[s] && Delta[i]==1 && D[i]==1){
-	 Rprintf("\n\ni=%d\n",i+1); 
+	 /* Rprintf("\n\ni=%d\n",i+1);  */
 	for (j=0;j<*N;j++){
 	  if (j!=i){
 	    Aij=0;

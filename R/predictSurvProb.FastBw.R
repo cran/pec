@@ -1,6 +1,6 @@
 selectCox <- function(formula,data,rule="aic"){
-  require(rms)
-  require(prodlim)
+  ## require(rms)
+  ## require(prodlim)
   fit <- cph(formula, data, surv=TRUE)
   bwfit <- fastbw(fit,rule=rule)
   if (length(bwfit$names.kept)==0){

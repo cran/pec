@@ -89,8 +89,10 @@ plotPredictSurvProb(x,
 \examples{
 \dontrun{
 # generate some survival data
+library(prodlim)
 d <- SimSurv(100)
 # then fit a Cox model 
+library(rms)
 coxmodel <- cph(Surv(time,status)~X1+X2,data=d,surv=TRUE)
 # plot predicted survival probabilities for all time points
 ttt <- sort(unique(d$time))

@@ -49,6 +49,55 @@ ipcw.none <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wha
   out
 }
 
+
+## reverse Random Survival Forests
+## ipcw.rfsrc <- function(formula,data,method,times,subjectTimes,subjectTimesLag,what){
+  ## if (missing(subjectTimesLag)) subjectTimesLag=1
+  ## if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
+  ## call <- match.call()
+  ## require(randomForestSRC)
+  ## status.name <- all.vars(formula)[2]
+  ## reverse.data <- data
+  ## reverse.data[,status.name] <- 1 * (reverse.data[,status.name]==0)
+  ## stopifnot(NROW(na.omit(data))>0)
+  ## fit <- rsfrc(formula,data=reverse.data,surv=TRUE,x=TRUE,y=TRUE)
+  ## #  weigths at requested times
+  ## if (match("IPCW.times",what,nomatch=FALSE)){
+    ## length.times <- length(times)
+    ## stopifnot(length.times>0)
+    ## IPCW.times <- predictSurvProb(fit,newdata=data,times=times)
+    ## if (is.null(dim(IPCW.times))){
+      ## names(IPCW.times) <- NULL
+    ## } else{
+      ## colnames(IPCW.times) <- paste("t",1:NCOL(IPCW.times),sep="")
+      ## rownames(IPCW.times) <- 1:NROW(IPCW.times)
+    ## }
+  ## }
+  ## else
+    ## IPCW.times <- NULL
+  ## #  weigths at subject specific event times
+  ## if (match("IPCW.subjectTimes",what,nomatch=FALSE)){
+    ## if (subjectTimesLag==1)
+      ## IPCW.subjectTimes <- predictSurvProb(fit,times=subjectTimes-min(diff(c(0,unique(subjectTimes))))/2,newdata=data)
+    ## else if (subjectTimesLag==0){
+      ## IPCW.subjectTimes <- survest(fit,times=subjectTimes,what='parallel')
+    ## }
+    ## else stop("SubjectTimesLag must be 0 or 1")
+    ## names(IPCW.subjectTimes) <- paste("T",1:length(IPCW.subjectTimes),".lag",subjectTimesLag,sep="")
+  ## }
+  ## else
+    ## IPCW.subjectTimes <- NULL
+  ## out <- list(times=times,
+              ## IPCW.times=IPCW.times,
+              ## IPCW.subjectTimes=IPCW.subjectTimes,
+              ## fit=fit,
+              ## call=call,
+              ## method=method)
+  ## class(out) <- "IPCW"
+  ## out
+## }
+
+
 ## reverse Kaplan-Meier 
 ipcw.marginal <- function(formula,data,method,times,subjectTimes,subjectTimesLag,what){
   if (missing(subjectTimesLag)) subjectTimesLag=1
@@ -163,7 +212,7 @@ ipcw.cox <- function(formula,data,method,times,subjectTimes,subjectTimesLag,what
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
-  require(rms)
+  ## require(rms)
   status.name <- all.vars(formula)[2]
   reverse.data <- data
   reverse.data[,status.name] <- 1 * (reverse.data[,status.name]==0)
@@ -211,7 +260,7 @@ ipcw.aalen <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wh
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
   require(timereg)
-  require(rms)
+  ## require(rms)
   status.name <- all.vars(formula)[2]
   reverse.data <- data
   reverse.data[,status.name] <- 1 * (reverse.data[,status.name]==0)

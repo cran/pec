@@ -51,7 +51,7 @@ ibs(object, models, what, times, start)
 \seealso{\code{\link{pec}}}
 
 \examples{set.seed(18713)
-
+library(prodlim)
 dat=prodlim:::SimSurv(100)
 nullmodel=prodlim(Hist(time,status)~1,data=dat)
 pmodel=coxph(Surv(time,status)~X1+X2,data=dat)

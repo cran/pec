@@ -151,7 +151,28 @@ CindexBootstrapCrossValidation <- function(object,
           NA
         else{
           if (predictHandlerFun=="predictEventProb"){
-            Step.b.CindexResult <- .C("ccr",cindex=double(NT),concA=double(NT),pairsA=double(NT),concB=double(NT),pairsB=double(NT),as.integer(tindex.b),as.double(Y.b),as.integer(status[vindex.b]),as.integer(event[vindex.b]),as.double(eval.times),as.double(ipcw.b.i),as.double(ipcw.b.j),as.double(pred.b),as.integer(sum(vindex.b)),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(ipcw.b.j))),NAOK=TRUE,package="pec")
+            Step.b.CindexResult <- .C("ccr",
+                                      cindex=double(NT),
+                                      concA=double(NT),
+                                      pairsA=double(NT),
+                                      concB=double(NT),
+                                      pairsB=double(NT),
+                                      as.integer(tindex.b),
+                                      as.double(Y.b),
+                                      as.integer(status[vindex.b]),
+                                      as.integer(event[vindex.b]),
+                                      as.double(eval.times),
+                                      as.double(ipcw.b.i),
+                                      as.double(ipcw.b.j),
+                                      as.double(pred.b),
+                                      as.integer(sum(vindex.b)),
+                                      as.integer(NT),
+                                      as.integer(tiedPredictionsIn),
+                                      as.integer(tiedOutcomeIn),
+                                      as.integer(tiedMatchIn),
+                                      as.integer(!is.null(dim(ipcw.b.j))),
+                                      NAOK=TRUE,
+                                      package="pec")
             Step.b.Cindex <- Step.b.CindexResult$cindex
             Step.b.PairsA <- Step.b.CindexResult$pairsA
             Step.b.ConcordantA <- Step.b.CindexResult$concA
@@ -195,15 +216,15 @@ CindexBootstrapCrossValidation <- function(object,
     loopOut
   }
   ## })
-    b <- 1
-  if (require(foreach)){
-    if (missing(slaveseed)||is.null(slaveseed))
-      slaveseed <- sample(1:1000000,size=B,replace=FALSE)
-    Looping <- foreach (b= 1:B) %dopar% step(b,slaveseed[[b]])
-  }
-  else{
-    Looping <- lapply(1:B,function(b){step(b,seed=NULL)})
-  }
+  b <- 1
+  ## if (require(foreach)){
+  if (missing(slaveseed)||is.null(slaveseed))
+    slaveseed <- sample(1:1000000,size=B,replace=FALSE)
+  Looping <- foreach (b= 1:B) %dopar% step(b,slaveseed[[b]])
+  ## }
+  ## else{
+  ## Looping <- lapply(1:B,function(b){step(b,seed=NULL)})
+  ## }
   # }}}
   # {{{ output
   ## 

@@ -256,6 +256,7 @@ Copenhagen
 \examples{
 \dontrun{
  # simulate data based on Weibull regression  
+library(prodlim)
  set.seed(13)
  dat <- SimSurv(300)
  # fit three different Cox models and a random survival forest
@@ -316,7 +317,7 @@ harrelC12[["C Index"]]==Cpec$AppCindex[["Cox.X1.X2"]]
  #
  # competing risks 
  #
-require(lava)
+# require(lava)
 m <- lvm()
 X <- paste("X",seq(5),sep="")
 

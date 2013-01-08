@@ -108,8 +108,10 @@
 \seealso{\code{\link{predict}},\code{\link{survfit}}}
 \examples{
 # generate some survival data
+library(prodlim)
 d <- SimSurv(100)
-# then fit a Cox model 
+# then fit a Cox model
+library(rms)
 coxmodel <- cph(Surv(time,status)~X1+X2,data=d,surv=TRUE)
 
 # predicted survival probabilities can be extracted
