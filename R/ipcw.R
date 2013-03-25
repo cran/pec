@@ -17,6 +17,7 @@ ipcw.none <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wha
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
+  environment(call$formula) <- NULL
   #  weigths at requested times
   if (match("IPCW.times",what,nomatch=FALSE)){
     length.times <- length(times)
@@ -48,8 +49,6 @@ ipcw.none <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wha
   class(out) <- "IPCW"
   out
 }
-
-
 ## reverse Random Survival Forests
 ## ipcw.rfsrc <- function(formula,data,method,times,subjectTimes,subjectTimesLag,what){
   ## if (missing(subjectTimesLag)) subjectTimesLag=1
@@ -103,6 +102,7 @@ ipcw.marginal <- function(formula,data,method,times,subjectTimes,subjectTimesLag
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
+  environment(call$formula) <- NULL
   formula <- update.formula(formula,"~1")
   fit <- prodlim(formula,data=data,reverse=TRUE)
   #  weigths at requested times
@@ -140,7 +140,7 @@ ipcw.nonpar <- function(formula,data,method,times,subjectTimes,subjectTimesLag,w
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
-  ## browser()
+  environment(call$formula) <- NULL
   fit <- prodlim(formula,data=data,reverse=TRUE,bandwidth="smooth")
   #  weigths at requested times
   if (match("IPCW.times",what,nomatch=FALSE)){
@@ -212,6 +212,7 @@ ipcw.cox <- function(formula,data,method,times,subjectTimes,subjectTimesLag,what
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
+  environment(call$formula) <- NULL
   ## require(rms)
   status.name <- all.vars(formula)[2]
   reverse.data <- data
@@ -259,6 +260,7 @@ ipcw.aalen <- function(formula,data,method,times,subjectTimes,subjectTimesLag,wh
   if (missing(subjectTimesLag)) subjectTimesLag=1
   if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
   call <- match.call()
+  environment(call$formula) <- NULL
   require(timereg)
   ## require(rms)
   status.name <- all.vars(formula)[2]

@@ -9,6 +9,7 @@ export("pec",
        ## "ConfScoreSurv",
        "predictSurvProb",
        "predictEventProb",
+       "predictLifeYearsLost",
        ## "calPlot",
        "selectCox",
        "pecCforest",
@@ -16,9 +17,10 @@ export("pec",
        ## "plotSurvProb",
        "plotPredictSurvProb",
        "plotPredictEventProb",
+       "selectFGR",
        "coxboost")
 
-import(prodlim,rms,foreach,survival)
+import(prodlim,foreach,survival)
 
 S3method(cindex,default)
 S3method(cindex,list)
@@ -56,7 +58,7 @@ S3method(predictSurvProb,cox.aalen)
 S3method(predictSurvProb,coxph)
 S3method(predictSurvProb,cph)
 S3method(predictSurvProb,default)
-S3method(predictSurvProb,rsf)
+## S3method(predictSurvProb,rsf)
 S3method(predictSurvProb,matrix)
 S3method(predictSurvProb,mfp)
 S3method(predictSurvProb,pecCforest)
@@ -69,14 +71,27 @@ S3method(predictSurvProb,survfit)
 S3method(predictSurvProb,survnnet)
 ## S3method(predictSurvProb,ARR)
 S3method(predictSurvProb,riskRegression)
+S3method(predictSurvProb,coxboost)
 
 S3method(predictEventProb,prodlim)
 ## S3method(predictEventProb,compRisk)
 ## S3method(predictEventProb,LRR)
 ## S3method(predictEventProb,ARR)
 S3method(predictEventProb,FGR)
+S3method(predictEventProb,selectFGR)
 S3method(predictEventProb,riskRegression)
 S3method(predictEventProb,CauseSpecificCox)
 S3method(predictEventProb,matrix)
 S3method(predictEventProb,coxboost)
 S3method(predictEventProb,rfsrc)
+
+S3method(predictLifeYearsLost,prodlim)
+## S3method(predictLifeYearsLost,LRR)
+## S3method(predictLifeYearsLost,ARR)
+S3method(predictLifeYearsLost,FGR)
+## S3method(predictLifeYearsLost,selectFGR)
+S3method(predictLifeYearsLost,riskRegression)
+S3method(predictLifeYearsLost,CauseSpecificCox)
+S3method(predictLifeYearsLost,matrix)
+S3method(predictLifeYearsLost,coxboost)
+S3method(predictLifeYearsLost,rfsrc)

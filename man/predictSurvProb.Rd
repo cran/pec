@@ -6,7 +6,7 @@
 \alias{predictSurvProb.coxph}
 \alias{predictSurvProb.cph}
 \alias{predictSurvProb.default}
-\alias{predictSurvProb.rsf}
+\alias{predictSurvProb.rfsrc}
 \alias{predictSurvProb.matrix}
 \alias{predictSurvProb.mfp}
 \alias{predictSurvProb.pecCforest}
@@ -38,7 +38,7 @@
 \method{predictSurvProb}{coxph}(object, newdata, times,...)
 \method{predictSurvProb}{cph}(object, newdata, times,...)
 \method{predictSurvProb}{default}(object, newdata, times,...)
-\method{predictSurvProb}{rsf}(object, newdata, times,...)
+\method{predictSurvProb}{rfsrc}(object, newdata, times,...)
 \method{predictSurvProb}{matrix}(object, newdata, times,...)
 \method{predictSurvProb}{mfp}(object, newdata, times,...)
 \method{predictSurvProb}{pecCforest}(object, newdata, times,...)
@@ -137,8 +137,8 @@ psurv <- predictSurvProb(fitCox,newdata=valdat,times=seq(0,60,12))
 
 \dontrun{
 # the same can be done e.g. for a randomSurvivalForest model
-library(randomSurvivalForest)
-rsfmodel <- rsf(Survrsf(time,status)~X1+X2,data=d)
+library(randomForestSRC)
+rsfmodel <- rfsrc(Survrsf(time,status)~X1+X2,data=d)
 predictSurvProb(rsfmodel,newdata=ndat,times=ttt)
 }
 }

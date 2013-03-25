@@ -23,6 +23,7 @@ cindex(object,...)
                         eval.times,
                         pred.times,
                         cause,
+                        lyl=FALSE,
                         cens.model="marginal",
                         ipcw.refit=FALSE,
                         ipcw.limit,
@@ -101,6 +102,11 @@ corresponding
     For competing risks, the event of interest. Defaults to the
     first state of the response, which is obtained by evaluating the
     left hand side of \code{formula} in \code{data}.
+  }
+  \item{lyl}{
+    If \code{TRUE} rank subjects accoring to predicted
+    life-years-lost (See Andersen  due to this cause
+    instead of predicted risk.
   }
   \item{cens.model}{
     Method for estimating inverse probability of
@@ -245,10 +251,19 @@ Estimates of the C-index.
 }
 \references{
 
-Gerds, TA and Kattan, M and Schumacher, M and Yu, C (2010)
-Estimating a time-dependent concordance index for survival prediction models with covariate dependent censoring
-Research report 10/7. Department of Biostatistics, University of
-Copenhagen
+TA Gerds, MW Kattan, M Schumacher, and C Yu. Estimating a
+time-dependent concordance index for survival prediction models with
+covariate dependent censoring. Statistics in Medicine, Ahead of print:to
+appear, 2013. DOI = 10.1002/sim.5681
+
+Wolbers, M and Koller, MT and Witteman, JCM and Gerds, TA (2013)
+Concordance for prognostic models with competing risks
+Research report 13/3. Department of Biostatistics, University of Copenhagen
+  
+Andersen, PK (2012)
+A note on the decomposition of number of life years lost according to causes of death
+Research report 12/2. Department of Biostatistics, University of Copenhagen
+
 }
 \author{Thomas A Gerds \email{tag@biostat.ku.dk}}
 
@@ -262,12 +277,11 @@ library(prodlim)
  # fit three different Cox models and a random survival forest
  # note: low number of trees for the purpose of illustration 
  library(survival)
- library(randomSurvivalForest)
- #rsf.default=randomSurvivalForest:::rsf.default
+ library(randomForestSRC)
  cox12 <- coxph(Surv(time,status)~X1+X2,data=dat)
  cox1 <- coxph(Surv(time,status)~X1,data=dat)
  cox2 <- coxph(Surv(time,status)~X2,data=dat)
- rsf1 <- rsf(Survrsf(time,status)~X1+X2,data=dat,ntree=15,forest=TRUE)
+ rsf1 <- rfsrc(Survrsf(time,status)~X1+X2,data=dat,ntree=15,forest=TRUE)
  #
  # compute the apparent estimate of the C-index at different time points
  #
@@ -318,8 +332,8 @@ harrelC12[["C Index"]]==Cpec$AppCindex[["Cox.X1.X2"]]
  # competing risks 
  #
 # require(lava)
-m <- lvm()
-X <- paste("X",seq(5),sep="")
+% m <- lvm()
+% X <- paste("X",seq(5),sep="")
 
 }
 }

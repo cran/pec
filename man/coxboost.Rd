@@ -9,7 +9,7 @@
   \code{CoxBoost}.
 }
 \usage{
-coxboost(formula, data, ...)
+coxboost(formula, data, cv=TRUE, cause, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -22,8 +22,16 @@ data. The code for right censored can be controlled with argument
   \item{data}{
     A data.frame in which the variables of formula are defined.
   }
+  \item{cv}{If \code{TRUE} perform cross-validation to optimize the
+    parameter \code{stepno}. This calls the function \code{cv.CoxBoost}
+    whose arguments are prefix controlled, that is \code{cv.K=7} sets
+    the argument \code{K} of \code{cv.CoxBoost} to \code{7}.
+    If \code{FALSE} use \code{stepno}.
+  }
+  \item{cause}{The cause of interest in competing risk models.}
   \item{\dots}{
-    Arguments passed to \code{CoxBoost}.
+    Arguments passed to either \code{CoxBoost} via \code{CoxBoost.arg}
+    or to \code{cv.CoxBoost} via \code{cv.CoxBoost.arg}.
   }
 }
 \details{

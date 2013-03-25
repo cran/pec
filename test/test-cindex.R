@@ -14,7 +14,7 @@ fit1 <- coxph(Surv(time,status)~X1,data=datC)
 fit2 <- coxph(Surv(time,status)~X2,data=datC)
 # }}}
 # {{{ compare C to Harrell's C uncensored data
-Cpec <- cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),formula=Surv(time,status)~1,data=dat,eval.times=Inf)
+Cpec <- cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),formula=Surv(time,status)~1,data=dat,eval.times=Inf,pred.times=10)
 p1 <- predictSurvProb(fit1,newdata=dat,times=100)
 p2 <- predictSurvProb(fit2,newdata=dat,times=100)
 p12 <- predictSurvProb(fit12,newdata=dat,times=100)

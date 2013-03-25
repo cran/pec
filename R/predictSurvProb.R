@@ -136,7 +136,8 @@ predictSurvProb.coxph <- function(object,newdata,times,...){
   if ((miss.time <- (length(times) - NCOL(p)))>0)
     p <- cbind(p,matrix(rep(NA,miss.time*NROW(p)),nrow=NROW(p)))
   if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
-    stop("Prediction failed")
+    stop(paste("Prediction matrix has wrong dimensions:\n",NROW(p)," rows and ",NCOL(p)," columns.\n But requested are predicted probabilities for\n ",NROW(newdata), " subjects (rows) in newdata and ",NCOL(newdata)," time points (columns)\nThis may happen when some covariate values are missing in newdata!?",sep=""))
+    ## stop("Prediction failed")
   p
 }
 

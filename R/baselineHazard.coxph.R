@@ -10,7 +10,7 @@ baselineHazard.coxph <- function(object,x,y,times=NULL){
       object$strata <- NULL
       baselineHazard.coxph(object=object,times=times)
     }))}
-  browser()
+  ## browser()
   beta <- coef(object)
   if (missing(x)) x <- object$x
   if (missing(y)) y <- object$y

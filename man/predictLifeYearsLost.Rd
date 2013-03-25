@@ -1,29 +1,31 @@
-\name{predictEventProb}
-\alias{predictEventProb}
-\alias{predictEventProb.CauseSpecificCox}
-\alias{predictEventProb.riskRegression}
-\alias{predictEventProb.FGR}
-\alias{predictEventProb.prodlim}
-\alias{predictEventProb.rfsrc}
+\name{predictLifeYearsLost}
+\alias{predictLifeYearsLost}
+\alias{predictLifeYearsLost.CauseSpecificCox}
+\alias{predictLifeYearsLost.riskRegression}
+\alias{predictLifeYearsLost.FGR}
+\alias{predictLifeYearsLost.prodlim}
+\alias{predictLifeYearsLost.rfsrc}
 \title{
-Predicting event probabilities (cumulative incidences) in competing risk models.
+Predicting life years lost (cumulative cumulative incidences) in competing risk models.
 }
 \description{
-  Function to extract event probability predictions
+  Function to extract predicted life years lost
   from various modeling
   approaches. The most prominent one is the combination of
   cause-specific Cox regression models which can be
   fitted with the function \code{cumincCox} from the package \code{compRisk}.
   
-  The function predictEventProb is a generic function that means it invokes
+  The function predictLifeYearsLost is a generic function that means it invokes
   specifically designed functions depending on the 'class' of the first argument.
 }
 \usage{
-predictEventProb(object, newdata, times, cause, ...)
-\method{predictEventProb}{CauseSpecificCox}(object, newdata, times, cause, ...)
-\method{predictEventProb}{riskRegression}(object, newdata, times, cause, ...)
-\method{predictEventProb}{FGR}(object, newdata, times, cause, ...)
-\method{predictEventProb}{prodlim}(object, newdata, times, cause, ...)
+predictLifeYearsLost(object, newdata, times, cause, ...)
+\method{predictLifeYearsLost}{CauseSpecificCox}(object, newdata, times, cause, ...)
+\method{predictLifeYearsLost}{riskRegression}(object, newdata, times, cause, ...)
+\method{predictLifeYearsLost}{FGR}(object, newdata, times, cause, ...)
+\method{predictLifeYearsLost}{prodlim}(object, newdata, times, cause,
+  ...)
+\method{predictLifeYearsLost}{rfsrc}(object, newdata, times, cause, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -44,24 +46,24 @@ predictEventProb(object, newdata, times, cause, ...)
 See \code{\link{predictSurvProb}}.
 }
 \value{  A matrix with as many rows as \code{NROW(newdata)} and as many columns
-  as \code{length(times)}. Each entry should be a probability and in
+  as \code{length(times)}. Each entry should be a positive value and in
   rows the values should be increasing.
 }
 % \references{
 % }
 \author{Thomas A. Gerds \email{tag@biostat.ku.dk}}
 \seealso{
-  See \code{\link{predictSurvProb}}.
+   \code{\link{predictSurvProb}}, \code{\link{predictEventProb}}.
 }
 \examples{
 \dontrun{
 library(pec)
-library(CoxBoost)
+library(riskRegression)
 library(survival)
 train <- prodlim:::SimCompRisk(100)
 test <- prodlim:::SimCompRisk(10)
-cb.fit <- coxboost(Hist(time,cause)~X1+X2,data=train,stepno=100)
-predictEventProb(cb.fit,newdata=test,times=seq(1:10),cause=1)
+fit <- CSC(Hist(time,cause)~X1+X2,data=train,cause=1)
+predictLifeYearsLost(fit,newdata=test,times=seq(1:10),cv=FALSE,cause=1)
 }
 }
 \keyword{survival}

@@ -17,7 +17,7 @@ left-hand side and all the variables on the right-hand side.
 }
   \item{data}{Name of an data frame containing all  needed variables.}
   \item{rule}{The method for selecting variables. See
-\code{\link{fastbw}} for details.}
+    \code{\link{fastbw}} for details.}
 }
 \details{
 This function first calls \code{cph} then \code{fastbw} and finally

@@ -18,7 +18,6 @@ plotPredictEventProb <- function(x,
   # {{{ call argument
 
   allArgs <- match.call()
-  
   # }}}
   # {{{ find times
 
@@ -32,7 +31,7 @@ plotPredictEventProb <- function(x,
     # extract response
     m <- model.frame(formula,data,na.action=na.fail)
     response <- model.response(m)
-    # ordering time 
+    # ordering time
     neworder <- order(response[,"time"],-response[,"status"])
     response <- response[neworder,,drop=FALSE]
     times <- response[,"time"]
@@ -61,7 +60,6 @@ plotPredictEventProb <- function(x,
                         newdata=newdata,
                         times=orig.X,
                         cause=cause)
-  
   # }}}
   # {{{  plot arguments
 
@@ -163,7 +161,6 @@ plotPredictEventProb <- function(x,
   }
   
   # }}}
-
   invisible(x)
 }
 

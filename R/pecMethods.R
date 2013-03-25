@@ -41,6 +41,7 @@ pec.list <- function(object,
 
   # }}}
   # {{{ checking integrity some arguments
+
   theCall=match.call()
   if (match("replan",names(theCall),nomatch=FALSE))
     stop("Argument name 'replan' has been replaced by 'splitMethod'.")
@@ -54,6 +55,7 @@ pec.list <- function(object,
     stop("Need data splitting to compute van de Wiel's test")
   }
   if (missing(M) && multiSplitTest) M <- NA
+
   # }}}
   # {{{ formula
 
@@ -120,14 +122,14 @@ pec.list <- function(object,
 
   # }}}
   # {{{ prediction models
-
   if (reference==TRUE) {
-    ProdLimform <- reformulate("1",response=formula[[2]])
-    ## environment(ProdLimform) <- NULL
-    ProdLimfit <- prodlim(ProdLimform,data)
+    ProdLimform <- as.formula(update(formula,".~NULL"),env=NULL)
+    ProdLimfit <- do.call("prodlim",list(formula=ProdLimform,data=data))
     ProdLimfit$call$data <- NULL
     ProdLimfit$formula <- NULL
     ProdLimfit$call$formula=ProdLimform
+    ProdLimfit$formula <- as.formula(ProdLimfit$formula,env=NULL)
+    ## print(environment(ProdLimfit$formula))
     if (model.type=="competing.risks")
       object <- c(list(Reference=ProdLimfit),object)
     else
@@ -141,7 +143,6 @@ pec.list <- function(object,
   }
   names(object) <- make.names(names(object),unique=TRUE)
   NF <- length(object) 
-
   # }}}  
   # {{{ sort the data 
 
@@ -177,6 +178,7 @@ pec.list <- function(object,
   NU <- length(unique.Y)
   # }}}
   # {{{ splitMethod
+
   splitMethod <- resolvesplitMethod(splitMethod=splitMethod,B=B,N=N,M=M)
   B <- splitMethod$B
   ResampleIndex <- splitMethod$index
@@ -186,6 +188,7 @@ pec.list <- function(object,
     warning("Argument keep.matrix set to FALSE, since no resampling/crossvalidation is requested.")
     keep.matrix <- FALSE
   }
+
   # }}}      
   # {{{ find maxtime, start, and jumptimes in the range of the response 
   if (missing(maxtime) || is.null(maxtime))
@@ -212,7 +215,6 @@ pec.list <- function(object,
 
   # }}}
   # {{{ IPCW (all equal to 1 without censoring) 
-
   if((cens.model %in% c("aalen","cox","nonpar"))){
     if (all(as.numeric(status)==1) || sum(status)==N){
       if (verbose)
@@ -246,10 +248,10 @@ pec.list <- function(object,
   ## force ipc weights not to exaggerate
   ## weights should not be greater than 1/(sample size)
   ## if (ipcw$dim==1){
-    ## ipcw$IPCW.times <- apply(ipcw$IPCW.times,1,function(x)pmax(x,1/N))
+  ## ipcw$IPCW.times <- apply(ipcw$IPCW.times,1,function(x)pmax(x,1/N))
   ## }
   ## else{
-    ## ipcw$IPCW.times <- pmax(ipcw$IPCW.times,1/N)
+  ## ipcw$IPCW.times <- pmax(ipcw$IPCW.times,1/N)
   ## }
   ## ipcw$IPCW.subjectTimes <- pmax(ipcw$IPCW.subjectTimes,1/N)
   ## browser()
@@ -267,6 +269,7 @@ pec.list <- function(object,
   }
   # }}}
   # {{{ ---------------------------Apparent error---------------------------
+
   AppErr <- lapply(1:NF,function(f){
     ## message(f)
     fit <- object[[f]]
@@ -287,6 +290,7 @@ pec.list <- function(object,
 
   # }}}
   # {{{------------------------No information error------------------------
+
   if (splitMethod$internal.name %in% c("Boot632plus")){
     if (verbose==TRUE){
       message("Computing noinformation error using all permutations")
@@ -341,9 +345,10 @@ pec.list <- function(object,
       names(NoInfErr) <- names(object)
     }
   }
+
   # }}}
   # {{{--------------k-fold and leave-one-out CrossValidation-----------------------
-  
+
   if (splitMethod$internal.name %in% c("crossval","loocv")){
     kCV <- kFoldCrossValidation(object=object,data=data,Y=Y,status=status,event=event,times=times,cause=cause,ipcw=ipcw,splitMethod=splitMethod,giveToModel=model.args,predictHandlerFun=predictHandlerFun,keep=keep.matrix,verbose=verbose)
     CrossValErr <- kCV$CrossValErr
@@ -361,7 +366,30 @@ pec.list <- function(object,
     if (missing(testTimes)){
       testTimes <- NULL
     }
-    BootCv <- bootstrapCrossValidation(object=object,data=data,Y=Y,status=status,event=event,times=times,cause=cause,ipcw=ipcw,ipcw.refit=ipcw.refit,ipcw.call=ipcw.call,splitMethod=splitMethod,multiSplitTest=multiSplitTest,testIBS=testIBS,testTimes=testTimes,confInt=confInt,confLevel=confLevel,getFromModel=model.parms,giveToModel=model.args,predictHandlerFun=predictHandlerFun,keepMatrix=keep.matrix,keepResiduals=keep.residuals,verbose=verbose,savePath=savePath,slaveseed=slaveseed)
+    BootCv <- bootstrapCrossValidation(object=object,
+                                       data=data,
+                                       Y=Y,
+                                       status=status,
+                                       event=event,
+                                       times=times,
+                                       cause=cause,
+                                       ipcw=ipcw,
+                                       ipcw.refit=ipcw.refit,
+                                       ipcw.call=ipcw.call,
+                                       splitMethod=splitMethod,
+                                       multiSplitTest=multiSplitTest,
+                                       testIBS=testIBS,
+                                       testTimes=testTimes,
+                                       confInt=confInt,
+                                       confLevel=confLevel,
+                                       getFromModel=model.parms,
+                                       giveToModel=model.args,
+                                       predictHandlerFun=predictHandlerFun,
+                                       keepMatrix=keep.matrix,
+                                       keepResiduals=keep.residuals,
+                                       verbose=verbose,
+                                       savePath=savePath,
+                                       slaveseed=slaveseed)
     BootstrapCrossValErr <- BootCv$BootstrapCrossValErr
     Residuals <- BootCv$Residuals
     names(BootstrapCrossValErr) <- names(object)

@@ -10,8 +10,8 @@
   if (missing(what) || is.null(what)){
     what <- grep(c("Err$"),names(object),value=TRUE)
   }
-  if (print) cat("\nPrediction error curves\n\n")
-  if (print) print(object$splitMethod)
+  if (print==TRUE) cat("\nPrediction error curves\n\n")
+  if (print==TRUE) print(object$splitMethod)
   otime <- object$time
   if (missing(times) && (length(times <- otime) > 20)){
     warning("Missing times argument: prediction error curves evaluated at the quantiles of fitted times\n")
@@ -19,7 +19,7 @@
   }
   tindex <- sindex(jump.times=object$time,eval.times=times)
   out <- lapply(what,function(w){
-    if (print) cat("\n",w,"\n")
+    if (print==TRUE) cat("\n",w,"\n")
     tmp <- rbind(0, do.call("cbind",object[[w]][models]))[tindex+1,,drop=FALSE]
     tmp <- cbind(time=times,n.risk=c(object$n.risk[1],object$n.risk)[tindex+1],tmp)
     rownames(tmp) <- 1:NROW(tmp)
@@ -28,7 +28,7 @@
   })
   names(out) <- what
   if (!is.null(object$multiSplitTest))
-    print(object$multiSplitTest)
-  cat("\n")
+    if (print==TRUE) print(object$multiSplitTest)
+  if (print==TRUE) cat("\n")
   invisible(out)
 }

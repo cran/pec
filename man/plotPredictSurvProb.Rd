@@ -101,8 +101,8 @@ ttt <- sort(unique(d$time))
 plotPredictSurvProb(coxmodel,newdata=ndat,times=ttt)
 
 # the same can be done e.g. for a randomSurvivalForest model
-library(randomSurvivalForest)
-rsfmodel <- rsf(Survrsf(time,status)~X1+X2,data=d)
+library(randomForestSRC)
+rsfmodel <- rfsrc(Survrsf(time,status)~X1+X2,data=d)
 plotPredictSurvProb(rsfmodel,newdata=ndat,times=ttt)
 }
 }
