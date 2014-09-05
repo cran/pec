@@ -97,7 +97,7 @@ CindexBootstrapCrossValidation <- function(object,
     if (!is.null(getFromModel)){
       ModelParameters <- lapply(1:NF,function(f){
         getParms <- getFromModel[[f]]
-        if (is.null(getParms)) trainModels[getParms] else NULL
+        if (is.null(getParms)) trainModels[[f]][getParms] else NULL
       })
     }
     # }}}
@@ -200,7 +200,7 @@ CindexBootstrapCrossValidation <- function(object,
     loopOut=list(PredCindexStepB=PredCindexStepB)
     ##     if (keepResiduals==TRUE)  
     ##       loopOut=c(loopOut,list(Residuals=lapply(Residuals,function(R){
-    ##         R[,sindex(eval.times=testTimes,jump.times=times)]
+    ##         R[,prodlim::sindex(eval.times=testTimes,jump.times=times)]
     ##       })))
 
     if (!is.null(getFromModel)){
@@ -213,7 +213,7 @@ CindexBootstrapCrossValidation <- function(object,
   ## if (require(foreach)){
   if (missing(slaveseed)||is.null(slaveseed))
     slaveseed <- sample(1:1000000,size=B,replace=FALSE)
-  Looping <- foreach (b= 1:B) %dopar% step(b,slaveseed[[b]])
+  Looping <- foreach::foreach (b= 1:B) %dopar% step(b,slaveseed[[b]])
   ## }
   ## else{
   ## Looping <- lapply(1:B,function(b){step(b,seed=NULL)})

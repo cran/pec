@@ -38,7 +38,7 @@ baselineHazard.coxph <- function(object,x,y,times=NULL){
     data.frame(time=as.vector(unique(jumptimes)),cumhazard=as.vector(Lambda))
   }
   else{
-    data.frame(time=times,cumhazard=c(0,Lambda)[1+sindex(jump.times=jumptimes,eval.times=times)])
+    data.frame(time=times,cumhazard=c(0,Lambda)[1+prodlim::sindex(jump.times=jumptimes,eval.times=times)])
   }
 }
 

@@ -1,5 +1,34 @@
-coxboost <- function(formula,data,cv=TRUE,cause,...){
-  call <- match.call(expand.dots=FALSE)
+#' Formula interface for function \code{CoxBoost} of package \code{CoxBoost}.
+#' 
+#' Formula interface for function \code{CoxBoost} of package \code{CoxBoost}.
+#' 
+#' See \code{CoxBoost}.
+#' @aliases coxboost
+#' @param formula An event-history formula for competing risks of the
+#' form \code{Hist(time,status)~sex+age} where \code{status} defines
+#' competing events and right censored data. The code for right
+#' censored can be controlled with argument \code{cens.code}, see man
+#' page the function \code{\link{Hist}}.
+#' @param data A data.frame in which the variables of formula are
+#' defined.
+#' @param cv If \code{TRUE} perform cross-validation to optimize the
+#' parameter \code{stepno}. This calls the function \code{cv.CoxBoost}
+#' whose arguments are prefix controlled, that is \code{cv.K=7} sets
+#' the argument \code{K} of \code{cv.CoxBoost} to \code{7}.  If
+#' \code{FALSE} use \code{stepno}.
+#' @param cause The cause of interest in competing risk models.
+#' @param penalty See \code{CoxBoost}.
+#' @param ... Arguments passed to either \code{CoxBoost} via
+#' \code{CoxBoost.arg} or to \code{cv.CoxBoost} via
+#' \code{cv.CoxBoost.arg}.
+#' @return See \code{CoxBoost}.
+#' @author Thomas Alexander Gerds \email{tag@@biostat.ku.dk}
+#' @seealso See \code{CoxBoost}.
+#' @references See \code{CoxBoost}.
+#' @keywords survival
+#' @export coxboost
+coxboost <- function(formula,data,cv=TRUE,cause=1,penalty,...){
+  call <- match.call(expand.dots=TRUE)
   formula.names <- try(all.names(formula),silent=TRUE)
   if (!(formula.names[2]=="Hist")) stop("The left hand side of formula look like this: Hist(time,event).")
   actual.terms <- terms(formula,data=data)
@@ -20,9 +49,10 @@ coxboost <- function(formula,data,cv=TRUE,cause,...){
   }
   X <- model.matrix(actual.terms,data=data)[,-c(1),drop=FALSE]## remove intercept
   if (NCOL(X)<=1) stop("CoxBoost needs at least two covariates.")
-  cv.defaults=list(maxstepno=200,K=10)
-  CoxBoost.defaults=list(stepno=100)
-  args <- SmartControl(call= list(...),
+  if (missing(penalty)) penalty <- sum(Event==1)*(9)
+  cv.defaults=list(maxstepno=200,K=10,penalty=penalty)
+  CoxBoost.defaults=list(stepno=100,penalty=penalty)
+  args <- prodlim::SmartControl(call= list(...),
                        keys=c("cv","CoxBoost"),
                        ignore=c("formula","data","cv","cause"),
                        forced=list("cv"=list(time=Time,status=Event,x=X),"CoxBoost"=list(time=Time,status=Event,x=X)),
@@ -44,6 +74,7 @@ coxboost <- function(formula,data,cv=TRUE,cause,...){
   out
 }
 
+##' @S3method predictSurvProb coxboost
 predictSurvProb.coxboost <- function(object,newdata,times,...) {
   newcova <- model.matrix(terms(object$formula,data=newdata),
                           data=model.frame(object$formula,data=newdata,na.action=na.fail))[,-c(1)]
@@ -54,7 +85,7 @@ predictSurvProb.coxboost <- function(object,newdata,times,...) {
   p
 }
 
-
+##' @S3method predictEventProb coxboost
 predictEventProb.coxboost <- function(object,newdata,times,cause,...){
   if (missing(cause)) stop("missing cause")
   if (attr(object$response,"model")!="competing.risks") stop("Not a competing risk object")
@@ -68,21 +99,29 @@ predictEventProb.coxboost <- function(object,newdata,times,cause,...){
   }
   else{
     if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
-      stop("Prediction failed")
+        stop(paste("\nPrediction matrix has wrong dimension:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
   }
   p
 }
-predictLifeYearsLost.rfsrc <- function(object, newdata, times, cause, ...){
-  if (missing(cause)) stop("missing cause")
-  cif <- predict(object,newdata=newdata,importance="none",...)$cif[,,cause,drop=TRUE]
-  pos <- sindex(jump.times=object$time.interest,eval.times=times)
-  lyl <- matrix(unlist(lapply(1:length(pos), function(j) {
-    pos.j <- 1:(pos[j]+1)
-    p <- cbind(0,cif)[,pos.j,drop=FALSE]
-    time.diff <- diff(c(0, object$time.interest)[pos.j])
-    apply(p, 1, function(x) {sum(x[-length(x)] * time.diff)})
-  })), ncol = length(pos))
-  if (NROW(lyl) != NROW(newdata) || NCOL(lyl) != length(times))
-    stop("Prediction of life-years-lost failed")
-  lyl
+
+##' @S3method predictLifeYearsLost coxboost
+predictLifeYearsLost.coxboost <- function(object,newdata,times,cause,...){
+    if (missing(cause)) stop("missing cause")
+    ## if (cause!=1) stop("CoxBoost can only predict cause 1")
+    if (attr(object$response,"model")!="competing.risks") stop("Not a competing risk object")
+    newcova <- model.matrix(terms(object$formula,data=newdata),
+                            data=model.frame(object$formula,data=newdata))[,-c(1)]
+    time.interest <- sort(unique(object$coxboost$time))
+    cif <- predict(object$coxboost,newdata=newcova,type="CIF",times=time.interest)
+    pos <- prodlim::sindex(jump.times=time.interest,eval.times=times)
+    lyl <- matrix(unlist(lapply(1:length(pos), function(j) {
+        pos.j <- 1:(pos[j]+1)
+        p <- cbind(0,cif)[,pos.j,drop=FALSE]
+        time.diff <- diff(c(0, object$time.interest)[pos.j])
+        apply(p, 1, function(x) {sum(x[-length(x)] * time.diff)})
+    })), ncol = length(pos))
+    if (NROW(lyl) != NROW(newdata) || NCOL(lyl) != length(times))
+        stop(paste("\nLYL matrix has wrong dimension:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(lyl)," x ",NCOL(lyl),"\n\n",sep=""))
+    lyl
 }
+

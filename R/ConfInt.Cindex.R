@@ -6,7 +6,7 @@ ConfInt.Cindex <- function(x,times,ref=1,level=.95,digits=3,...){
   if (is.null(oob)) stop("Out of bag matrix missing. Set 'keep.matrix' to TRUE.")
   ttt=x$time
   mmm <- names(oob)
-  at <- sindex(jump.times=ttt,eval.times=times)
+  at <- prodlim::sindex(jump.times=ttt,eval.times=times)
   meanOob <- do.call("cbind",x$PredCindex)
   out <- lapply(at,function(a){
     meanDiff <- meanOob[a,ref]-meanOob[a,-ref]

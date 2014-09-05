@@ -25,7 +25,7 @@
   surv <- pmin(exp(-time.part*constant.part),1)
   
   if (missing(times)) times <- sort(unique(fittime))
-  pred <- surv[,sindex(fittime,times)]
+  pred <- surv[,prodlim::sindex(fittime,times)]
   class(pred) <- c("survest","cox.aalen")
   pred
 }

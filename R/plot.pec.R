@@ -1,9 +1,116 @@
-# --------------------------------------------------------------------
-# plot.pec function
-# last update: 24 Sep 2010 (11:20)
-# --------------------------------------------------------------------
-
-# {{{ function arguments
+#' Plotting prediction error curves
+#' 
+#' Plotting prediction error curves for one or more prediction models.
+#' 
+#' From version 2.0.1 on the arguments legend.text, legend.args, lines.type,
+#' lwd.lines, specials are obsolete and only available for backward
+#' compatibility. Instead arguments for the invoked functions \code{legend},
+#' \code{axis}, \code{Special} are simply specified as \code{legend.lty=2}. The
+#' specification is not case sensitive, thus \code{Legend.lty=2} or
+#' \code{LEGEND.lty=2} will have the same effect.  The function \code{axis} is
+#' called twice, and arguments of the form \code{axis1.labels}, \code{axis1.at}
+#' are used for the time axis whereas \code{axis2.pos}, \code{axis1.labels},
+#' etc. are used for the y-axis.
+#' 
+#' These arguments are processed via \code{\dots{}} of \code{plot.pec} and
+#' inside by using the function \code{resolveSmartArgs}.  Documentation of
+#' these arguments can be found in the help pages of the corresponding
+#' functions.
+#' 
+#' @param x Object of class \code{pec} obtained with function
+#' \code{\link{pec}}.
+#' @param what The name of the entry in \code{x}. Defauls to \code{PredErr}
+#' Other choices are \code{AppErr}, \code{BootCvErr}, \code{Boot632},
+#' \code{Boot632plus}.
+#' @param models Specifies models in \code{x$models} for which the prediction
+#' error curves are drawn. Defaults to all models.
+#' @param xlim Plotting range on the x-axis.
+#' @param ylim Plotting range on the y-axis.
+#' @param xlab Label given to the x-axis.
+#' @param ylab Label given to the y-axis.
+#' @param axes Logical. If \code{FALSE} no axes are drawn.
+#' @param col Vector of colors given to the curves of \code{models} in the
+#' order determined by \code{models}.
+#' @param lty Vector of lty's given to the curves of \code{models} in the order
+#' determined by \code{models}.
+#' @param lwd Vector of lwd's given to the curves of \code{models} in the order
+#' determined by \code{models}.
+#' @param type Plotting type: either \code{"l"} or \code{"s"}, see
+#' \code{lines}.
+#' @param smooth Logical. If \code{TRUE} the plotting values are smoothed with
+#' the function \code{\link{smooth}} kind="3R".
+#' @param add.refline Logical. If \code{TRUE} a dotted horizontal line is drawn
+#' as a symbol for the naive rule that predicts probability .5 at all cutpoints
+#' (i.e. time points in survival analysis).
+#' @param add Logical. If \code{TRUE} only lines are added to an existing
+#' device
+#' @param legend if TRUE a legend is plotted by calling the function legend.
+#' Optional arguments of the function \code{legend} can be given in the form
+#' \code{legend.x=val} where x is the name of the argument and val the desired
+#' value. See also Details.
+#' @param special Logical. If \code{TRUE} the bootstrap curves of \code{models}
+#' are plotted together with \code{predErr} of \code{models} by invoking the
+#' function \code{Special}. Optional arguments of the function \code{Special}
+#' can be given in the form \code{special.x=val} as with legend. See also
+#' Details.
+#' @param \dots Extra arguments that are passed to \code{\link{plot}}.
+#' @return The (invisible) object.
+#' @author Ulla B. Mogensen \email{ulmo@@biostat.ku.dk}, Thomas A. Gerds
+#' \email{tag@@biostat.ku.dk}
+#' @seealso
+#' \code{\link{pec}}\code{\link{summary.pec}}\code{\link{Special}}\code{\link{prodlim}}
+#' @keywords survival
+#' @examples
+#' 
+#' 
+#' # simulate data
+#' # with a survival response and two predictors
+#' library(prodlim)
+#' library(survival)
+#' set.seed(280180)
+#' dat <- SimSurv(100)
+#' 
+#' # fit some candidate Cox models and
+#' # compute the Kaplan-Meier estimate 
+#' 
+#' Models <- list("Kaplan.Meier"=survfit(Surv(time,status)~1,data=dat),
+#'                "Cox.X1"=coxph(Surv(time,status)~X1,data=dat),
+#'                "Cox.X2"=coxph(Surv(time,status)~X2,data=dat),
+#'                "Cox.X1.X2"=coxph(Surv(time,status)~X1+X2,data=dat))
+#' Models <- list("Cox.X1"=coxph(Surv(time,status)~X1,data=dat),
+#'                "Cox.X2"=coxph(Surv(time,status)~X2,data=dat),
+#'                "Cox.X1.X2"=coxph(Surv(time,status)~X1+X2,data=dat))
+#' 
+#' 
+#' # compute the .632+ estimate of the generalization error 
+#' set.seed(17100)
+#' PredError.632plus <- pec(object=Models,
+#'                          formula=Surv(time,status)~X1+X2,
+#'                          data=dat,
+#'                          exact=TRUE,
+#'                          cens.model="marginal",
+#'                          splitMethod="boot632plus",
+#'                          B=5,
+#'                          keep.matrix=TRUE,
+#'                          verbose=TRUE)
+#' 
+#' # plot the .632+ estimates of the generalization error 
+#' plot(PredError.632plus,xlim=c(0,30))
+#' 
+#' # plot the bootstrapped curves, .632+ estimates of the generalization error
+#' # and Apparent error for the Cox model 'Cox.X1' with the 'Cox.X2' model
+#' # as benchmark
+#' plot(PredError.632plus,
+#'      xlim=c(0,30),
+#'      models="Cox.X1",
+#'      special=TRUE,
+#'      special.bench="Cox.X2",
+#'      special.benchcol=2,
+#'      special.addprederr="AppErr")
+#' 
+#'
+##' @S3method plot pec
+##' @method plot pec
 plot.pec <- function(x,
                      what,
                      models,
@@ -118,7 +225,7 @@ plot.DefaultArgs <- list(x=0,
     special.DefaultArgs <- c(args[[match("special.args",names(args),nomatch=FALSE)]],special.DefaultArgs)
     special.DefaultArgs <- special.DefaultArgs[!duplicated(names(special.DefaultArgs))]
   }
-  smartA <- prodlim:::SmartControl(call=list(...),
+  smartA <- prodlim::SmartControl(call=list(...),
                                    keys=c("plot","special","legend","axis1","axis2"),
                                    defaults=list("plot"=plot.DefaultArgs,
                                      "special"=special.DefaultArgs,

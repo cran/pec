@@ -16,7 +16,7 @@
     hazard <- matrix(hazard,ncol=ntime,nrow=nobs,dimnames=list(1:nobs,paste("TP",1:ntime,sep="")))
     surv <- pmin(exp(-hazard),1)
     if (missing(times)) times <- sort(unique(fittime))
-    pred <- surv[,sindex(jump.times=fittime,eval.times=times)]
+    pred <- surv[,prodlim::sindex(jump.times=fittime,eval.times=times)]
     #    class(pred) <- c("survest","cox.aalen")
     pred
   }

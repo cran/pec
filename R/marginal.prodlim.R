@@ -6,7 +6,7 @@ marginal.default <- function(object){
   ff <- object$call$formula
   dd <- eval(object$call$data)
   fff <- reformulate("1",response=ff[[2]])
-  prodlim(fff,data=dd)
+  prodlim::prodlim(fff,data=dd)
 }
 
 

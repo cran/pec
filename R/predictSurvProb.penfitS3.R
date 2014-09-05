@@ -46,9 +46,8 @@ penalizedS3 <- function(formula,data,...){
 
 
 penalizedOpt <- function(formula,data=data,...){
-  require(prodlim)
-  argList <- SmartControl(call=list(...),
-                          keys=c("profL1","optL1","penalized"))
+  ## require(prodlim)
+  argList <- prodlim::SmartControl(call=list(...), keys=c("profL1","optL1","penalized"))
   # {{{ distangle the formula
   ff <- as.character(formula)
   response <- formula(paste(ff[[2]],"~1",sep=""))
@@ -99,21 +98,24 @@ penalizedOpt <- function(formula,data=data,...){
   # }}}
 }
 
+##' @S3method predictSurvProb penfitS3
 predictSurvProb.penfitS3 <- function(object,
                                      newdata,
                                      times,
                                      train.data,
                                      ...){
-  penfit <- object$fit
-  pCovaNames <- names(penfit@penalized)
-  newPen <- newdata[,pCovaNames]
-  ptemp <- predict(penfit,penalized=newPen,data=newdata)
-  ## require(prodlim)
-  pos <- sindex(jump.times=ptemp@time,eval.times=times)
-  ## Remark: currently it is possible, but theoretically
-  ## not allowed to carry predictions forward beyond the
-  ## last jump.time
-  p <- cbind(1,ptemp@curves)[,c(pos+1)]
-  p
+    penfit <- object$fit
+    pCovaNames <- names(penfit@penalized)
+    newPen <- newdata[,pCovaNames]
+    ptemp <- predict(penfit,penalized=newPen,data=newdata)
+    ## require(prodlim)
+    pos <- prodlim::sindex(jump.times=ptemp@time,eval.times=times)
+    ## Remark: currently it is possible, but theoretically
+    ## not allowed to carry predictions forward beyond the
+    ## last jump.time
+    p <- cbind(1,ptemp@curves)[,c(pos+1)]
+    if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+        stop(paste("\nPrediction matrix has wrong dimension:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
+    p
 }
 

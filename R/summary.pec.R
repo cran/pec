@@ -1,4 +1,5 @@
-"summary.pec" <-  function(object,
+##' @S3method summary pec
+summary.pec <-  function(object,
                            times,
                            what,
                            models,
@@ -17,7 +18,7 @@
     warning("Missing times argument: prediction error curves evaluated at the quantiles of fitted times\n")
     times <- quantile(otime)
   }
-  tindex <- sindex(jump.times=object$time,eval.times=times)
+  tindex <- prodlim::sindex(jump.times=object$time,eval.times=times)
   out <- lapply(what,function(w){
     if (print==TRUE) cat("\n",w,"\n")
     tmp <- rbind(0, do.call("cbind",object[[w]][models]))[tindex+1,,drop=FALSE]

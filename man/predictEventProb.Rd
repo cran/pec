@@ -1,67 +1,70 @@
 \name{predictEventProb}
 \alias{predictEventProb}
 \alias{predictEventProb.CauseSpecificCox}
-\alias{predictEventProb.riskRegression}
 \alias{predictEventProb.FGR}
 \alias{predictEventProb.prodlim}
 \alias{predictEventProb.rfsrc}
-\title{
-Predicting event probabilities (cumulative incidences) in competing risk models.
-}
-\description{
-  Function to extract event probability predictions
-  from various modeling
-  approaches. The most prominent one is the combination of
-  cause-specific Cox regression models which can be
-  fitted with the function \code{cumincCox} from the package \code{compRisk}.
-  
-  The function predictEventProb is a generic function that means it invokes
-  specifically designed functions depending on the 'class' of the first argument.
-}
+\alias{predictEventProb.riskRegression}
+\title{Predicting event probabilities (cumulative incidences) in competing risk
+models.}
 \usage{
 predictEventProb(object, newdata, times, cause, ...)
-\method{predictEventProb}{CauseSpecificCox}(object, newdata, times, cause, ...)
-\method{predictEventProb}{riskRegression}(object, newdata, times, cause, ...)
-\method{predictEventProb}{FGR}(object, newdata, times, cause, ...)
-\method{predictEventProb}{prodlim}(object, newdata, times, cause, ...)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
- \item{object}{A fitted model from which to extract predicted event probabilities}
- \item{newdata}{A data frame containing predictor variable combinations for
-   which to compute predicted event probabilities.
- }
-   \item{times}{A vector of times in the range of the response
-    variable, for which the cumulative incidences event probabilities are computed.
-  }
-  \item{cause}{
-    Identifies the cause of interest among the competing events.  
-  }
-  \item{\dots}{Additional arguments that are passed on to the current method.
-  }
+  \item{object}{A fitted model from which to extract
+  predicted event probabilities}
+
+  \item{newdata}{A data frame containing predictor variable
+  combinations for which to compute predicted event
+  probabilities.}
+
+  \item{times}{A vector of times in the range of the
+  response variable, for which the cumulative incidences
+  event probabilities are computed.}
+
+  \item{cause}{Identifies the cause of interest among the
+  competing events.}
+
+  \item{\dots}{Additional arguments that are passed on to
+  the current method.}
+}
+\value{
+A matrix with as many rows as \code{NROW(newdata)} and as
+many columns as \code{length(times)}. Each entry should be
+a probability and in rows the values should be increasing.
+}
+\description{
+Function to extract event probability predictions from
+various modeling approaches. The most prominent one is the
+combination of cause-specific Cox regression models which
+can be fitted with the function \code{cumincCox} from the
+package \code{compRisk}.
 }
 \details{
+The function predictEventProb is a generic function that
+means it invokes specifically designed functions depending
+on the 'class' of the first argument.
+
 See \code{\link{predictSurvProb}}.
 }
-\value{  A matrix with as many rows as \code{NROW(newdata)} and as many columns
-  as \code{length(times)}. Each entry should be a probability and in
-  rows the values should be increasing.
-}
-% \references{
-% }
-\author{Thomas A. Gerds \email{tag@biostat.ku.dk}}
-\seealso{
-  See \code{\link{predictSurvProb}}.
-}
 \examples{
-\dontrun{
 library(pec)
 library(CoxBoost)
 library(survival)
-train <- prodlim:::SimCompRisk(100)
-test <- prodlim:::SimCompRisk(10)
-cb.fit <- coxboost(Hist(time,cause)~X1+X2,data=train,stepno=100)
-predictEventProb(cb.fit,newdata=test,times=seq(1:10),cause=1)
+library(riskRegression)
+library(prodlim)
+train <- SimCompRisk(100)
+test <- SimCompRisk(10)
+cox.fit  <- CSC(Hist(time,cause)~X1+X2,data=train)
+predictEventProb(cox.fit,newdata=test,times=seq(1:10),cause=1)
+## cb.fit <- coxboost(Hist(time,cause)~X1+X2,cause=1,data=train,stepno=10)
+## predictEventProb(cb.fit,newdata=test,times=seq(1:10),cause=1)
 }
+\author{
+Thomas A. Gerds \email{tag@biostat.ku.dk}
+}
+\seealso{
+See \code{\link{predictSurvProb}}.
 }
 \keyword{survival}
+

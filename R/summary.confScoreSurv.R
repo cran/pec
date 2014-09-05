@@ -1,3 +1,4 @@
+##' @S3method summary confScoreSurv
 summary.confScoreSurv <- function(object,
                                   times,
                                   type=1,
@@ -21,9 +22,9 @@ summary.confScoreSurv <- function(object,
   mm <- data.frame(times=object$times,
                    meanScore=meanScore)
   if (!missing(times)){
-    mm <- rbind(0,mm)[1+sindex(jump.times=object$times,eval.times=times),,drop=FALSE]
+    mm <- rbind(0,mm)[1+prodlim::sindex(jump.times=object$times,eval.times=times),,drop=FALSE]
     if (qScore==TRUE)
-      qScore <- rbind(0,qScore)[1+sindex(jump.times=object$times,eval.times=times),,drop=FALSE]
+      qScore <- rbind(0,qScore)[1+prodlim::sindex(jump.times=object$times,eval.times=times),,drop=FALSE]
   }
   if (qScore==TRUE)
     mm <- cbind(mm,qScore)

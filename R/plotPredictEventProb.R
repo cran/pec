@@ -1,3 +1,58 @@
+#' Plotting predicted survival curves.
+#' 
+#' Ploting time-dependent event risk predictions.
+#' 
+#' Arguments for the invoked functions \code{legend} and \code{axis} are simply
+#' specified as \code{legend.lty=2}. The specification is not case sensitive,
+#' thus \code{Legend.lty=2} or \code{LEGEND.lty=2} will have the same effect.
+#' The function \code{axis} is called twice, and arguments of the form
+#' \code{axis1.labels}, \code{axis1.at} are used for the time axis whereas
+#' \code{axis2.pos}, \code{axis1.labels}, etc.  are used for the y-axis.
+#' 
+#' These arguments are processed via \code{\dots{}} of
+#' \code{plotPredictEventProb} and inside by using the function
+#' \code{SmartControl}.
+#' 
+#' @param x Object specifying an event risk prediction model.
+#' @param newdata A data frame with the same variable names as those that were
+#' used to fit the model \code{x}.
+#' @param times Vector of times at which to return the estimated probabilities.
+#' @param cause Show predicted risk of events of this cause
+#' @param xlim Plotting range on the x-axis.
+#' @param ylim Plotting range on the y-axis.
+#' @param xlab Label given to the x-axis.
+#' @param ylab Label given to the y-axis.
+#' @param axes Logical. If \code{FALSE} no axes are drawn.
+#' @param col Vector of colors given to the survival curve.
+#' @param density Densitiy of the color -- useful for showing many
+#' (overlapping) curves.
+#' @param lty Vector of lty's given to the survival curve.
+#' @param lwd Vector of lwd's given to the survival curve.
+#' @param add Logical. If \code{TRUE} only lines are added to an existing
+#' device
+#' @param legend Logical. If TRUE a legend is plotted by calling the function
+#' legend.  Optional arguments of the function \code{legend} can be given in
+#' the form \code{legend.x=val} where x is the name of the argument and val the
+#' desired value. See also Details.
+#' @param percent Logical. If \code{TRUE} the y-axis is labeled in percent.
+#' @param \dots Parameters that are filtered by \code{\link{SmartControl}} and
+#' then passed to the functions: \code{\link{plot}}, \code{\link{axis}},
+#' \code{\link{legend}}.
+#' @return The (invisible) object.
+#' @author Ulla B. Mogensen \email{ulmo@@biostat.ku.dk}, Thomas A. Gerds
+#' \email{tag@@biostat.ku.dk}
+#' @seealso \code{\link{predictEventProb}}\code{\link{prodlim}}
+#' @references Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).
+#' Evaluating Random Forests for Survival Analysis Using Prediction Error
+#' Curves. Journal of Statistical Software, 50(11), 1-23. URL
+#' http://www.jstatsoft.org/v50/i11/.
+#' @keywords survival
+#' @examples
+#' 
+#' 
+#' # generate some competing risk data
+#' 
+#' @export plotPredictEventProb
 plotPredictEventProb <- function(x,
                                  newdata,
                                  times,
@@ -120,7 +175,7 @@ plotPredictEventProb <- function(x,
     legend.DefaultArgs <- c(args[[match("legend.args",names(args),nomatch=FALSE)]],legend.DefaultArgs)
     legend.DefaultArgs <- legend.DefaultArgs[!duplicated(names(legend.DefaultArgs))]
   }
-  smartA <- prodlim:::SmartControl(call=list(...),
+  smartA <- prodlim::SmartControl(call=list(...),
                                    keys=c("plot","legend","axis1","axis2"),
                                    ignore=c("x", "newdata", "times", "xlim","ylim","xlab","ylab","col","lty","lwd","add","legend","percent","axes","legend.args"),
                                    defaults=list("plot"=plot.DefaultArgs,

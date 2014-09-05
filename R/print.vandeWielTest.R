@@ -1,3 +1,4 @@
+##' @S3method print vandeWielTest
 print.vandeWielTest <- function(x,eps=0.0001,pdigits=4,...){
   cat("\nvan de Wiel test based on ",x$B," data splits\n")
   cat("\nTraining sample size: ",x$M,"\n")
@@ -17,7 +18,7 @@ print.vandeWielTest <- function(x,eps=0.0001,pdigits=4,...){
     cat("\nMatrix of time point wise p-values:\n\n")
     if (NT>5){
       showTimes <- sort(sample(x$testTimes))
-      showTimePos <- sindex(jump.times=x$testTimes,eval.times=showTimes)
+      showTimePos <- prodlim::sindex(jump.times=x$testTimes,eval.times=showTimes)
     }
     else{
       showTimes <- x$testTimes

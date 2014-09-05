@@ -1,4 +1,5 @@
-print.splitMethod <- function(x){
+##' @S3method print splitMethod
+print.splitMethod <- function(x,...){
   if (x$name=="no plan")
     return(cat("\nNo data splitting: either apparent or independent test sample performance\n"))
   cat("\nMethod for estimating the prediction error:\n")

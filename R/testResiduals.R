@@ -25,7 +25,7 @@ testResiduals <- function(object,
   # }}}
   # {{{ extract residuals at testTimes
   if (!is.null(testTimes)){
-    timePos <- sindex(times,testTimes)
+    timePos <- prodlim::sindex(times,testTimes)
     testTimeResiduals <- lapply(object,function(x){
       x[,timePos,drop=FALSE]
     })

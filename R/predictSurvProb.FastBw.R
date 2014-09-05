@@ -1,8 +1,8 @@
 selectCox <- function(formula,data,rule="aic"){
   ## require(rms)
   ## require(prodlim)
-  fit <- cph(formula, data, surv=TRUE)
-  bwfit <- fastbw(fit,rule=rule)
+  fit <- rms::cph(formula, data, surv=TRUE)
+  bwfit <- rms::fastbw(fit,rule=rule)
   if (length(bwfit$names.kept)==0){
     newform <- reformulate("1",formula[[2]])
     newfit <- prodlim(newform,data=data)
@@ -17,6 +17,7 @@ selectCox <- function(formula,data,rule="aic"){
   out
 }
 
+##' @S3method predictSurvProb selectCox
 predictSurvProb.selectCox <- function(object,newdata,times,...){
    predictSurvProb(object[[1]],newdata=newdata,times=times,...)
  }
