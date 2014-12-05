@@ -63,7 +63,7 @@ crps <- function(object,
   object.times <- object$time
   if(missing(times)) times <- object$maxtime
   if (any(times>object$maxtime)) {
-    warning(paste("You asked to integrate until times where prediction error curves are not defined.", object$maxtime))
+    warning(paste("You asked to integrate until times where prediction error curves are not defined.", format(object$maxtime,nsmall=2,digits=2)))
     times <- times[times<=object$maxtime]
   }
   ## if (!(object$exact))

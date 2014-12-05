@@ -224,11 +224,11 @@ pseudoPec <- function(object,
     extraArgs <- model.args[[f]]
 
     if (predictHandlerFun=="predictEventProb"){
-      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data,cause=cause),extraArgs))
+      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
       if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
     }
     else{
-      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
+      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
       if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
     }
     if (NCOL(pred)==1) pred <- matrix(rep(pred,N),byrow=TRUE,ncol=NT,nrow=N)
@@ -244,7 +244,7 @@ pseudoPec <- function(object,
       NoInfErr <- lapply(1:NF,function(f){
         fit <- object[[f]]
         extraArgs <- model.args[[f]]
-        pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
+        pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
         extraArgs <- model.args[[f]]
         if (predictHandlerFun=="predictEventProb")
           .C("pseudoPec_noinfCR",pseudoPec=double(NT),as.double(YY),as.double(event),as.double(times),as.double(pred),as.integer(N),as.integer(NT),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pseudoPec
@@ -264,7 +264,7 @@ pseudoPec <- function(object,
           fit.b <- internalReevalFit(object=object[[f]],data=noinf.b,step=b,silent=FALSE,verbose=verbose)
           ## fit.b$call <- object[[f]]$call
           extraArgs <- model.args[[f]]
-          pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data),extraArgs))
+          pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times),extraArgs))
           if (predictHandlerFun=="predictEventProb")
             .C("pseudoPecCR",pseudoPec=double(NT),as.double(YY),as.double(event),as.double(times),as.double(pred.b),as.integer(N),as.integer(NT),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pseudoPec
           else

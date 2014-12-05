@@ -2,8 +2,8 @@
 \alias{pec}
 \title{Prediction error curves}
 \usage{
-pec(object, formula, data, times, cause, start, maxtime, exact = TRUE,
-  exactness = 100, fillChar = NA, cens.model = "cox",
+pec(object, formula, data, traindata, times, cause, start, maxtime,
+  exact = TRUE, exactness = 100, fillChar = NA, cens.model = "cox",
   ipcw.refit = FALSE, ipcw.args = NULL, splitMethod = "none", B, M,
   reference = TRUE, model.args = NULL, model.parms = NULL,
   keep.index = FALSE, keep.matrix = FALSE, keep.models = "Call",
@@ -44,6 +44,11 @@ pec(object, formula, data, times, cause, start, maxtime, exact = TRUE,
   prediction models and to fit the censoring model.  If
   \code{data} is missing, try to extract a data set from
   the first element in object.}
+
+  \item{traindata}{A data frame in which the models are
+  trained. This argument is used only in the absence of
+  crossvalidation, in which case it is passed to the
+  predictHandler function predictSurvProb}
 
   \item{times}{A vector of time points. At each time point
   the prediction error curves are estimated. If
@@ -319,13 +324,12 @@ For each prediction model there must be a
 prediction model which evaluates to a \code{myclass} object
 one defines a function called
 \code{predictSurvProb.myclass} with arguments
-\code{object,newdata,cutpoints,train.data,...}
+\code{object,newdata,cutpoints,...}
 
-Such a function takes the object which was fitted with
-train.data and derives a matrix with predicted event status
-probabilities for each subject in newdata (rows) and each
-cutpoint (column) of the response variable that defines an
-event status.
+Such a function takes the object and derives a matrix with
+predicted event status probabilities for each subject in
+newdata (rows) and each cutpoint (column) of the response
+variable that defines an event status.
 
 Currently, \code{predictSurvProb} methods are available for
 the following R-objects: \describe{ \item{}{\code{matrix}}

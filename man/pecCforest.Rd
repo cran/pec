@@ -5,14 +5,17 @@
 pecCforest(formula, data, ...)
 }
 \arguments{
-  \item{formula}{See \code{cforest} of the \code{party}
-  package}
+  \item{formula}{Passed on as is. See \code{cforest} of the
+  \code{party} package}
 
-  \item{data}{See \code{cforest} of the \code{party}
-  package}
+  \item{data}{Passed on as is. See \code{cforest} of the
+  \code{party} package}
 
-  \item{\dots}{See \code{cforest} of the \code{party}
-  package}
+  \item{...}{Passed on as they are. See \code{cforest} of
+  the \code{party} package}
+}
+\value{
+list with two elements: cforest and call
 }
 \description{
 S3-wrapper function for cforest from the party package

@@ -6,17 +6,15 @@
 \alias{predictSurvProb.cph}
 \alias{predictSurvProb.default}
 \alias{predictSurvProb.matrix}
-\alias{predictSurvProb.mfp}
 \alias{predictSurvProb.pecCforest}
-\alias{predictSurvProb.phnnet}
+\alias{predictSurvProb.pecCtree}
+\alias{predictSurvProb.pecRpart}
 \alias{predictSurvProb.prodlim}
 \alias{predictSurvProb.psm}
 \alias{predictSurvProb.rfsrc}
 \alias{predictSurvProb.riskRegression}
-\alias{predictSurvProb.rpart}
 \alias{predictSurvProb.selectCox}
 \alias{predictSurvProb.survfit}
-\alias{predictSurvProb.survnnet}
 \title{Predicting survival probabilities}
 \usage{
 \method{predictSurvProb}{aalen}(object,newdata,times,...)
@@ -24,16 +22,14 @@
 \method{predictSurvProb}{cox.aalen}(object,newdata,times,...)
 \method{predictSurvProb}{cph}(object,newdata,times,...)
 \method{predictSurvProb}{coxph}(object,newdata,times,...)
-\method{predictSurvProb}{mfp}(object,newdata,times,...)
 \method{predictSurvProb}{matrix}(object,newdata,times,...)
 \method{predictSurvProb}{selectCox}(object,newdata,times,...)
 \method{predictSurvProb}{pecCforest}(object,newdata,times,...)
 \method{predictSurvProb}{prodlim}(object,newdata,times,...)
 \method{predictSurvProb}{psm}(object,newdata,times,...)
 \method{predictSurvProb}{survfit}(object,newdata,times,...)
-\method{predictSurvProb}{survnnet}(object,newdata,times,train.data,...)
-\method{predictSurvProb}{rpart}(object,newdata,times,train.data,...)
-\method{predictSurvProb}{phnnet}(object,newdata,times,train.data,...)
+\method{predictSurvProb}{pecRpart}(object,newdata,times,...)
+#' \method{predictSurvProb}{pecCtree}(object,newdata,times,...)
 }
 \arguments{
   \item{object}{A fitted model from which to extract
@@ -47,10 +43,6 @@
   response variable, e.g. times when the response is a
   survival object, at which to return the survival
   probabilities.}
-
-  \item{train.data}{An optional data frame which contains
-  the response and predictor variable combinations in which
-  the prediction model was trained}
 
   \item{\dots}{Additional arguments that are passed on to
   the current method.}
@@ -79,10 +71,8 @@ with the function \code{predictSurvProb.CLASS}.
 Currently there are \code{predictSurvProb} methods for
 objects of class cph (library rms), coxph (library
 survival), aalen (library timereg), cox.aalen (library
-timereg), mfp (library mfp), phnnet (library survnnet),
-survnnet (library survnnet), rpart (library rpart),
-product.limit (library prodlim), survfit (library
-survival), psm (library rms)
+timereg), rpart (library rpart), product.limit (library
+prodlim), survfit (library survival), psm (library rms)
 }
 \note{
 In order to assess the predictive performance of a new
@@ -100,6 +90,7 @@ the call to \code{cph}.
 \examples{
 # generate some survival data
 library(prodlim)
+set.seed(100)
 d <- SimSurv(100)
 # then fit a Cox model
 library(rms)
@@ -112,6 +103,10 @@ ttt <- quantile(d$time)
 ndat <- data.frame(X1=c(0.25,0.25,-0.05,0.05),X2=c(0,1,0,1))
 # as follows
 predictSurvProb(coxmodel,newdata=ndat,times=ttt)
+
+# stratified cox model
+sfit <- coxph(Surv(time,status)~strata(X1)+X2,data=d,y=TRUE)
+predictSurvProb(sfit,newdata=d[1:3,],times=c(1,3,5,10))
 
 ## simulate some learning and some validation data
 learndat <- SimSurv(100)

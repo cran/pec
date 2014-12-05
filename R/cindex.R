@@ -508,7 +508,7 @@ cindex <- function(object,
     fit <- object[[f]]
     extraArgs <- model.args[[f]]
     if (model.type=="competing.risks"){
-      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times,train.data=data,cause=cause),extraArgs))
+      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times,cause=cause),extraArgs))
       if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
       if (length(pred.times)==1 && length(pred.times)<length(eval.times))
         pred <- rep(pred,length(eval.times))
@@ -524,10 +524,7 @@ cindex <- function(object,
            AppConcordant=list(A=AppConcordantA,B=AppConcordantB))
     }
     else{
-      pred <- do.call(predictHandlerFun,c(list(object=fit,
-                                               newdata=data,
-                                               times=pred.times,
-                                               train.data=data),extraArgs))
+      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times),extraArgs))
       if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
       if (length(pred.times)==1 && length(pred.times)<length(eval.times))
         pred <- rep(pred,length(eval.times))

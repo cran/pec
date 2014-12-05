@@ -52,6 +52,7 @@
 #' @examples
 #' 
 #' library(prodlim)
+#' library(rms)
 #' dat=SimSurv(30)
 #' 
 #' dat <- dat[order(dat$time),]
@@ -151,8 +152,11 @@ ipcw.rfsrc <- function(formula,data,method,args,times,subjectTimes,subjectTimesL
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
     call <- match.call() ## needed for refit in crossvalidation loop
-    EHF <- prodlim::EventHistory.frame(formula,data,specials=NULL)
-    wdata <- data.frame(cbind(unclass(EHF$event.history),do.call("cbind",EHF[-1])))
+    EHF <- prodlim::EventHistory.frame(formula,
+                                       data,
+                                       specials=NULL,
+                                       unspecialsDesign=FALSE)
+    wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design))
     ## wdata <- as.data.frame(EHF)
     wdata$status <- 1-wdata$status
     wform <- update(formula,"Surv(time,status)~.")
@@ -202,8 +206,11 @@ ipcw.forest <- function(formula,data,method,args,times,subjectTimes,subjectTimes
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
     call <- match.call() ## needed for refit in crossvalidation loop
-    EHF <- prodlim::EventHistory.frame(formula,data,specials=NULL)
-    wdata <- data.frame(cbind(unclass(EHF$event.history),do.call("cbind",EHF[-1])))
+    EHF <- prodlim::EventHistory.frame(formula,
+                                       data,
+                                       specials=NULL,
+                                       unspecialsDesign=FALSE)
+    wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design))
     ## wdata$status <- 1-wdata$status
     wform <- update(formula,"Surv(time,status)~.")
     ## require(randomForestSRC)
@@ -316,14 +323,25 @@ ipcw.cox <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
     call <- match.call()
-    EHF <- prodlim::EventHistory.frame(formula,data,specials=NULL)
-    wdata <- data.frame(cbind(unclass(EHF$event.history),do.call("cbind",EHF[-1])))
-    ## wdata <- prodlim::as.data.frame.EventHistory.frame(EHF)
-    ## 
+    EHF <- prodlim::EventHistory.frame(formula,
+                                       data,
+                                       specials=c("strat"),
+                                       stripSpecials=c("strat"),
+                                       specialsDesign=FALSE,
+                                       unspecialsDesign=FALSE)
+    if (is.null(EHF$strat))
+        wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design))
+    else
+        wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design,EHF$strat))
+    wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design))
     wdata$status <- 1-wdata$status
     wform <- update(formula,"Surv(time,status)~.")
     stopifnot(NROW(na.omit(wdata))>0)
-    fit <- rms::cph(wform,data=wdata,surv=TRUE,x=TRUE,y=TRUE)
+    if (missing(args) || is.null(args))
+        args <- list(x=TRUE,y=TRUE,eps=0.000001)
+    args$surv <- TRUE
+    fit <- do.call(rms::cph,c(list(wform,data=wdata),args))
+    ## fit <- rms::cph(wform,data=wdata,surv=TRUE,x=TRUE,y=TRUE)
     #  weigths at requested times
     if (match("IPCW.times",what,nomatch=FALSE)){
         IPCW.times <- rms::survest(fit,newdata=wdata,times=times,se.fit=FALSE)$surv
@@ -357,8 +375,11 @@ ipcw.aalen <- function(formula,data,method,args,times,subjectTimes,subjectTimesL
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
     call <- match.call()
-    EHF <- prodlim::EventHistory.frame(formula,data,specials=NULL)
-    wdata <- data.frame(cbind(unclass(EHF$event.history),do.call("cbind",EHF[-1])))
+    EHF <- prodlim::EventHistory.frame(formula,
+                                       data,
+                                       specials=NULL,
+                                       unspecialsDesign=FALSE)
+    wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design))
     ## wdata <- as.data.frame(EHF)
     wdata$status <- 1-wdata$status
     wform <- update(formula,"Surv(time,status)~.")

@@ -75,6 +75,7 @@ choices of \code{method}.
 }
 \examples{
 library(prodlim)
+library(rms)
 dat=SimSurv(30)
 
 dat <- dat[order(dat$time),]

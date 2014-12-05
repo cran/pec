@@ -109,10 +109,10 @@ CindexBootstrapCrossValidation <- function(object,
       fit.b <- trainModels[[f]]
       extraArgs <- giveToModel[[f]]
       if (predictHandlerFun %in% c("predictEventProb","predictLifeYearsLost")){
-        try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=pred.times,train.data=train.b,cause=cause),extraArgs)))
+        try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=pred.times,cause=cause),extraArgs)))
       }
       else{
-        try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=pred.times,train.data=train.b),extraArgs)))
+        try2predict <- try(pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=pred.times),extraArgs)))
       }
       ## browser()
       ## print(pred.b[1:5])

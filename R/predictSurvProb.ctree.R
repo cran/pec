@@ -1,4 +1,21 @@
-# CTREE
+##' The call is added to an ctree object
+##' 
+##' @title S3-Wrapper for ctree.
+##' @param ... passed to ctree
+##' @return list with two elements: ctree and call
+##' @seealso pecCforest
+##' @examples
+##' library(prodlim)
+##' library(party)
+##' library(survival)
+##' set.seed(50)
+##' d <- SimSurv(50)
+##' nd <- data.frame(X1=c(0,1,0),X2=c(-1,0,1))
+##' f <- pecCtree(Surv(time,status)~X1+X2,data=d)
+##' predictSurvProb(f,newdata=nd,times=c(3,8))
+##' 
+##' @author Thomas A. Gerds <tag@@biostat.ku.dk>
+##' @export 
 pecCtree <- function(...){
  out <- list(ctree=party::ctree(...))
  class(out) <- "pecCtree"

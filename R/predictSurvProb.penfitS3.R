@@ -102,7 +102,6 @@ penalizedOpt <- function(formula,data=data,...){
 predictSurvProb.penfitS3 <- function(object,
                                      newdata,
                                      times,
-                                     train.data,
                                      ...){
     penfit <- object$fit
     pCovaNames <- names(penfit@penalized)

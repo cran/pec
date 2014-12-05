@@ -44,6 +44,10 @@
 #' predictEventProb(cox.fit,newdata=test,times=seq(1:10),cause=1)
 #' ## cb.fit <- coxboost(Hist(time,cause)~X1+X2,cause=1,data=train,stepno=10)
 #' ## predictEventProb(cb.fit,newdata=test,times=seq(1:10),cause=1)
+#'
+#' ## with strata
+#' cox.fit2  <- CSC(list(Hist(time,cause)~strata(X1)+X2,Hist(time,cause)~X1+X2),data=train)
+#' predictEventProb(cox.fit2,newdata=test,times=seq(1:10),cause=1)
 #' 
 #' @export predictEventProb
 predictEventProb <- function(object,newdata,times,cause,...){
@@ -69,23 +73,23 @@ predictEventProb.matrix <- function(object,newdata,times,...){
 
 ##' @S3method predictEventProb prodlim
 predictEventProb.prodlim <- function(object,newdata,times,cause,...){
-  ## require(prodlim)
-  p <- predict(object=object,cause=cause,type="cuminc",newdata=newdata,times=times,mode="matrix",level.chaos=1)
-  ## if the model has no covariates
-  ## then all cases get the same prediction
-  ## in this exceptional case we proceed a vector
-  if (NROW(p)==1 && NROW(newdata)>1)
-    p <- as.vector(p)
-  ## p[is.na(p)] <- 0
-  if (is.null(dim(p)))
-   {if (length(p)!=length(times))
-      stop("Prediction failed")
-  }
-  else{
-    if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
-      stop("Prediction failed")
-  }
-  p
+    ## require(prodlim)
+    p <- predict(object=object,cause=cause,type="cuminc",newdata=newdata,times=times,mode="matrix",level.chaos=1)
+    ## if the model has no covariates
+    ## then all cases get the same prediction
+    ## in this exceptional case we proceed a vector
+    if (NROW(p)==1 && NROW(newdata)>=1)
+        p <- as.vector(p)
+    ## p[is.na(p)] <- 0
+    if (is.null(dim(p)))
+        {if (length(p)!=length(times))
+             stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
+     }
+    else{
+        if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+            stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
+    }
+    p
 }
 
 ##' @S3method predictEventProb FGR
@@ -125,8 +129,7 @@ predictEventProb.ARR <- function(object,newdata,times,cause,...){
 predictEventProb.CauseSpecificCox <- function (object, newdata, times, cause, ...) {
     survtype <- object$survtype
     N <- NROW(newdata)
-    ## f <- function(x) browser()
-    ## f()
+    ## suppressMessages(browser())
     NC <- length(object$model)
     eTimes <- object$eventTimes
     if (missing(cause))
@@ -138,6 +141,7 @@ predictEventProb.CauseSpecificCox <- function (object, newdata, times, cause, ..
             stop("Object can be used to predict cause ",object$theCause," but not ",cause,".\nNote: the cause can be specified in CSC(...,cause=).")
     }
     # predict cumulative cause specific hazards
+    ## browser()
     trycumhaz1 <- try(cumHaz1 <- -log(predictSurvProb(object$models[[paste("Cause",cause)]],times=eTimes,newdata=newdata)),silent=FALSE)
     ## trycumhaz1[is.infinite(trycumhaz1)] <- NA
     if (inherits(trycumhaz1,"try-error")==TRUE)
@@ -169,7 +173,7 @@ predictEventProb.CauseSpecificCox <- function (object, newdata, times, cause, ..
     pos <- prodlim::sindex(jump.times=eTimes, eval.times=times)
     p <- cbind(0,cuminc1)[,pos+1,drop=FALSE]
     if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
-                stop(paste("\nPrediction matrix has wrong dimension:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
+        stop(paste("\nPrediction matrix has wrong dimension:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
     p
 }
 

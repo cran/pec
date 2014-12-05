@@ -312,8 +312,8 @@ calPlot <- function(object,
                 extraArgs <- giveToModel[[f]]
                 fit.k <- internalReevalFit(object=object[[f]],data=train.k,step=paste("CV group=",k),silent=FALSE,verbose=verbose)
                 switch(model.type,
-                       "competing.risks"={do.call(predictHandlerFun,list(object=fit.k,newdata=val.k,times=time,cause=cause,train.data=train.k))},
-                       "survival"={do.call(predictHandlerFun,c(list(object=fit.k,newdata=val.k,times=time,train.data=train.k),extraArgs))},
+                       "competing.risks"={do.call(predictHandlerFun,list(object=fit.k,newdata=val.k,times=time,cause=cause))},
+                       "survival"={do.call(predictHandlerFun,c(list(object=fit.k,newdata=val.k,times=time),extraArgs))},
                        "binary"={do.call(predictHandlerFun,list(object=fit.k,newdata=val.k))})
             })
             model.pred
@@ -358,8 +358,8 @@ calPlot <- function(object,
                 fit.b <- internalReevalFit(object=object[[f]],data=train.b,step=b,silent=FALSE,verbose=verbose)
                 extraArgs <- giveToModel[[f]]
                 try2predict <- try(pred.b <- switch(model.type,
-                                                    "competing.risks"={do.call(predictHandlerFun,list(object=fit.b,newdata=val.b,times=time,cause=cause,train.data=train.b))},
-                                                    "survival"={do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=time,train.data=train.b),extraArgs))},
+                                                    "competing.risks"={do.call(predictHandlerFun,list(object=fit.b,newdata=val.b,times=time,cause=cause))},
+                                                    "survival"={do.call(predictHandlerFun,c(list(object=fit.b,newdata=val.b,times=time),extraArgs))},
                                                     "binary"={do.call(predictHandlerFun,list(object=fit.b,newdata=val.b))}),silent=TRUE)
                 if (inherits(try2predict,"try-error")==TRUE){
                     rep(NA,NROW(val.b))

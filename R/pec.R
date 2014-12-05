@@ -31,9 +31,9 @@
 #' For each prediction model there must be a \code{predictSurvProb} method: for
 #' example, to assess a prediction model which evaluates to a \code{myclass}
 #' object one defines a function called \code{predictSurvProb.myclass} with
-#' arguments \code{object,newdata,cutpoints,train.data,...}
+#' arguments \code{object,newdata,cutpoints,...}
 #' 
-#' Such a function takes the object which was fitted with train.data and
+#' Such a function takes the object and
 #' derives a matrix with predicted event status probabilities for each subject
 #' in newdata (rows) and each cutpoint (column) of the response variable that
 #' defines an event status.
@@ -70,6 +70,9 @@
 #' @param data A data frame in which to validate the prediction models and to
 #' fit the censoring model.  If \code{data} is missing, try to extract a data
 #' set from the first element in object.
+#' @param traindata A data frame in which the models are trained. This argument
+#' is used only in the absence of crossvalidation, in which case it is
+#' passed to the predictHandler function predictSurvProb 
 #' @param times A vector of time points. At each time point the prediction
 #' error curves are estimated. If \code{exact==TRUE} the \code{times} are
 #' merged with all the unique values of the response variable.  If \code{times}
@@ -259,7 +262,6 @@
 #' @keywords survival
 #' @examples
 #' 
-#' 
 #' # simulate an artificial data frame
 #' # with survival response and two predictors
 #' 
@@ -362,47 +364,48 @@
 #' @export 
 # {{{ header pec.list
 pec <- function(object,
-                     formula,
-                     data,
-                     times,
-                     cause,
-                     ## time points
-                     start,
-                     maxtime,
-                     exact=TRUE,
-                     exactness=100,
-                     fillChar=NA,
-                     ## censoring weighting 
-                     cens.model="cox",
-                     ipcw.refit=FALSE,
-                     ipcw.args=NULL,
-                     ## data splitting
-                     splitMethod="none",
-                     B,
-                     M,
-                     ## misc parameters
-                     reference=TRUE,
-                     model.args=NULL,
-                     model.parms=NULL,
-                     keep.index=FALSE,
-                     keep.matrix=FALSE,
-                     keep.models="Call",
-                     keep.residuals=FALSE,
-                     keep.pvalues=FALSE,
-                     noinf.permute=FALSE,
-                     multiSplitTest=FALSE,
-                     testIBS,
-                     testTimes,
-                     confInt=FALSE,
-                     confLevel=0.95,
-                     verbose=TRUE,
-                     savePath=NULL,
-                     slaveseed=NULL,
-                     na.action=na.fail,
-                     ...)
+                formula,
+                data,
+                traindata,
+                times,
+                cause,
+                ## time points
+                start,
+                maxtime,
+                exact=TRUE,
+                exactness=100,
+                fillChar=NA,
+                ## censoring weighting 
+                cens.model="cox",
+                ipcw.refit=FALSE,
+                ipcw.args=NULL,
+                ## data splitting
+                splitMethod="none",
+                B,
+                M,
+                ## misc parameters
+                reference=TRUE,
+                model.args=NULL,
+                model.parms=NULL,
+                keep.index=FALSE,
+                keep.matrix=FALSE,
+                keep.models="Call",
+                keep.residuals=FALSE,
+                keep.pvalues=FALSE,
+                noinf.permute=FALSE,
+                multiSplitTest=FALSE,
+                testIBS,
+                testTimes,
+                confInt=FALSE,
+                confLevel=0.95,
+                verbose=TRUE,
+                savePath=NULL,
+                slaveseed=NULL,
+                na.action=na.fail,
+                ...)
 {
-  # }}}
-  # {{{ checking integrity some arguments
+    # }}}
+    # {{{ checking integrity some arguments
 
   theCall=match.call()
   if (match("replan",names(theCall),nomatch=FALSE))
@@ -465,26 +468,26 @@ pec <- function(object,
 
   histformula <- formula
   if (histformula[[2]][[1]]==as.name("Surv")){
-    histformula[[2]][[1]] <- as.name("Hist")
+      histformula[[2]][[1]] <- as.name("Hist")
   }
   ## m <- model.frame(histformula,data,na.action=na.fail)
   m <- model.frame(histformula,data,na.action=na.action)
   response <- model.response(m)
   if (match("Surv",class(response),nomatch=0)!=0){
-    attr(response,"model") <- "survival"
-    attr(response,"cens.type") <- "rightCensored"
-    model.type <- "survival"
+      attr(response,"model") <- "survival"
+      attr(response,"cens.type") <- "rightCensored"
+      model.type <- "survival"
   }
   model.type <- attr(response,"model")
   if (model.type=="competing.risks"){
-    predictHandlerFun <- "predictEventProb"
-    if (missing(cause))
-      cause <- attr(response,"state")[1]
+      predictHandlerFun <- "predictEventProb"
+      if (missing(cause))
+          cause <- attr(response,"state")[1]
   }
   else{
-    if (survp==FALSE && NCOL(response)!=1) stop("Response must be one-dimensional.")
-    if (survp==TRUE && NCOL(response)!=2) stop("Survival response must have two columns: time and status.")
-    predictHandlerFun <- "predictSurvProb"
+      if (survp==FALSE && NCOL(response)!=1) stop("Response must be one-dimensional.")
+      if (survp==TRUE && NCOL(response)!=2) stop("Survival response must have two columns: time and status.")
+      predictHandlerFun <- "predictSurvProb"
   }
   
   # }}}
@@ -501,18 +504,24 @@ pec <- function(object,
       ## object <- c(list(Reference=ProdLimfit),object)
       ## else
       ## browser()
-      object <- c(list(NullModel=ProdLimfit),object)
-      }
-      if (is.null(names(object))){
-          names(object) <- sapply(object,function(o)class(o)[1])
-      }
-      else{
-          names(object)[(names(object)=="")] <- sapply(object[(names(object)=="")],function(o)class(o)[1])
-      }
+      object <- c(list("Reference"=ProdLimfit),object)
+  }
+  if (is.null(names(object))){
+      names(object) <- sapply(object,function(o)class(o)[1])
       names(object) <- make.names(names(object),unique=TRUE)
-      NF <- length(object)
-      # }}}  
-      # {{{ sort the data 
+  }
+  else{ # fix missing names
+      if (any(names(object)=="")){
+          names(object)[(names(object)=="")] <- sapply(object[(names(object)=="")],function(o)class(o)[1])
+          names(object) <- make.names(names(object),unique=TRUE)
+      }else{
+          # leave names as they were given
+      }
+  }
+  ## names(object) <- make.names(names(object),unique=TRUE)
+  NF <- length(object)
+  # }}}  
+  # {{{ sort the data 
 
   if (survp){
     neworder <- order(response[,"time"],-response[,"status"])
@@ -559,7 +568,7 @@ pec <- function(object,
 
   # }}}      
   # {{{ find maxtime, start, and jumptimes in the range of the response 
-  if (missing(maxtime) || is.null(maxtime))
+if (missing(maxtime) || is.null(maxtime))
     maxtime <- unique.Y[NU]
   if (missing(start))
     if (survp==TRUE)
@@ -581,8 +590,9 @@ pec <- function(object,
   times <- times[times<=maxtime]
   NT <-  length(times)
 
-  # }}}
-  # {{{ IPCW (all equal to 1 without censoring) 
+# }}}
+# {{{ IPCW (all equal to 1 without censoring) 
+
   if((cens.model %in% c("aalen","cox","nonpar"))){
       if (all(as.numeric(status)==1) || sum(status)==N){
           if (verbose)
@@ -602,7 +612,13 @@ pec <- function(object,
       if (ipcw.refit==TRUE)
           stop("pec: internal refitting of censoring distribution not (not yet) supported for competing risks")
       ipcw.call <- NULL
-      ipcw <- ipcw(formula=iFormula,data=iData,method=cens.model,args=ipcw.args,times=times,subjectTimes=Y,subjectTimesLag=1)
+      ipcw <- ipcw(formula=iFormula,
+                   data=iData,
+                   method=cens.model,
+                   args=ipcw.args,
+                   times=times,
+                   subjectTimes=Y,
+                   subjectTimesLag=1)
       ipcw$dim <- if (cens.model %in% c("marginal","none")) 0 else 1
   }
   else{
@@ -610,7 +626,13 @@ pec <- function(object,
           ipcw.call <- list(formula=formula,data=NULL,method=cens.model,times=times,subjectTimes=NULL,subjectTimesLag=1)
       else
           ipcw.call <- NULL
-      ipcw <- ipcw(formula=formula,data=data,method=cens.model,args=ipcw.args,times=times,subjectTimes=Y,subjectTimesLag=1)
+      ipcw <- ipcw(formula=formula,
+                   data=data,
+                   method=cens.model,
+                   args=ipcw.args,
+                   times=times,
+                   subjectTimes=Y,
+                   subjectTimesLag=1)
       ipcw$dim <- if (cens.model %in% c("marginal","none")) 0 else 1
   }
   ## force ipc weights not to exaggerate
@@ -629,26 +651,26 @@ pec <- function(object,
   #  if (NCOL(wt)>1) {stopifnot(length(wt)==(N*NT))}  else{stopifnot(length(wt)==NT)}
 
   # }}}
-  # {{{ checking the models for compatibility with resampling
+# {{{ checking the models for compatibility with resampling
   if (do.resample){
     cm <- checkModels(object=object,model.args=model.args,model.parms=model.parms,splitMethod=splitMethod$internal.name)
     model.args <- cm$model.args
     model.parms <- cm$model.parms
   }
   # }}}
-  # {{{ ---------------------------Apparent error---------------------------
+# {{{ ---------------------------Apparent error---------------------------
 
   AppErr <- lapply(1:NF,function(f){
-    ## message(f)
-    fit <- object[[f]]
-    extraArgs <- model.args[[f]]
-    if (predictHandlerFun=="predictEventProb"){ # competing risks
-      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data,cause=cause),extraArgs))
+      ## message(f)
+      fit <- object[[f]]
+      extraArgs <- model.args[[f]]
+      if (predictHandlerFun=="predictEventProb"){ # competing risks
+          pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
       if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,,drop=FALSE]
       .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
     }
     else{  # survival
-      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
+      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
       if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,,drop=FALSE]
       .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
     }
@@ -660,7 +682,7 @@ pec <- function(object,
   ## fit <- object[[f]]
   ## extraArgs <- model.args[[f]]
   ## if (predictHandlerFun=="predictEventProb"){ # competing risks
-  ## pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data,cause=cause),extraArgs))
+  ## pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
   ## if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,,drop=FALSE]
   ## Paulo(as.double(Y),
   ## as.double(status),
@@ -671,7 +693,7 @@ pec <- function(object,
   ## as.double(ipcw$IPCW.subjectTimes))
   ## }
   ## else{  # survival
-  ## pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
+  ## pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
   ## if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,,drop=FALSE]
   ## Paulo(as.double(Y),
   ## as.double(status),
@@ -683,7 +705,7 @@ pec <- function(object,
 
 
   # }}}
-  # {{{------------------------No information error------------------------
+# {{{------------------------No information error------------------------
 
   if (splitMethod$internal.name %in% c("Boot632plus")){
     if (verbose==TRUE){
@@ -693,7 +715,7 @@ pec <- function(object,
       NoInfErr <- lapply(1:NF,function(f){
         fit <- object[[f]]
         extraArgs <- model.args[[f]]
-        pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,train.data=data),extraArgs))
+        pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
         extraArgs <- model.args[[f]]
         if (predictHandlerFun=="predictEventProb")
           .C("pec_noinfCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
@@ -719,13 +741,13 @@ pec <- function(object,
           ## fit.b$call <- object[[f]]$call
           extraArgs <- model.args[[f]]
 
-          pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data),extraArgs))
+          pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times),extraArgs))
           if (predictHandlerFun=="predictEventProb"){
-            pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data,cause=cause),extraArgs))
+            pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,cause=cause),extraArgs))
             .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred.b),as.double(ipcw.b$IPCW.times),as.double(ipcw.b$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
           }
           else{
-            pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times,train.data=data),extraArgs))
+            pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times),extraArgs))
             .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred.b),as.double(ipcw.b$IPCW.times),as.double(ipcw.b$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
           }
         })
@@ -741,17 +763,17 @@ pec <- function(object,
   }
 
   # }}}
-  # {{{--------------k-fold and leave-one-out CrossValidation-----------------------
+# {{{--------------k-fold and leave-one-out CrossValidation-----------------------
 
   if (splitMethod$internal.name %in% c("crossval","loocv")){
-    kCV <- kFoldCrossValidation(object=object,data=data,Y=Y,status=status,event=event,times=times,cause=cause,ipcw=ipcw,splitMethod=splitMethod,giveToModel=model.args,predictHandlerFun=predictHandlerFun,keep=keep.matrix,verbose=verbose)
-    CrossValErr <- kCV$CrossValErr
-    if (keep.matrix && B>1)
-      CrossValErrMat <- kCV$CrossValErrMat
+      kCV <- kFoldCrossValidation(object=object,data=data,Y=Y,status=status,event=event,times=times,cause=cause,ipcw=ipcw,splitMethod=splitMethod,giveToModel=model.args,predictHandlerFun=predictHandlerFun,keep=keep.matrix,verbose=verbose)
+      CrossValErr <- kCV$CrossValErr
+      if (keep.matrix && B>1)
+          CrossValErrMat <- kCV$CrossValErrMat
   }
 
   # }}}
-  # {{{ ----------------------BootstrapCrossValidation----------------------
+# {{{ ----------------------BootstrapCrossValidation----------------------
 
   if (splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632")){
     if (verbose==TRUE){
@@ -827,12 +849,12 @@ pec <- function(object,
   }
 
   # }}}
-# {{{ Bootstrap .632
+  # {{{ Bootstrap .632
   if (splitMethod$internal.name=="Boot632"){
-    B632Err <- lapply(1:NF,function(f){
-      .368 * AppErr[[f]] + .632 * BootstrapCrossValErr[[f]]
-    })
-    names(B632Err) <- names(object)
+      B632Err <- lapply(1:NF,function(f){
+          .368 * AppErr[[f]] + .632 * BootstrapCrossValErr[[f]]
+      })
+      names(B632Err) <- names(object)
   }
   # }}}    
   # {{{ Bootstrap .632+
@@ -852,43 +874,43 @@ pec <- function(object,
   }
 
   # }}}
-  # {{{ prepare output
+# {{{ prepare output
 
-  out <- switch(splitMethod$internal.name,
-                "noPlan"=list("AppErr"=AppErr),
-                "Boot632plus"=list("AppErr"=AppErr,"BootCvErr"=BootstrapCrossValErr,"NoInfErr"=NoInfErr,"Boot632plusErr"=B632plusErr),
-                "Boot632"=list("AppErr"=AppErr,"BootCvErr"=BootstrapCrossValErr,"Boot632Err"=B632Err),
-                "BootCv"=list("AppErr"=AppErr,"BootCvErr"=BootstrapCrossValErr),
-                "loocv"=list("AppErr"=AppErr,"loocvErr"=CrossValErr),
-                "crossval"=list("AppErr"=AppErr,"crossvalErr"=CrossValErr),
-                "noinf"=list("AppErr"=AppErr,"NoInfErr"=NoInfErr))
-  observed.maxtime <- sapply(out,function(x){
+out <- switch(splitMethod$internal.name,
+              "noPlan"=list("AppErr"=AppErr),
+              "Boot632plus"=list("AppErr"=AppErr,"BootCvErr"=BootstrapCrossValErr,"NoInfErr"=NoInfErr,"Boot632plusErr"=B632plusErr),
+              "Boot632"=list("AppErr"=AppErr,"BootCvErr"=BootstrapCrossValErr,"Boot632Err"=B632Err),
+              "BootCv"=list("AppErr"=AppErr,"BootCvErr"=BootstrapCrossValErr),
+              "loocv"=list("AppErr"=AppErr,"loocvErr"=CrossValErr),
+              "crossval"=list("AppErr"=AppErr,"crossvalErr"=CrossValErr),
+              "noinf"=list("AppErr"=AppErr,"NoInfErr"=NoInfErr))
+observed.maxtime <- sapply(out,function(x){
     ## lapply(x,function(y){times[length(y)-sum(is.na(y))-1]})
     lapply(x,function(y){times[length(y)-sum(is.na(y))]})
-  })
-  minmaxtime <- min(unlist(observed.maxtime))
-  if (multiSplitTest==TRUE){
+})
+minmaxtime <- min(unlist(observed.maxtime))
+if (multiSplitTest==TRUE){
     out <- c(out,list(multiSplitTest=multiSplitTestResults))
-  }
-  if (keep.residuals==TRUE){
+}
+if (keep.residuals==TRUE){
     out <- c(out,list(Residuals=Residuals))
-  }
-  if (keep.matrix==TRUE && splitMethod$internal.name!="noPlan"){
+}
+if (keep.matrix==TRUE && splitMethod$internal.name!="noPlan"){
     if (splitMethod$internal.name %in% c("crossval","loocv")){
-      if (B>1)
-        out <- c(out,list("CrossValErrMat"=CrossValErrMat))
+        if (B>1)
+            out <- c(out,list("CrossValErrMat"=CrossValErrMat))
     }
     else{
-      if (splitMethod$internal.name!="noinf")
-        out <- c(out,list("BootstrapCrossValErrMat"=BootstrapCrossValErrMat))
+        if (splitMethod$internal.name!="noinf")
+            out <- c(out,list("BootstrapCrossValErrMat"=BootstrapCrossValErrMat))
     }
-  }
-  if (!is.na(fillChar))
+}
+if (!is.na(fillChar))
     out <- lapply(out,function(o){
-      o[is.na(o)] <- fillChar
-      o
+        o[is.na(o)] <- fillChar
+        o
     })
-  if (!is.null(model.parms))
+if (!is.null(model.parms))
     out <- c(out,list("ModelParameters"=BootCv$ModelParameters))
   
   
