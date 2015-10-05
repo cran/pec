@@ -49,12 +49,12 @@
 #' cox.fit2  <- CSC(list(Hist(time,cause)~strata(X1)+X2,Hist(time,cause)~X1+X2),data=train)
 #' predictEventProb(cox.fit2,newdata=test,times=seq(1:10),cause=1)
 #' 
-#' @export predictEventProb
+#' @export 
 predictEventProb <- function(object,newdata,times,cause,...){
   UseMethod("predictEventProb",object)
 }
 
-##' @S3method predictEventProb matrix
+##' @export
 predictEventProb.matrix <- function(object,newdata,times,...){
   if (NROW(object) != NROW(newdata) || NCOL(object) != length(times)){
     stop(paste("Prediction matrix has wrong dimensions: ",
@@ -71,7 +71,7 @@ predictEventProb.matrix <- function(object,newdata,times,...){
   object
 }
 
-##' @S3method predictEventProb prodlim
+##' @export 
 predictEventProb.prodlim <- function(object,newdata,times,cause,...){
     ## require(prodlim)
     p <- predict(object=object,cause=cause,type="cuminc",newdata=newdata,times=times,mode="matrix",level.chaos=1)
@@ -92,7 +92,7 @@ predictEventProb.prodlim <- function(object,newdata,times,cause,...){
     p
 }
 
-##' @S3method predictEventProb FGR
+##' @export 
 predictEventProb.FGR <- function(object,newdata,times,cause,...){
     ## require(cmprsk)
     ## predict.crr <- cmprsk:::predict.crr
@@ -102,7 +102,7 @@ predictEventProb.FGR <- function(object,newdata,times,cause,...){
     p
 }
 
-##' @S3method predictEventProb riskRegression
+##' @export
 predictEventProb.riskRegression <- function(object,newdata,times,cause,...){
   if (missing(times))stop("Argument times is missing")
   temp <- predict(object,newdata=newdata,times=times)
@@ -113,7 +113,7 @@ predictEventProb.riskRegression <- function(object,newdata,times,cause,...){
   p
 }
 
-##' @S3method predictEventProb ARR
+##' @export 
 predictEventProb.ARR <- function(object,newdata,times,cause,...){
   if (missing(times))stop("Argument times is missing")
   temp <- predict(object,newdata=newdata,times=times)
@@ -125,12 +125,17 @@ predictEventProb.ARR <- function(object,newdata,times,cause,...){
 }
 
 
-##' @S3method predictEventProb CauseSpecificCox
+##' @export 
 predictEventProb.CauseSpecificCox <- function (object, newdata, times, cause, ...) {
     survtype <- object$survtype
     N <- NROW(newdata)
     ## suppressMessages(browser())
     NC <- length(object$model)
+    ## browser(skipCalls=4)
+    if (length(cause)>1)
+        stop(paste0("Can only predict one cause. Provided are: ",
+                    paste(cause,collapse=", "),
+                    sep=""))
     eTimes <- object$eventTimes
     if (missing(cause))
         cause <- object$theCause
@@ -141,7 +146,6 @@ predictEventProb.CauseSpecificCox <- function (object, newdata, times, cause, ..
             stop("Object can be used to predict cause ",object$theCause," but not ",cause,".\nNote: the cause can be specified in CSC(...,cause=).")
     }
     # predict cumulative cause specific hazards
-    ## browser()
     trycumhaz1 <- try(cumHaz1 <- -log(predictSurvProb(object$models[[paste("Cause",cause)]],times=eTimes,newdata=newdata)),silent=FALSE)
     ## trycumhaz1[is.infinite(trycumhaz1)] <- NA
     if (inherits(trycumhaz1,"try-error")==TRUE)
@@ -155,11 +159,11 @@ predictEventProb.CauseSpecificCox <- function (object, newdata, times, cause, ..
     if (survtype=="hazard"){
         ## browser()
         cumHazOther <- lapply(causes[-match(cause,causes)],function(c){
-            trycumhaz <- try(cumHaz.c <- -log(predictSurvProb(object$models[[paste("Cause",c)]],times=eTimes,newdata=newdata)),silent=FALSE)
-            if (inherits(trycumhaz,"try-error")==TRUE)
-                stop("Prediction of cause-specific Cox model failed")
-            cumHaz.c
-        })
+                                        trycumhaz <- try(cumHaz.c <- -log(predictSurvProb(object$models[[paste("Cause",c)]],times=eTimes,newdata=newdata)),silent=FALSE)
+                                        if (inherits(trycumhaz,"try-error")==TRUE)
+                                            stop("Prediction of cause-specific Cox model failed")
+                                        cumHaz.c
+                                    })
         lagsurv <- exp(-cumHaz1 - Reduce("+",cumHazOther))
         cuminc1 <- t(apply(lagsurv*Haz1,1,cumsum))
     }
@@ -177,7 +181,7 @@ predictEventProb.CauseSpecificCox <- function (object, newdata, times, cause, ..
     p
 }
 
-##' @S3method predictEventProb rfsrc
+##' @export 
 predictEventProb.rfsrc <- function(object, newdata, times, cause, ...){
   if (missing(cause)) stop("missing cause")
   if (!is.numeric(cause)) stop("cause is not numeric")

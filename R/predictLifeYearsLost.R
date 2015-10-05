@@ -1,8 +1,5 @@
 # methods for competing risk regression
 # --------------------------------------------------------------------
-
-
-
 #' Predicting life years lost (cumulative cumulative incidences) in competing
 #' risk models.
 #' 
@@ -45,12 +42,12 @@
 #' fit <- CSC(Hist(time,cause)~X1+X2,data=train,cause=1)
 #' predictLifeYearsLost(fit,newdata=test,times=seq(1:10),cv=FALSE,cause=1)
 #' 
-#' @export predictLifeYearsLost
+#' @export
 predictLifeYearsLost <- function(object,newdata,times,cause,...){
   UseMethod("predictLifeYearsLost",object)
 }
 
-##' @S3method predictLifeYearsLost matrix
+##' @export
 predictLifeYearsLost.matrix <- function(object,newdata,times,...){
   if (NROW(object) != NROW(newdata) || NCOL(object) != length(times)){
     stop(paste("Life-years-lost matrix has wrong dimensions: ",
@@ -67,7 +64,7 @@ predictLifeYearsLost.matrix <- function(object,newdata,times,...){
   object
 }
 
-##' @S3method predictLifeYearsLost prodlim
+##' @export
 predictLifeYearsLost.prodlim <- function(object,newdata,times,cause,...){
   ## require(prodlim)
   time.interest <- object$time
@@ -89,7 +86,7 @@ predictLifeYearsLost.prodlim <- function(object,newdata,times,cause,...){
   lyl
 }
 
-##' @S3method predictLifeYearsLost FGR
+##' @export
 predictLifeYearsLost.FGR <- function(object,newdata,times,cause,...){
   if (missing(times))stop("Argument times is missing")
   time.interest <- sort(unique(object$crrFit$uftime))
@@ -106,7 +103,7 @@ predictLifeYearsLost.FGR <- function(object,newdata,times,cause,...){
   lyl
 }
 
-##' @S3method predictLifeYearsLost riskRegression
+##' @export
 predictLifeYearsLost.riskRegression <- function(object,newdata,times,cause,...){
   if (missing(times))stop("Argument times is missing")
   time.interest <- object$time
@@ -123,7 +120,7 @@ predictLifeYearsLost.riskRegression <- function(object,newdata,times,cause,...){
   lyl
 }
 
-##' @S3method predictLifeYearsLost ARR
+##' @export
 predictLifeYearsLost.ARR <- function(object,newdata,times,cause,...){
   if (missing(times))stop("Argument times is missing")
   time.interest <- object$time
@@ -141,7 +138,7 @@ predictLifeYearsLost.ARR <- function(object,newdata,times,cause,...){
 }
 
 
-##' @S3method predictLifeYearsLost CauseSpecificCox
+##' @export
 predictLifeYearsLost.CauseSpecificCox <- function (object, newdata, times, cause, ...) {
   survtype <- object$survtype
   N <- NROW(newdata)
@@ -186,7 +183,7 @@ predictLifeYearsLost.CauseSpecificCox <- function (object, newdata, times, cause
 }
 
 
-##' @S3method predictLifeYearsLost rfsrc
+##' @export
 predictLifeYearsLost.rfsrc <- function(object, newdata, times, cause, ...){
     if (missing(cause)) stop("missing cause")
     cif <- predict(object,newdata=newdata,importance="none",...)$cif[,,cause,drop=TRUE]

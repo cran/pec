@@ -17,8 +17,7 @@
 #' @author Thomas A. Gerds \email{tag@@biostat.ku.dk}
 #' @seealso \code{\link{pec}}
 #' @keywords survival
-#' @S3method print pec
-#' @method print pec
+#' @export
 print.pec <- function(x,
                       times,
                       digits=3,
@@ -28,14 +27,14 @@ print.pec <- function(x,
     # {{{ echo models
     cat("Prediction models:\n\n")
     printModels <- sapply(x$models,function(m){
-        if (class(m) %in% c("character","call"))
-            m
-        else
-            if (class(try(m$call,silent=TRUE))=="try-error")
-                "unknown formula"
-            else
-                m$call
-    })
+                              if (class(m) %in% c("character","call"))
+                                  m
+                              else
+                                  if (class(try(m$call,silent=TRUE))=="try-error")
+                                      "unknown formula"
+                                  else
+                                      m$call
+                          })
     print(printModels,quote=FALSE)
     # }}}
     # {{{ echo response

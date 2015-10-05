@@ -1,4 +1,4 @@
-##' @S3method print splitMethod
+##' @export
 print.splitMethod <- function(x,...){
   if (x$name=="no plan")
     return(cat("\nNo data splitting: either apparent or independent test sample performance\n"))

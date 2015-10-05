@@ -1,44 +1,36 @@
-#' Predicting survival probabilities
+# methods for survival regression
+# --------------------------------------------------------------------
+#' Predicting restricted mean time 
 #' 
-#' Function to extract survival probability predictions from various modeling
-#' approaches. The most prominent one is the Cox regression model which can be
-#' fitted for example with `coxph' and with `cph'.
+#' Function to extract predicted mean times from various modeling
+#' approaches. 
 #' 
-#' The function predictSurvProb is a generic function that means it invokes
-#' specifically designed functions depending on the 'class' of the first
-#' argument.
+#' The function predictRestrictedMeanTime is a generic function, meaning that it
+#' invokes a different function dependent on the 'class' of the
+#' first argument. 
 #' 
-#' The function \code{pec} requires survival probabilities for each row in
-#' newdata at requested times. These probabilities are extracted from a fitted
-#' model of class \code{CLASS} with the function \code{predictSurvProb.CLASS}.
+#' See also \code{\link{predictSurvProb}}.
 #' 
-#' Currently there are \code{predictSurvProb} methods for objects of class cph
-#' (library rms), coxph (library survival), aalen (library timereg), cox.aalen
-#' (library timereg), 
-#' rpart (library rpart), product.limit (library prodlim),
-#' survfit (library survival), psm (library rms)
-#' 
-#' @aliases predictSurvProb predictSurvProb.aalen
-#' predictSurvProb.riskRegression predictSurvProb.cox.aalen
-#' predictSurvProb.coxph predictSurvProb.cph predictSurvProb.default
-#' predictSurvProb.rfsrc predictSurvProb.matrix predictSurvProb.pecCtree
-#' predictSurvProb.pecCforest predictSurvProb.prodlim predictSurvProb.psm
-#' predictSurvProb.selectCox predictSurvProb.survfit 
-#' predictSurvProb.pecRpart
+#' @aliases predictRestrictedMeanTime predictRestrictedMeanTime.aalen
+#' predictRestrictedMeanTime.riskRegression predictRestrictedMeanTime.cox.aalen
+#' predictRestrictedMeanTime.coxph predictRestrictedMeanTime.cph predictRestrictedMeanTime.default
+#' predictRestrictedMeanTime.rfsrc predictRestrictedMeanTime.matrix predictRestrictedMeanTime.pecCtree
+#' predictRestrictedMeanTime.prodlim predictRestrictedMeanTime.psm
+#' predictRestrictedMeanTime.selectCox predictRestrictedMeanTime.survfit 
+#' predictRestrictedMeanTime.pecRpart
 #' @usage
-#' \method{predictSurvProb}{aalen}(object,newdata,times,...)
-#' \method{predictSurvProb}{riskRegression}(object,newdata,times,...)
-#' \method{predictSurvProb}{cox.aalen}(object,newdata,times,...)
-#' \method{predictSurvProb}{cph}(object,newdata,times,...)
-#' \method{predictSurvProb}{coxph}(object,newdata,times,...)
-#' \method{predictSurvProb}{matrix}(object,newdata,times,...)
-#' \method{predictSurvProb}{selectCox}(object,newdata,times,...)
-#' \method{predictSurvProb}{pecCforest}(object,newdata,times,...)
-#' \method{predictSurvProb}{prodlim}(object,newdata,times,...)
-#' \method{predictSurvProb}{psm}(object,newdata,times,...)
-#' \method{predictSurvProb}{survfit}(object,newdata,times,...)
-#' \method{predictSurvProb}{pecRpart}(object,newdata,times,...)
-#' #' \method{predictSurvProb}{pecCtree}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{aalen}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{riskRegression}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{cox.aalen}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{cph}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{coxph}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{matrix}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{selectCox}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{prodlim}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{psm}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{survfit}(object,newdata,times,...)
+#' \method{predictRestrictedMeanTime}{pecRpart}(object,newdata,times,...)
+#' #' \method{predictRestrictedMeanTime}{pecCtree}(object,newdata,times,...)
 #' @param object A fitted model from which to extract predicted survival
 #' probabilities
 #' @param newdata A data frame containing predictor variable combinations for
@@ -51,7 +43,7 @@
 #' columns as \code{length(times)}. Each entry should be a probability and in
 #' rows the values should be decreasing.
 #' @note In order to assess the predictive performance of a new survival model
-#' a specific \code{predictSurvProb} S3 method has to be written. For examples,
+#' a specific \code{predictRestrictedMeanTime} S3 method has to be written. For examples,
 #' see the bodies of the existing methods.
 #' 
 #' The performance of the assessment procedure, in particular for resampling
@@ -76,17 +68,17 @@
 ##' library(rms)
 ##' coxmodel <- cph(Surv(time,status)~X1+X2,data=d,surv=TRUE)
 ##' 
-##' # Extract predicted survival probabilities 
+##' # predicted survival probabilities can be extracted
 ##' # at selected time-points:
 ##' ttt <- quantile(d$time)
 ##' # for selected predictor values:
 ##' ndat <- data.frame(X1=c(0.25,0.25,-0.05,0.05),X2=c(0,1,0,1))
 ##' # as follows
-##' predictSurvProb(coxmodel,newdata=ndat,times=ttt)
+##' predictRestrictedMeanTime(coxmodel,newdata=ndat,times=ttt)
 ##' 
 ##' # stratified cox model
 ##' sfit <- coxph(Surv(time,status)~strata(X1)+X2,data=d,y=TRUE)
-##' predictSurvProb(sfit,newdata=d[1:3,],times=c(1,3,5,10))
+##' predictRestrictedMeanTime(sfit,newdata=d[1:3,],times=c(1,3,5,10))
 ##' 
 ##' ## simulate some learning and some validation data
 ##' learndat <- SimSurv(100)
@@ -97,48 +89,36 @@
 ##' ## suppose we want to predict the survival probabilities for all patients
 ##' ## in the validation data at the following time points:
 ##' ## 0, 12, 24, 36, 48, 60
-##' psurv <- predictSurvProb(fitCox,newdata=valdat,times=seq(0,60,12))
+##' psurv <- predictRestrictedMeanTime(fitCox,newdata=valdat,times=seq(0,60,12))
 ##' ## This is a matrix with survival probabilities
 ##' ## one column for each of the 5 time points
 ##' ## one row for each validation set individual
 ##' 
-##' # Do the same for a randomSurvivalForest model
+##' # the same can be done e.g. for a randomSurvivalForest model
 ##' library(randomForestSRC)
 ##' rsfmodel <- rfsrc(Surv(time,status)~X1+X2,data=d)
-##' predictSurvProb(rsfmodel,newdata=ndat,times=ttt)
-##' 
-##' ## Cox with ridge option
-##' f1 <- coxph(Surv(time,status)~X1+X2,data=learndat)
-##' f2 <- coxph(Surv(time,status)~ridge(X1)+ridge(X2),data=learndat)
-##' plot(predictSurvProb(f1,newdata=valdat,times=10),
-##'      pec:::predictSurvProb.coxph(f2,newdata=valdat,times=10),
-##'      xlim=c(0,1),
-##'      ylim=c(0,1),
-##'      xlab="Unpenalized predicted survival chance at 10",
-##'      ylab="Ridge predicted survival chance at 10")
-##'
-##' 
+##' predictRestrictedMeanTime(rsfmodel,newdata=ndat,times=ttt)
+ 
 #' @export 
-predictSurvProb <- function(object,newdata,times,...){
-    UseMethod("predictSurvProb",object)
+predictRestrictedMeanTime <- function(object,newdata,times,...){
+    UseMethod("predictRestrictedMeanTime",object)
 }
 
-##' @export 
-predictSurvProb.default <- function(object,newdata,times,...){
+##' @export
+predictRestrictedMeanTime.default <- function(object,newdata,times,...){
   stop("No method for evaluating predicted probabilities from objects in class: ",class(object),call.=FALSE)
 }
 
 
-##' @export 
-predictSurvProb.numeric <- function(object,newdata,times,...){
-    if (NROW(object) != NROW(newdata))
-        ## || NCOL(object) != length(times))
+##' @export
+predictRestrictedMeanTime.numeric <- function(object,newdata,times,...){
+  if (NROW(object) != NROW(newdata) || NCOL(object) != length(times))
       stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(object)," x ",NCOL(object),"\n\n",sep=""))
   object
 }
 
-##' @export 
-predictSurvProb.matrix <- function(object,newdata,times,...){
+##' @export
+predictRestrictedMeanTime.matrix <- function(object,newdata,times,...){
     if (NROW(object) != NROW(newdata) || NCOL(object) != length(times)){
         stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(object)," x ",NCOL(object),"\n\n",sep=""))
         ## stop(paste("Prediction matrix has wrong dimensionss: ",NROW(object)," rows and ",NCOL(object)," columns.\n But requested are predicted probabilities for ",NROW(newdata), " subjects (rows) in newdata and ",NCOL(newdata)," time points (columns)",sep=""))
@@ -146,8 +126,8 @@ predictSurvProb.matrix <- function(object,newdata,times,...){
     object
 }
 
-##' @export 
-predictSurvProb.aalen <- function(object,newdata,times,...){
+##' @export
+predictRestrictedMeanTime.aalen <- function(object,newdata,times,...){
     ## require(timereg)
     time.coef <- data.frame(object$cum)
     ntime <- nrow(time.coef)
@@ -179,8 +159,8 @@ predictSurvProb.aalen <- function(object,newdata,times,...){
     p
 }
 
-##' @export 
-predictSurvProb.cox.aalen <- function(object,newdata,times,...){
+##' @export
+predictRestrictedMeanTime.cox.aalen <- function(object,newdata,times,...){
     #  require(timereg)
     ##  The time-constant effects first
     const <- c(object$gamma)
@@ -205,77 +185,51 @@ predictSurvProb.cox.aalen <- function(object,newdata,times,...){
     p
 }
 
-#' Combines the rpart result with a stratified Kaplan-Meier (prodlim) to predict survival
-#'
-#' 
-#' @title Predict survival based on rpart tree object
-#' @param formula passed to rpart
-#' @param data passed to rpart
-#' @param ... passed to rpart
-#' @return list with three elements: ctree and call
-#' @examples
-#' library(prodlim)
-#' library(rpart)
-#' library(survival)
-#' set.seed(50)
-#' d <- SimSurv(50)
-#' nd <- data.frame(X1=c(0,1,0),X2=c(-1,0,1))
-#' f <- pecRpart(Surv(time,status)~X1+X2,data=d)
-#' predictSurvProb(f,newdata=nd,times=c(3,8))
-#' @export 
-pecRpart <- function(formula,data,...){
-    robj <- rpart::rpart(formula=formula,data=data,...)
-    nclass <- length(unique(robj$where))
-    data$rpartFactor <- factor(predict(robj,newdata=data,...))
-    form <- update(formula,paste(".~","rpartFactor",sep=""))
-    survfit <- prodlim::prodlim(form,data=data)
-    out <- list(rpart=robj,survfit=survfit,levels=levels(data$rpartFactor))
-    class(out) <- "pecRpart"
-    out
-}
-
 ##' @export
-predictSurvProb.pecRpart <- function(object,newdata,times,...){
+predictRestrictedMeanTime.pecRpart <- function(object,newdata,times,...){
     newdata$rpartFactor <- factor(predict(object$rpart,newdata=newdata),
                                   levels=object$levels)
-    p <- predictSurvProb(object$survfit,newdata=newdata,times=times)
+    p <- predictRestrictedMeanTime(object$survfit,newdata=newdata,times=times)
     p
 }
     
-##' @export 
-predictSurvProb.coxph <- function(object,newdata,times,...){
+##' @export
+predictRestrictedMeanTime.coxph <- function(object,newdata,times,...){
     ## baselineHazard.coxph(object,times)
     ## require(survival)
     ## new feature of the survival package requires that the
     ## original data are included
     ## survival.survfit.coxph <- getFromNamespace("survfit.coxph",ns="survival")
     ## survival.summary.survfit <- getFromNamespace("summary.survfit",ns="survival")
-     ## b <- function(x){browser()}
-     ## b()
-    survfit.object <- survival::survfit(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
-    if (is.null(attr(object$terms,"specials")$strata)){
-        ## case without strata 
-        inflated.pred <- summary(survfit.object,times=times)$surv
-        p <- t(inflated.pred)        
-    } else{
-        ## case with strata 
-        inflated.pred <- summary(survfit.object,times=times)
-        plist <- split(inflated.pred$surv,inflated.pred$strata)
-        p <- do.call("rbind",lapply(plist,function(x){
-            beyond <- length(times)-length(x)
-            c(x,rep(NA,beyond))
-        }))
-        ## p <- matrix(inflated.pred,ncol=length(times),byrow=TRUE)
-    }
-    if ((miss.time <- (length(times) - NCOL(p)))>0)
-        p <- cbind(p,matrix(rep(NA,miss.time*NROW(p)),nrow=NROW(p)))
-    if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
-        stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
-    p
+    ## b <- function(x){browser()}
+    ## b()
+    eTimes <- unique(sort(object$y))
+    pos <- prodlim::sindex(jump.times=eTimes,eval.times=times)
+    surv <- predictSurvProb(object,newdata=newdata,times=eTimes)
+    rmt <- matrix(unlist(lapply(1:length(pos), function(j) {
+                                            pos.j <- 1:(pos[j]+1)
+                                            p <- cbind(1,surv)[,pos.j,drop=FALSE]
+                                            time.diff <- diff(c(0, eTimes)[pos.j])
+                                            apply(p, 1, function(x) {sum(x[-length(x)] * time.diff)})
+                                        })), ncol = length(pos))
+    if ((miss.time <- (length(times) - NCOL(rmt)))>0)
+        rmt <- cbind(rmt,matrix(rep(NA,miss.time*NROW(rmt)),nrow=NROW(rmt)))
+    if (NROW(rmt) != NROW(newdata) || NCOL(rmt) != length(times))
+        stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",
+                   NROW(newdata),
+                   " x ",
+                   length(times),
+                   "\nProvided prediction matrix: ",
+                   NROW(rmt),
+                   " x ",
+                   NCOL(rmt),
+                   "\n\n",
+                   sep=""))
+    rmt
 }
 
 ##' @export
-predictSurvProb.coxph.penal <- function(object,newdata,times,...){
+predictRestrictedMeanTime.coxph.penal <- function(object,newdata,times,...){
   ## require(survival)
   frailhistory <- object$history$'frailty(cluster)'$history
   frailVar <- frailhistory[NROW(frailhistory),1]
@@ -298,8 +252,8 @@ predictSurvProb.coxph.penal <- function(object,newdata,times,...){
 
 
 
-##' @export 
-predictSurvProb.cph <- function(object,newdata,times,...){
+##' @export
+predictRestrictedMeanTime.cph <- function(object,newdata,times,...){
     if (!match("surv",names(object),nomatch=0)) stop("Argument missing: set surv=TRUE in the call to cph!")
     p <- rms::survest(object,times=times,newdata=newdata,se.fit=FALSE,what="survival")$surv
     if (is.null(dim(p))) p <- matrix(p,nrow=NROW(newdata))
@@ -309,12 +263,12 @@ predictSurvProb.cph <- function(object,newdata,times,...){
 }
 
 ##' @export
-predictSurvProb.selectCox <- function(object,newdata,times,...){
-    predictSurvProb(object[[1]],newdata=newdata,times=times,...)
+predictRestrictedMeanTime.selectCox <- function(object,newdata,times,...){
+    predictRestrictedMeanTime(object[[1]],newdata=newdata,times=times,...)
 }
 
 ##' @export
-predictSurvProb.prodlim <- function(object,newdata,times,...){
+predictRestrictedMeanTime.prodlim <- function(object,newdata,times,...){
     ## require(prodlim)
     p <- predict(object=object,
                  type="surv",
@@ -400,7 +354,7 @@ predict.survfit <- function(object,newdata,times,bytimes=TRUE,fill="last",...){
 }
 
 ##' @export
-predictSurvProb.survfit <- function(object,newdata,times,...){
+predictRestrictedMeanTime.survfit <- function(object,newdata,times,...){
     p <- predict.survfit(object,newdata=newdata,times=times,bytimes=TRUE,fill="last")
     if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
         stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
@@ -409,7 +363,7 @@ predictSurvProb.survfit <- function(object,newdata,times,...){
 
 
 ## library randomSurvivalForest
-## predictSurvProb.rsf <- function(object,newdata,times,...){
+## predictRestrictedMeanTime.rsf <- function(object,newdata,times,...){
 ## p <- predict.rsf(object,newdata=newdata,times=times,bytimes=TRUE,fill="last")
 ## if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
 ## stop("Prediction failed")
@@ -418,7 +372,7 @@ predictSurvProb.survfit <- function(object,newdata,times,...){
 
 
 ##' @export
-predictSurvProb.psm <- function(object,newdata,times,...){
+predictRestrictedMeanTime.psm <- function(object,newdata,times,...){
     if (length(times)==1){
         p <- rms::survest(object,times=c(0,times),newdata=newdata,what="survival",conf.int=FALSE)[,2]
     }else{
@@ -431,7 +385,7 @@ predictSurvProb.psm <- function(object,newdata,times,...){
 
 
 ##' @export
-predictSurvProb.riskRegression <- function(object,newdata,times,...){
+predictRestrictedMeanTime.riskRegression <- function(object,newdata,times,...){
     if (missing(times))stop("Argument times is missing")
     temp <- predict(object,newdata=newdata)
     pos <- prodlim::sindex(jump.times=temp$time,eval.times=times)
@@ -442,7 +396,7 @@ predictSurvProb.riskRegression <- function(object,newdata,times,...){
 }
 
 ##' @export
-predictSurvProb.rfsrc <- function(object, newdata, times, ...){
+predictRestrictedMeanTime.rfsrc <- function(object, newdata, times, ...){
     ptemp <- predict(object,newdata=newdata,importance="none",...)$survival
     pos <- prodlim::sindex(jump.times=object$time.interest,eval.times=times)
     p <- cbind(1,ptemp)[,pos+1,drop=FALSE]
@@ -506,14 +460,3 @@ predictProb.randomForest <- function(object,newdata,times,...){
 }
 
 
-## update.cox <- function(object,tstar,data){
-## object$call$data <- data[data$time>tstar,]
-## update <- eval(object$call)
-## class(update) <- "dynamicCox"
-## update
-## }
-##' @export
-## predictProb.dynamicCox <- function(object,newdata,cutpoints,learn.data,...){
-## p <- matrix(1,nrow=NROW(newdata),ncol=length(cutpoints))
-## p
-## }

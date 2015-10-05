@@ -45,7 +45,7 @@
 #' crps(perror,times=seq(0,1,.2),start=0) # between 0 and seq(0,1,.2)
 #' 
 #' 
-#' @export crps
+#' @export
 crps <- function(object,
                  models,
                  what,

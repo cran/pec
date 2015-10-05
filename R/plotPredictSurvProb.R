@@ -67,7 +67,7 @@
 #' rsfmodel <- rfsrc(Surv(time,status)~X1+X2,data=d)
 #' plotPredictSurvProb(rsfmodel,newdata=ndat,times=ttt)
 #' 
-#' @export plotPredictSurvProb
+#' @export
 plotPredictSurvProb <- function(x,
                                 newdata,
                                 times,

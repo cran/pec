@@ -45,7 +45,7 @@
 #' perror=pec(list(Cox1=pmodel1,Cox2=pmodel2),Hist(time,status)~1,data=dat,reference=TRUE)
 #' R2(perror,times=seq(0,1,.1),reference=1)
 #' 
-#' @export R2
+#' @export
 R2 <- function(object,
                models,
                what,

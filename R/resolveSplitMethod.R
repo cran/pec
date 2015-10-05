@@ -34,7 +34,7 @@
 #'   resolvesplitMethod("bootcv632plus",N=10,B=2)
 #'   
 #'   
-#' @export resolvesplitMethod
+#' @export
 resolvesplitMethod <- function(splitMethod,B,N,M){
     splitMethodName <- NULL
     k <- as.numeric(substring(grep("^cv[0-9]+$",splitMethod,value=TRUE,ignore.case=TRUE),3))

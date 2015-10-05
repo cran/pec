@@ -1,4 +1,4 @@
-##' @S3method summary Cindex
+##' @export
 summary.Cindex <- function(object,what=NULL,digits=3,print=TRUE,...){
     ccr <- attr(object$response,"model")=="competing.risks"
     if (print==TRUE) cat("\nThe c-index for right censored event times\n\n")

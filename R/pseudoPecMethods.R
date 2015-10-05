@@ -53,15 +53,17 @@ pseudoPec <- function(object,
   }
   # }}}
   # {{{ formula
-
   if (missing(formula)){
-    formula <- eval(object[[1]]$call$formula)
-    if (match("formula",class(formula),nomatch=0)==0)
-      stop("Argument formula is missing.")
-    else if (verbose)
-      warning("Argument formula is missing. I use the formula from the call to the first model instead.")
-  }
-  
+      if (length(grep("~",as.character(object[[1]]$call$formula)))==0){
+          stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
+      } else{
+          ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
+          if ((class(ftry)=="try-error") || match("formula",class(formula),nomatch=0)==0)
+              stop("Argument formula is missing and first model has no usable formula.")
+          else if (verbose)
+              warning("Formula missing. Using formula from first model")
+      }
+  }  
   formula.names <- try(all.names(formula),silent=TRUE)
   if (!(formula.names[1]=="~")
       ||
@@ -107,7 +109,7 @@ pseudoPec <- function(object,
   # }}}
   # {{{ prediction models
   if (reference==TRUE) {
-    ProdLimform <- reformulate("1",response=formula[[2]])
+    ProdLimform <- update(formula,".~1")
     ProdLimfit <- prodlim::prodlim(ProdLimform,data)
     ProdLimfit$call$data <- NULL
     ProdLimfit$formula <- NULL
@@ -225,11 +227,11 @@ pseudoPec <- function(object,
 
     if (predictHandlerFun=="predictEventProb"){
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
-      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
+      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
     }
     else{
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
-      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
+      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
     }
     if (NCOL(pred)==1) pred <- matrix(rep(pred,N),byrow=TRUE,ncol=NT,nrow=N)
     pec <- colMeans(pred^2) + colMeans((1-2*pred) * YY)
@@ -411,16 +413,13 @@ pseudoPec <- function(object,
 
   # }}}    
   # {{{ put out
-  if(keep.models==TRUE)
-    outmodels <- object
-  else if (keep.models=="Call"){
-    outmodels <- lapply(object,function(o)o$call)
-    names(outmodels) <- names(object)
-  }
-  else{
-    outmodels <- names(object)
-    names(outmodels) <- names(object)
-  }
+  
+  if(keep.models==TRUE){
+      outmodels <- object
+  } else{
+        outmodels <- names(object)
+        names(outmodels) <- names(object)
+    }
   out <- c(out,
            list(call=theCall,
                 time=times,

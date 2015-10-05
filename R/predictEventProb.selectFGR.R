@@ -87,8 +87,8 @@ selectFGR <- function(formula,
                       rule="AIC",
                       direction="backward",
                       ...){
-    if (!require(riskRegression)) stop("This function requires library riskRegression")
-    if (!require(crrstep)) stop("This function requires library crrstep")
+    if (!requireNamespace("riskRegression")) stop("This function requires library riskRegression")
+    if (!requireNamespace("crrstep")) stop("This function requires library crrstep")
     if (missing(data)) stop("Argument 'data' is missing")
     if (missing(formula)) stop("Argument 'formula' is missing")
     call <- match.call()
@@ -130,7 +130,7 @@ selectFGR <- function(formula,
     out
 }
 
-##' @S3method predictEventProb selectFGR
+##' @export 
 predictEventProb.selectFGR <- function(object,newdata,times,...){
     predictEventProb(object[[1]],newdata=newdata,times=times,...)
 }

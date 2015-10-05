@@ -1,4 +1,4 @@
-##' @S3method print confScoreSurv
+##' @export
 print.confScoreSurv <- function(x,...){
   overall <- do.call("cbind",lapply(x$models,function(m){
     colMeans(m$score)

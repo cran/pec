@@ -103,7 +103,7 @@
 #'
 # }}}
 # {{{ method ipcw
-#' @export ipcw
+#' @export
 ipcw <- function(formula,
                  data,
                  method,
@@ -123,7 +123,7 @@ ipcw <- function(formula,
 # }}}
 # {{{ uncensored data: return just 1
 
-##' @S3method ipcw none
+##' @export
 ipcw.none <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag,what){
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
@@ -147,7 +147,7 @@ ipcw.none <- function(formula,data,method,args,times,subjectTimes,subjectTimesLa
 
 # }}}
 # {{{ reverse Random Survival Forests
-##' @S3method ipcw rfsrc
+##' @export
 ipcw.rfsrc <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag,what){
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
@@ -201,7 +201,7 @@ ipcw.rfsrc <- function(formula,data,method,args,times,subjectTimes,subjectTimesL
     class(out) <- "IPCW"
     out
 }
-##' @S3method ipcw forest
+##' @export
 ipcw.forest <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag,what){
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
@@ -254,7 +254,7 @@ ipcw.forest <- function(formula,data,method,args,times,subjectTimes,subjectTimes
 }
 # }}}
 # {{{ reverse Kaplan-Meier
-##' @S3method ipcw marginal
+##' @export
 ipcw.marginal <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag,what){
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
@@ -288,7 +288,7 @@ ipcw.marginal <- function(formula,data,method,args,times,subjectTimes,subjectTim
 }
 # }}}
 # {{{ reverse Stone-Beran 
-##' @S3method ipcw nonpar
+##' @export
 ipcw.nonpar <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag,what){
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")
@@ -317,7 +317,7 @@ ipcw.nonpar <- function(formula,data,method,args,times,subjectTimes,subjectTimes
 }
 # }}}
 # {{{ reverse Cox via Harrel's package
-##' @S3method ipcw cox
+##' @export
 ipcw.cox <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag,what){
     ## require(rms)
     if (missing(subjectTimesLag)) subjectTimesLag=1
@@ -370,7 +370,7 @@ ipcw.cox <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag
 }
 # }}}
 # {{{ reverse Aalen method via the timereg package
-##' @S3method ipcw aalen
+##' @export
 ipcw.aalen <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag,what){
     if (missing(subjectTimesLag)) subjectTimesLag=1
     if (missing(what)) what=c("IPCW.times","IPCW.subjectTimes")

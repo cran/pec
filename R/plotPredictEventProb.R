@@ -52,7 +52,7 @@
 #' 
 #' # generate some competing risk data
 #' 
-#' @export plotPredictEventProb
+#' @export
 plotPredictEventProb <- function(x,
                                  newdata,
                                  times,

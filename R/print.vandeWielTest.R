@@ -1,4 +1,4 @@
-##' @S3method print vandeWielTest
+##' @export
 print.vandeWielTest <- function(x,eps=0.0001,pdigits=4,...){
   cat("\nvan de Wiel test based on ",x$B," data splits\n")
   cat("\nTraining sample size: ",x$M,"\n")

@@ -7,9 +7,9 @@
 #' @param N Sample size
 #' @return Data frame
 #' @author Thomas Alexander Gerds
-#' @export simCost
+#' @export
 simCost <- function(N){
-  require(lava)
+  requireNamespace("lava")
   ## psmT <- psm(Surv(time,status)~ age + sex + hypTen + prevStroke + othDisease + alcohol + diabetes + smoke + atrialFib + hemor + strokeScore + cholest,data=cost)
   ## psmCens <- psm(Surv(time,1-status)~1, data=cost)
   psmCens.scale <- 0.04330608

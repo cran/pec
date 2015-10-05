@@ -1,4 +1,4 @@
-##' @S3method summary confScoreSurv
+##' @export
 summary.confScoreSurv <- function(object,
                                   times,
                                   type=1,

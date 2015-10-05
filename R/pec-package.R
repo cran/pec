@@ -36,6 +36,10 @@
 #' @importFrom foreach %dopar%
 #' @importFrom survival Surv
 #' @importFrom prodlim Hist
+#' @importFrom grDevices col2rgb gray
+#' @importFrom graphics abline axis box legend lines mtext par plot points segments text title
+#' @importFrom stats model.frame model.response as.formula coef family formula median model.matrix na.fail na.omit pnorm predict quantile rbinom rexp runif sd smooth terms time update update.formula var wilcox.test
+#' @importFrom utils capture.output head select.list
 #' @keywords datasets
 NULL
 
@@ -63,7 +67,6 @@ NULL
 #' trial evaluating hormonal treatment and the duration of chemotherapy in
 #' node-positive breast cancer patients.  \emph{Journal of Clinical Oncology},
 #' \bold{12}, 2086--2093.
-#' @source \url{http://www.blackwellpublishers.com/rss/Volumes/A162p1.htm}
 #' @keywords datasets
 NULL
 

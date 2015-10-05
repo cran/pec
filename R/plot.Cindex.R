@@ -1,4 +1,4 @@
-##' @S3method plot Cindex
+##' @export 
 plot.Cindex <- function(x,ylim=c(.4,1),xlim=c(0,x$maxtime),abline=TRUE,xlab="Time",ylab="Concordance index",...){
   argList <- match.call(expand.dots=TRUE)
   argList[[1]] <- as.name("list")

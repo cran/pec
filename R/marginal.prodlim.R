@@ -5,7 +5,7 @@ marginal <- function(object){
 marginal.default <- function(object){
   ff <- object$call$formula
   dd <- eval(object$call$data)
-  fff <- reformulate("1",response=ff[[2]])
+  fff <- update(ff,".~1")
   prodlim::prodlim(fff,data=dd)
 }
 
@@ -13,10 +13,10 @@ marginal.default <- function(object){
 marginal.prodlim <- function(object){
   cc <- object$call
   ff <- cc$formula
-  cc$formula <- reformulate("1",response=ff[[2]])
+  cc$formula <- update(ff,".~1")
   eval(cc)
 }
 
 marginal.formula <- function(object){
-  reformulate("1",response=object[[2]])
+    update(object,".~1")
 }

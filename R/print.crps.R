@@ -1,4 +1,4 @@
-##' @S3method print crps
+##' @export
 print.crps <- function(x,digits=3,...){
   cat("\nIntegrated Brier score (crps):\n\n")
   if (is.list(x))

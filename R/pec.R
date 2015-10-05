@@ -55,8 +55,9 @@
 #' examples), (3) a matrix with predicted probabilities having as many rows as
 #' \code{data} and as many columns as \code{times}. For cross-validation all
 #' objects in this list must include their \code{call}.
-#' @param formula A survival formula. The left hand side is used to find the
-#' status response variable in \code{data}. For right censored data, the right
+#' @param formula A survival formula as obtained either
+#' with \code{prodlim::Hist} or \code{survival::Surv}.
+#' The left hand side is used to find the status response variable in \code{data}. For right censored data, the right
 #' hand side of the formula is used to specify conditional censoring models.
 #' For example, set \code{Surv(time,status)~x1+x2} and \code{cens.model="cox"}.
 #' Then the weights are based on a Cox regression model for the censoring times
@@ -168,8 +169,8 @@
 #' the splitMethod part of the output list.
 #' @param keep.matrix Logical. If \code{TRUE} add all \code{B} prediction error
 #' curves from bootstrapping or cross-validation to the output.
-#' @param keep.models Logical. If \code{TRUE} keep the models in object. If
-#' \code{"Call"} keep only the \code{call} of these models.
+#' @param keep.models Logical. If \code{TRUE} keep the models in object. Since
+#' fitted models can be large objects the default is \code{FALSE}.
 #' @param keep.residuals Logical. If \code{TRUE} keep the patient individual
 #' residuals at \code{testTimes}.
 #' @param keep.pvalues For \code{multiSplitTest}. If \code{TRUE} keep the
@@ -389,7 +390,7 @@ pec <- function(object,
                 model.parms=NULL,
                 keep.index=FALSE,
                 keep.matrix=FALSE,
-                keep.models="Call",
+                keep.models=FALSE,
                 keep.residuals=FALSE,
                 keep.pvalues=FALSE,
                 noinf.permute=FALSE,
@@ -428,35 +429,38 @@ pec <- function(object,
   }
   # }}}
   # {{{ formula
-  
   if (missing(formula)){
-    ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
-    if ((class(ftry)=="try-error") || match("formula",class(formula),nomatch=0)==0)
-      stop("Argument formula is missing.")
-    else if (verbose)
-      warning("Formula missing. Using formula from first model")
+      if (length(grep("~",as.character(object[[1]]$call$formula)))==0){
+          stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
+      } else{
+          ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
+          if ((class(ftry)=="try-error") || match("formula",class(formula),nomatch=0)==0)
+              stop("Argument formula is missing and first model has no usable formula.")
+          else if (verbose)
+              warning("Formula missing. Using formula from first model")
+      }
   }
   formula.names <- try(all.names(formula),silent=TRUE)
   if (!(formula.names[1]=="~")
       ||
       (match("$",formula.names,nomatch=0)+match("[",formula.names,nomatch=0)>0)){
-    stop("Invalid specification of formula.\n Could be that you forgot the right hand side:\n ~covariate1 + covariate2 + ...?\nNote that any subsetting, ie data$var or data[,\"var\"], is not supported by this function.")
+      stop("Invalid specification of formula.\n Could be that you forgot the right hand side:\n ~covariate1 + covariate2 + ...?\nNote that any subsetting, ie data$var or data[,\"var\"], is not supported by this function.")
   }
   else{
-    if (!(formula.names[2] %in% c("Surv","Hist")))
-      survp <- FALSE
-    else
-      survp <- TRUE
+      if (!(formula.names[2] %in% c("Surv","Hist")))
+          survp <- FALSE
+      else
+          survp <- TRUE
   }
   # }}}
   # {{{ data
   if (missing(data)){
-    data <- eval(object[[1]]$call$data)
-    if (match("data.frame",class(data),nomatch=0)==0)
-      stop("Argument data is missing.")
-    else
-      if (verbose)
-        warning("Argument data is missing. I use the data from the call to the first model instead.")
+      data <- eval(object[[1]]$call$data)
+      if (match("data.frame",class(data),nomatch=0)==0)
+          stop("Argument data is missing.")
+      else
+          if (verbose)
+              warning("Argument data is missing. I use the data from the call to the first model instead.")
   }
   # }}}
   # {{{ censoring model
@@ -666,12 +670,12 @@ if (missing(maxtime) || is.null(maxtime))
       extraArgs <- model.args[[f]]
       if (predictHandlerFun=="predictEventProb"){ # competing risks
           pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
-      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,,drop=FALSE]
+      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
       .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
     }
     else{  # survival
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
-      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,,drop=FALSE]
+      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
       .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
     }
   })
@@ -683,7 +687,7 @@ if (missing(maxtime) || is.null(maxtime))
   ## extraArgs <- model.args[[f]]
   ## if (predictHandlerFun=="predictEventProb"){ # competing risks
   ## pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
-  ## if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,,drop=FALSE]
+  ## if (class(object[[f]])[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
   ## Paulo(as.double(Y),
   ## as.double(status),
   ## as.double(event),
@@ -694,7 +698,7 @@ if (missing(maxtime) || is.null(maxtime))
   ## }
   ## else{  # survival
   ## pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
-  ## if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,,drop=FALSE]
+  ## if (class(object[[f]])[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
   ## Paulo(as.double(Y),
   ## as.double(status),
   ## as.double(times),
@@ -918,24 +922,12 @@ if (!is.null(model.parms))
   n.risk <- N - prodlim::sindex(Y,times)
   # }}}
   # {{{ put out
-  if(keep.models==TRUE)
+  if(keep.models==TRUE){
       outmodels <- object
-  else if (keep.models=="Call"){
-      outmodels <- lapply(object,function(o){
-          cc <- try(as.character(o$call),silent=TRUE)
-          if(class(cc)=="try-error")
-              class(object)
-          else{
-              names(cc) <- names(o$call)
-              cc
-          }
-      })
-      names(outmodels) <- names(object)
-  }
-  else{
-      outmodels <- names(object)
-      names(outmodels) <- names(object)
-  }
+  } else{
+        outmodels <- names(object)
+        names(outmodels) <- names(object)
+    }
   out <- c(out,
            list(call=theCall,
                 response=model.response(m),

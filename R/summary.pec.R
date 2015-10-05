@@ -1,4 +1,4 @@
-##' @S3method summary pec
+##' @export
 summary.pec <-  function(object,
                            times,
                            what,

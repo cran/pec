@@ -37,8 +37,7 @@
 #' determined by \code{models}.
 #' @param type Plotting type: either \code{"l"} or \code{"s"}, see
 #' \code{lines}.
-#' @param smooth Logical. If \code{TRUE} the plotting values are smoothed with
-#' the function \code{\link{smooth}} kind="3R".
+#' @param smooth Logical. If \code{TRUE} the plotting type for lines is \code{'l'} else \code{'s'}.
 #' @param add.refline Logical. If \code{TRUE} a dotted horizontal line is drawn
 #' as a symbol for the naive rule that predicts probability .5 at all cutpoints
 #' (i.e. time points in survival analysis).
@@ -109,8 +108,7 @@
 #'      special.addprederr="AppErr")
 #' 
 #'
-##' @S3method plot pec
-##' @method plot pec
+##' @export
 plot.pec <- function(x,
                      what,
                      models,
@@ -171,7 +169,6 @@ plot.pec <- function(x,
   at <- (a & b)
   X <- x$time[at]
   y <- do.call("cbind",x[[what]][models])[at,,drop=FALSE]
-   
    if (length(y)==0) stop("No plotting values: check if x[[what]][models] is a list of numeric vectors.")
     uyps <- unlist(y)
     uyps <- uyps[!is.infinite(uyps)]
@@ -183,8 +180,8 @@ plot.pec <- function(x,
       else
         c(0,ceiling(max(unlist(y),na.rm=T)*10))/10
   
-# }}}
-# {{{ Check for missings 
+  # }}}
+  # {{{ Check for missings 
   nfit <- ncol(y)
   if (missing(ylab)) ylab <- "Prediction error"
   if (missing(xlab)) xlab <- "Time"
@@ -195,49 +192,70 @@ plot.pec <- function(x,
   if (length(lty) < nfit) lty <- rep(lty, nfit)
   if (length(lwd) < nfit) lwd <- rep(lwd, nfit)
   if (missing(type))
-    if (!x$exact || smooth) type <- "l" else type <- "s"
-# }}}  
-# {{{ creating arguments
-axis1.DefaultArgs <- list()
-axis2.DefaultArgs <- list()  
-plot.DefaultArgs <- list(x=0,
-                         y=0,
-                         type = "n",
-                         ylim = ylim,
-                         xlim = xlim,
-                         xlab = xlab,
-                         ylab = ylab)
+      if (!x$exact || smooth) type <- "l" else type <- "s"
+  # }}}  
+  # {{{ creating arguments
+  axis1.DefaultArgs <- list()
+  axis2.DefaultArgs <- list()  
+  plot.DefaultArgs <- list(x=0,
+                           y=0,
+                           type = "n",
+                           ylim = ylim,
+                           xlim = xlim,
+                           xlab = xlab,
+                           ylab = ylab)
 
-  special.DefaultArgs <- list(x=x,y=x[[what]],addprederr=NULL,models=models,bench=FALSE,benchcol=1,times=X,maxboot=NULL,bootcol="gray77",col=rep(1,4),lty=1:4,lwd=rep(2,4))  
+  special.DefaultArgs <- list(x=x,
+                              y=x[[what]],
+                              addprederr=NULL,
+                              models=models,
+                              bench=FALSE,
+                              benchcol=1,
+                              times=X,
+                              maxboot=NULL,
+                              bootcol="gray77",
+                              col=rep(1,4),
+                              lty=1:4,
+                              lwd=rep(2,4))  
   if (special)
-    legend.DefaultArgs <- list(legend=NULL,lwd=NULL,col=NULL,lty=NULL,cex=1.5,bty="n",y.intersp=1,x=xlim[1],xjust=0,y=(ylim+.1*ylim)[2],yjust=1)
+      legend.DefaultArgs <- list(legend=NULL,lwd=NULL,col=NULL,lty=NULL,cex=1.5,bty="n",y.intersp=1,x=xlim[1],xjust=0,y=(ylim+.1*ylim)[2],yjust=1)
   else
-    legend.DefaultArgs <- list(legend=if(is.numeric(models)) names(x$models)[models] else models,lwd=lwd,col=col,lty=lty,cex=1.5,bty="n",y.intersp=1,x=xlim[1],xjust=0,y=(ylim+.1*ylim)[2],yjust=1)
+      legend.DefaultArgs <- list(legend=if(is.numeric(models)) names(x$models)[models] else models,
+                                 lwd=lwd,
+                                 col=col,
+                                 lty=lty,
+                                 cex=1.5,
+                                 bty="n",
+                                 y.intersp=1,
+                                 x=xlim[1],
+                                 xjust=0,
+                                 y=(ylim+.1*ylim)[2],
+                                 yjust=1)
       
 # }}}
 # {{{ backward compatibility
 
   if (match("legend.args",names(args),nomatch=FALSE)){
-    legend.DefaultArgs <- c(args[[match("legend.args",names(args),nomatch=FALSE)]],legend.DefaultArgs)
-    legend.DefaultArgs <- legend.DefaultArgs[!duplicated(names(legend.DefaultArgs))]
+      legend.DefaultArgs <- c(args[[match("legend.args",names(args),nomatch=FALSE)]],legend.DefaultArgs)
+      legend.DefaultArgs <- legend.DefaultArgs[!duplicated(names(legend.DefaultArgs))]
   }
   if (match("special.args",names(args),nomatch=FALSE)){
-    special.DefaultArgs <- c(args[[match("special.args",names(args),nomatch=FALSE)]],special.DefaultArgs)
-    special.DefaultArgs <- special.DefaultArgs[!duplicated(names(special.DefaultArgs))]
+      special.DefaultArgs <- c(args[[match("special.args",names(args),nomatch=FALSE)]],special.DefaultArgs)
+      special.DefaultArgs <- special.DefaultArgs[!duplicated(names(special.DefaultArgs))]
   }
   smartA <- prodlim::SmartControl(call=list(...),
-                                   keys=c("plot","special","legend","axis1","axis2"),
-                                   defaults=list("plot"=plot.DefaultArgs,
-                                     "special"=special.DefaultArgs,
-                                     "legend"= legend.DefaultArgs,
-                                     "axis1"=axis1.DefaultArgs,
-                                     "axis2"=axis2.DefaultArgs),
-                                   forced=list("plot"=list(axes=FALSE),
-                                     "axis1"=list(side=1),
-                                     "axis2"=list(side=2)),
-                                   ignore.case=TRUE,
-                                   ignore=c("what","who"),
-                                   verbose=TRUE)
+                                  keys=c("plot","special","legend","axis1","axis2"),
+                                  defaults=list("plot"=plot.DefaultArgs,
+                                      "special"=special.DefaultArgs,
+                                      "legend"= legend.DefaultArgs,
+                                      "axis1"=axis1.DefaultArgs,
+                                      "axis2"=axis2.DefaultArgs),
+                                  forced=list("plot"=list(axes=FALSE),
+                                      "axis1"=list(side=1),
+                                      "axis2"=list(side=2)),
+                                  ignore.case=TRUE,
+                                  ignore=c("what","who"),
+                                  verbose=TRUE)
   
 
   # }}}

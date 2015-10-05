@@ -120,8 +120,8 @@
 #' the method part of the output list.
 #' @param keep.matrix Logical. If \code{TRUE} add all \code{B} prediction error
 #' curves from bootstrapping or cross-validation to the output.
-#' @param keep.models Logical. If \code{TRUE} keep the models in object. If
-#' \code{"Call"} keep only the \code{call} of these models.
+#' @param keep.models Logical. If \code{TRUE} keep the models in object. Since
+#' fitted models can be large objects the default is \code{FALSE}.
 #' @param keep.residuals Experimental.
 #' @param keep.pvalues Experimental.
 #' @param keep.weights Experimental.
@@ -251,7 +251,7 @@ cindex <- function(object,
                    M,
                    model.args=NULL,
                    model.parms=NULL,
-                   keep.models="Call",
+                   keep.models=FALSE,
                    keep.residuals=FALSE,
                    keep.pvalues=FALSE,
                    keep.weights=FALSE,
@@ -290,14 +290,15 @@ cindex <- function(object,
   # }}}
   # {{{  formula
   if (missing(formula)){
-      if (match("call",names(object[[1]]),nomatch=0)==0||is.null(object[[1]]$call$formula)){
-          stop("Formula missing and cannot borrow a formula from the first object :(")
+      if (length(grep("~",as.character(object[[1]]$call$formula)))==0){
+          stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
+      } else{
+          ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
+          if ((class(ftry)=="try-error") || match("formula",class(formula),nomatch=0)==0)
+              stop("Argument formula is missing and first model has no usable formula.")
+          else if (verbose)
+              warning("Formula missing. Using formula from first model")
       }
-      formula <- eval(object[[1]]$call$formula)
-      if (class(formula)!="formula")
-          stop("Argument formula is missing.")
-      else if (verbose)
-          warning("Formula missing. Using formula from first model")
   }
   formula.names <- try(all.names(formula),silent=TRUE)
   if (!(formula.names[1]=="~")
@@ -334,38 +335,47 @@ cindex <- function(object,
   # {{{ response
   histformula <- formula
   if (histformula[[2]][[1]]==as.name("Surv")){
-    histformula[[2]][[1]] <- as.name("Hist")
+      histformula[[2]][[1]] <- as.name("Hist")
   }
   m <- model.frame(histformula,data,na.action=na.action)
   response <- model.response(m)
   if (match("Surv",class(response),nomatch=0)!=0){
-    attr(response,"model") <- "survival"
-    attr(response,"cens.type") <- "rightCensored"
-    model.type <- "survival"
+      attr(response,"model") <- "survival"
+      attr(response,"cens.type") <- "rightCensored"
+      model.type <- "survival"
   }
   censType <- attr(response,"cens.type")
   model.type <- attr(response,"model")
   if (model.type=="competing.risks"){
-    if (lyl==TRUE)
-    predictHandlerFun <- "predictLifeYearsLost"
-    else
-    predictHandlerFun <- "predictEventProb"
-    if (missing(cause))
-      cause <- attr(response,"state")[1]
+      if (lyl==TRUE)
+          predictHandlerFun <- "predictLifeYearsLost"
+      else
+          predictHandlerFun <- "predictEventProb"
+      if (missing(cause))
+          cause <- attr(response,"state")[1]
   }
   else{
-    if (survp==FALSE && NCOL(response)!=1) stop("Response must be one-dimensional.")
-    if (survp==TRUE && NCOL(response)!=2) stop("Survival response must have two columns: time and status.")
-    predictHandlerFun <- "predictSurvProb"
+      if (survp==FALSE && NCOL(response)!=1) stop("Response must be one-dimensional.")
+      if (survp==TRUE && NCOL(response)!=2) stop("Survival response must have two columns: time and status.")
+      predictHandlerFun <- "predictSurvProb"
   }
   if (model.type=="competing.risks")
-    if (verbose==TRUE) message("Cindex for competing risks")
-    # }}}
+      if (verbose==TRUE) message("Cindex for competing risks")
+  # }}}
   # {{{ prediction models
-    NF <- length(object) 
-  if (is.null(names(object)))names(object) <- sapply(object,function(o)class(o)[1])
-  else{names(object)[(names(object)=="")] <- sapply(object[(names(object)=="")],function(o)class(o)[1])}
-  names(object) <- make.names(names(object),unique=TRUE)
+  NF <- length(object) 
+  if (is.null(names(object))){
+      names(object) <- sapply(object,function(o)class(o)[1])
+      names(object) <- make.names(names(object),unique=TRUE)
+  }
+  else{ # fix missing names
+      if (any(names(object)=="")){
+          names(object)[(names(object)=="")] <- sapply(object[(names(object)=="")],function(o)class(o)[1])
+          names(object) <- make.names(names(object),unique=TRUE)
+      }else{
+           # leave names as they were given
+       }
+  }
   # }}}
   # {{{ sort the data 
 
@@ -509,7 +519,7 @@ cindex <- function(object,
     extraArgs <- model.args[[f]]
     if (model.type=="competing.risks"){
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times,cause=cause),extraArgs))
-      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
+      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
       if (length(pred.times)==1 && length(pred.times)<length(eval.times))
         pred <- rep(pred,length(eval.times))
       ## stop("Not yet defined: cindex for competing risks")
@@ -525,7 +535,7 @@ cindex <- function(object,
     }
     else{
       pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times),extraArgs))
-      if (class(object[[f]])[[1]]=="matrix") pred <- pred[neworder,]
+      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
       if (length(pred.times)==1 && length(pred.times)<length(eval.times))
         pred <- rep(pred,length(eval.times))
       AppCindexResult <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
@@ -685,22 +695,12 @@ cindex <- function(object,
   }
   if (!is.null(model.parms)) out <- c(out,list("ModelParameters"=BootCv$ModelParameters))
   if (!keep.index) splitMethod$index <- NULL
-  if(keep.models==TRUE)
+  if(keep.models==TRUE){
       outmodels <- object
-  else if (keep.models=="Call"){
-      outmodels <- lapply(object,function(o){
-          cc <- try(as.character(o$call),silent=TRUE)
-          if(class(cc)=="try-error")
-              class(o)
-          else
-              cc
-      })
-      names(outmodels) <- names(object)
-  }
-  else{
-      outmodels <- names(object)
-      names(outmodels) <- names(object)
-  }
+  } else{
+        outmodels <- names(object)
+        names(outmodels) <- names(object)
+    }
   out <- c(out,list(call=theCall,
                     time=eval.times,
                     pred.time=pred.times,

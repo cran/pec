@@ -24,16 +24,17 @@
 #' f <- selectCox(Surv(time,cens)~horTh+age+menostat+tsize+tgrade+pnodes+progrec+estrec ,
 #' 	       data=GBSG2)
 #' 
-#' @export selectCox
+#' @export 
 selectCox <- function(formula,data,rule="aic"){
     fit <- rms::cph(formula, data, surv=TRUE)
     bwfit <- rms::fastbw(fit,rule=rule)
     if (length(bwfit$names.kept)==0){
-        newform <- reformulate("1",formula[[2]])
+        newform <- update(formula,".~1")
         newfit <- prodlim::prodlim(newform,data=data)
     }
     else{
-        newform <- reformulate(bwfit$names.kept, formula[[2]])
+        newform <- update(formula,paste(".~",paste(bwfit$names.kept,collapse="+")))
+        ## reformulate(bwfit$names.kept, formula[[2]])
         newfit <- rms::cph(newform,data, surv=TRUE)
     }
     out <- list(fit=newfit,In=bwfit$names.kept)

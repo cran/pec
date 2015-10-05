@@ -98,7 +98,7 @@ penalizedOpt <- function(formula,data=data,...){
   # }}}
 }
 
-##' @S3method predictSurvProb penfitS3
+##' @export 
 predictSurvProb.penfitS3 <- function(object,
                                      newdata,
                                      times,

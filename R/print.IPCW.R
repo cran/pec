@@ -1,4 +1,4 @@
-##' @S3method print IPCW
+##' @export
 print.IPCW <- function(x,digits=3,...){
   cat("\nEstimated inverse of the probability of censoring weights (IPCW)\n\n")
   method=switch(x$method,

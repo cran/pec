@@ -1,4 +1,4 @@
-##' @S3method predictEventProb pseudoForest
+##' @export
 predictEventProb.pseudoForest <- function(object,
                                           newdata,
                                           times,
@@ -25,7 +25,7 @@ predictEventProb.pseudoForest <- function(object,
         if (class(getForest)!="randomForest")
             pseudo.t <- rep(getForest, NROW(newdata))
         else
-            pseudo.t <- predict(getForest,newdata=newdata)
+            pseudo.t <- stats::predict(getForest,newdata=newdata)
         ## pseduo.t <- round(pseudo.t,digits=digits)
         # Pseudo-value correction: return only [0;1]
         no.negative <- pmax(pseudo.t,0)
