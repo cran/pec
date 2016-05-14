@@ -211,9 +211,9 @@
 #' 	       formula=Surv(time,status)~1,
 #' 	       data=dat,
 #' 	       eval.times=Inf)
-#' p1 <- predictSurvProb(fit1,newdata=dat,times=100)
-#' p2 <- predictSurvProb(fit2,newdata=dat,times=100)
-#' p12 <- predictSurvProb(fit12,newdata=dat,times=100)
+#' p1 <- predictSurvProb(fit1,newdata=dat,times=c(10))
+#' p2 <- predictSurvProb(fit2,newdata=dat,times=10)
+#' p12 <- predictSurvProb(fit12,newdata=dat,times=10)
 #' harrelC1 <- rcorr.cens(p1,with(dat,Surv(time,status)))
 #' harrelC2 <- rcorr.cens(p2,with(dat,Surv(time,status)))
 #' harrelC12 <- rcorr.cens(p12,with(dat,Surv(time,status)))
@@ -514,61 +514,88 @@ cindex <- function(object,
   # }}}
   # {{{ -------------------Apparent or test sample cindex----------------------
   
-  AppCindexList <- lapply(1:NF,function(f){
-    fit <- object[[f]]
-    extraArgs <- model.args[[f]]
-    if (model.type=="competing.risks"){
-      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times,cause=cause),extraArgs))
-      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
-      if (length(pred.times)==1 && length(pred.times)<length(eval.times))
-        pred <- rep(pred,length(eval.times))
-      ## stop("Not yet defined: cindex for competing risks")
-      AppCindexResult <- .C("ccr",cindex=double(NT),concA=double(NT),pairsA=double(NT),concB=double(NT),pairsB=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.integer(event),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
-      AppCindex <- AppCindexResult$cindex
-      AppPairsA <- AppCindexResult$pairsA
-      AppConcordantA <- AppCindexResult$concA
-      AppPairsB <- AppCindexResult$pairsB
-      AppConcordantB <- AppCindexResult$concB
-      list(AppCindex=AppCindex,
-           AppPairs=list(A=AppPairsA,B=AppPairsB),
-           AppConcordant=list(A=AppConcordantA,B=AppConcordantB))
-    }
-    else{
-      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times),extraArgs))
-      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
-      if (length(pred.times)==1 && length(pred.times)<length(eval.times))
-        pred <- rep(pred,length(eval.times))
-      AppCindexResult <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
-      AppCindex <- AppCindexResult$cindex
-      AppPairs <- AppCindexResult$pairs
-      AppConcordant <- AppCindexResult$conc
-      list(AppCindex=AppCindex,
-           AppPairs=AppPairs,
-           AppConcordant=AppConcordant)
-    }
-
-  })
-  AppCindex <- lapply(AppCindexList,function(x){
-    x$AppCindex
-  })
-  if (predictHandlerFun=="predictSurvProb"){
-    AppPairs <- lapply(AppCindexList,function(x){
-      2*x$AppPairs
+    AppCindexList <- lapply(1:NF,function(f){
+        fit <- object[[f]]
+        extraArgs <- model.args[[f]]
+        if (model.type=="competing.risks"){
+            pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times,cause=cause),extraArgs))
+            if (class(fit)[[1]]%in% c("prodlim","survfit") && is.null(dim(pred)) && length(pred)==length(pred.times))
+                pred <- rep(pred,N)
+            if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
+            if (length(pred.times)==1 && length(pred.times)<length(eval.times))
+                pred <- rep(pred,length(eval.times))
+            if (length(pred)!=N*NT) stop(paste0("Prediction of model ",names(object)[f]," has wrong dimension: ",NROW(pred)," rows and ",NCOL(pred), " columns. Should have ",N, "rows and ",NT," columns."))
+            ## if (any(is.na(pred))) stop(paste0("Missing values in prediction of model: ", names(object)[f]))
+            AppCindexResult <- .C("ccr",
+                                  cindex=double(NT),
+                                  concA=double(NT),
+                                  pairsA=double(NT),
+                                  concB=double(NT),
+                                  pairsB=double(NT),
+                                  as.integer(tindex),
+                                  as.double(Y),
+                                  as.integer(status),
+                                  as.integer(event),
+                                  as.double(eval.times),
+                                  as.double(weight.i),
+                                  as.double(weight.j),
+                                  as.double(pred),
+                                  as.integer(N),
+                                  as.integer(NT),
+                                  as.integer(tiedPredictionsIn),
+                                  as.integer(tiedOutcomeIn),
+                                  as.integer(tiedMatchIn),
+                                  as.integer(!is.null(dim(weight.j))),
+                                  NAOK=TRUE,
+                                  package="pec")
+            AppCindex <- AppCindexResult$cindex
+            AppPairsA <- AppCindexResult$pairsA
+            AppConcordantA <- AppCindexResult$concA
+            AppPairsB <- AppCindexResult$pairsB
+            AppConcordantB <- AppCindexResult$concB
+            list(AppCindex=AppCindex,
+                 AppPairs=list(A=AppPairsA,B=AppPairsB),
+                 AppConcordant=list(A=AppConcordantA,B=AppConcordantB))
+        }
+        else{
+            pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times),extraArgs))
+            if (class(fit)[[1]]%in% c("prodlim","survfit") && is.null(dim(pred)) && length(pred)==length(pred.times))
+                pred <- rep(pred,N)
+            if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
+            if (length(pred.times)==1 && length(pred.times)<length(eval.times))
+                pred <- rep(pred,length(eval.times))
+            if (length(pred)!=N*NT) stop(paste0("Prediction of model ",names(object)[f]," has wrong dimension: ",NROW(pred)," rows and ",NCOL(pred), " columns. Should have ",N, "rows and ",NT," columns."))
+            ## if (any(is.na(pred))) stop(paste0("Missing values in prediction of model: ", names(object)[f]))
+            AppCindexResult <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
+            AppCindex <- AppCindexResult$cindex
+            AppPairs <- AppCindexResult$pairs
+            AppConcordant <- AppCindexResult$conc
+            list(AppCindex=AppCindex,
+                 AppPairs=AppPairs,
+                 AppConcordant=AppConcordant)
+        }
     })
-    AppConcordant <- lapply(AppCindexList,function(x){
-      2*x$AppConcordant
+    AppCindex <- lapply(AppCindexList,function(x){
+        x$AppCindex
     })
-  }else{
+    if (predictHandlerFun=="predictSurvProb"){
         AppPairs <- lapply(AppCindexList,function(x){
-      x$AppPairs
-    })
-    AppConcordant <- lapply(AppCindexList,function(x){
-      x$AppConcordant
-    })
-  }
-  names(AppCindex) <- names(object)
-  names(AppPairs) <- names(object)
-  names(AppConcordant) <- names(object)
+            2*x$AppPairs
+        })
+        AppConcordant <- lapply(AppCindexList,function(x){
+            2*x$AppConcordant
+        })
+    }else{
+        AppPairs <- lapply(AppCindexList,function(x){
+            x$AppPairs
+        })
+        AppConcordant <- lapply(AppCindexList,function(x){
+            x$AppConcordant
+        })
+    }
+    names(AppCindex) <- names(object)
+    names(AppPairs) <- names(object)
+    names(AppConcordant) <- names(object)
   
   # }}}
   # {{{--------------k-fold and leave-one-out CrossValidation-----------------------

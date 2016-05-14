@@ -57,8 +57,18 @@ reclass <- function(object,
     } else{
           object <- list(object,reference)
       }
-    NC <- length(cuts)
-    NR <- NC-1 ## dimension of reclassification tables is NR x NR
+    if ("factor" %in% class(object[[1]])){
+        factorp <- TRUE
+        if (!("factor" %in% class(object[[2]])))
+            stop("The first object is a factor, so the reference must also be a factor.")
+        ## dimension of reclassification tables is NR x NC
+        NR <- length(levels(object[[1]]))
+        NC <- length(levels(object[[2]]))
+    }else{
+         factorp <- FALSE
+         NC <- length(cuts)
+         NR <- NC-1 ## dimension of reclassification tables is NR x NR
+     }
     # {{{ response
     ## histformula <- formula
     ## if (histformula[[2]][[1]]==as.name("Surv")){
@@ -89,47 +99,58 @@ reclass <- function(object,
         predictHandlerFun <- "predictSurvProb"
     }
     # }}}
-    ## for competing risks find the cause of interest.
-    cutP <- function(P,cuts){
-        if (min(P)<min(cuts))
-            stop("Smallest predicted risk is smaller than first cut.")
-        if (max(P)>max(cuts))
-            stop("Largest predicted risk is larger than last cut.")
-        cut(P,cuts,
-            include.lowest=TRUE,
-            labels=paste(paste(cuts[-NC],cuts[-1],sep="-"),"%",sep=""))
-    }
-    getPredictions <- function(x){
-        if (any(is.na(x))) stop("Missing values in object.")
-        P <- switch(class(x)[[1]],
-                    "factor"={x},
-                    "numeric"={
-                        if (all(x<1)){
-                            warning("Assumed that predictions are given on the scale [0,1] and multiplied by 100.")
-                            x*100
-                        } else{
-                              x
-                          }
-                    },
-                    {if (predictHandlerFun=="predictEventProb"){
-                         P <- 100*do.call(predictHandlerFun,list(x,newdata=data,times=time,cause=cause))
-                     } else {
-                           P <- 100*do.call(predictHandlerFun,list(x,newdata=data,times=time))
-                       }
-                     P})
-    }
-    predrisk <- lapply(object,getPredictions)
-    names(predrisk) <- names(object)
-    predriskCut <- lapply(predrisk,function(P){if (is.factor(P)) P else cutP(P,cuts)})
-    ## overall reclassification table
-    retab <- table(predriskCut[[1]],predriskCut[[2]])
-    ## reclassification frequencies conditional on outcome
-    edat <- data.frame(cbind(do.call("cbind",predriskCut),response))
+    if (factorp){
+        predrisk <- object
+        edat <- data.frame(cbind(object[[1]],object[[2]],response))
+        ## overall reclassification table
+        retab <- table(object[[1]],object[[2]])
+    }else{
+         cutP <- function(P,cuts){
+             if (min(P)<min(cuts))
+                 stop("Smallest predicted risk is smaller than first cut.")
+             if (max(P)>max(cuts))
+                 stop("Largest predicted risk is larger than last cut.")
+             cut(P,cuts,
+                 include.lowest=TRUE,
+                 labels=paste(paste(cuts[-NC],cuts[-1],sep="-"),"%",sep=""))
+         }
+         getPredictions <- function(x){
+             if (any(is.na(x))) stop("Missing values in object.")
+             P <- switch(class(x)[[1]],
+                         ## "factor"={x},
+                         "numeric"={
+                             if (all(x<1)){
+                                 warning("Assumed that predictions are given on the scale [0,1] and multiplied by 100.")
+                                 x*100
+                             } else{
+                                   x
+                               }
+                         },
+                         {if (predictHandlerFun=="predictEventProb"){
+                              P <- 100*do.call(predictHandlerFun,list(x,newdata=data,times=time,cause=cause))
+                          } else {
+                                P <- 100*do.call(predictHandlerFun,list(x,newdata=data,times=time))
+                            }
+                          P})
+         }
+         predrisk <- lapply(object,getPredictions)
+         names(predrisk) <- names(object)
+         predriskCut <- lapply(predrisk,function(P){if (is.factor(P)) P else cutP(P,cuts)})
+         ## overall reclassification table
+         retab <- table(predriskCut[[1]],predriskCut[[2]])
+         ## reclassification frequencies conditional on outcome
+         edat <- data.frame(cbind(do.call("cbind",predriskCut),response))
+     }
     edat$event[edat$status==0] <- 0
     N <- NROW(edat)
     names(edat)[1:2] <- c("P1","P2")
-    cells <- split(edat,list(factor(edat$P1,levels=1:NR),factor(edat$P2,levels=1:NR)))
-    all.comb <- apply(expand.grid(1:(NR),1:(NR)),1,paste,collapse=".")
+    if (factorp){
+        cells <- split(edat,list(edat$P1,edat$P2))
+        all.comb <- apply(expand.grid(1:(NR),1:(NC)),1,paste,collapse=".")
+    } else{
+          cells <- split(edat,list(factor(edat$P1,levels=1:NR),factor(edat$P2,levels=1:NR)))
+          all.comb <- apply(expand.grid(1:(NR),1:(NR)),1,paste,collapse=".")
+      }
     nn <- names(object)
     if (!is.null(nn) & length(nn)==2){
         names(dimnames(retab)) <- nn
@@ -256,8 +277,8 @@ reclass <- function(object,
           surv <- 1-cuminc
           surv.x <- 1-cuminc.x
           dimnames=dimnames(retab)
-          event.retab <- list("event"=matrix(cuminc.x*Hx/surv,ncol=NR),
-                              "eventfree"=matrix(surv.x * Hx / surv,ncol=NR,dimnames=dimnames(retab)))
+          event.retab <- list("event"=matrix(cuminc.x*Hx/surv,ncol=NC,dimnames=dimnames(retab)),
+                              "eventfree"=matrix(surv.x * Hx / surv,ncol=NC,dimnames=dimnames(retab)))
       }
     out <- list(time=time,
                 predictedRisk=predrisk,

@@ -107,7 +107,7 @@ predictEventProb.riskRegression <- function(object,newdata,times,cause,...){
   if (missing(times))stop("Argument times is missing")
   temp <- predict(object,newdata=newdata,times=times)
   pos <- prodlim::sindex(jump.times=temp$time,eval.times=times)
-  p <- cbind(0,temp$risk)[,pos+1,drop=FALSE]
+  p <- cbind(0,t(temp$risk))[,pos+1,drop=FALSE]
   if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
             stop(paste("\nPrediction matrix has wrong dimension:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
   p

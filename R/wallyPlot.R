@@ -228,7 +228,7 @@ wallyPlot <- function(object,
         Ti <- rexp(n=length(pi),rate=lambdai)
         Ti
     }
-    GenCensFromKMfit <- function(times,status,groups=NULL){
+    GenCensFromKMfit <- function(times,status,groups=NULL,time.interest){
         if (all(status!=0)){
             rep(Inf,length(times))
         }else{
@@ -238,8 +238,14 @@ wallyPlot <- function(object,
                  # fit marginal KM for censoring
                  fitcens <- prodlim::prodlim(Hist(time,status)~1,data=data.frame(time=times,status=status),reverse=TRUE)
                  # max time in data
-                 tau <- max(fitcens$time)
-                 c(fitcens$time,tau)[prodlim::sindex(jump.times=c(0,1-fitcens$surv),eval.times=U)]
+                 time <- fitcens$time
+                 tau <- max(c(fitcens$time,time.interest),na.rm=TRUE)
+                 surv <- fitcens$surv
+                 isna <- is.na(time)
+                 surv[isna] <- 0
+                 time[isna] <- tau
+                 c <- c(0,time,tau)[1+prodlim::sindex(jump.times=c(0,1-surv),eval.times=U)]
+                 c
              } else{
                    # fit stratified KM for censoring
                    fitcens <- prodlim::prodlim(Hist(time,status)~groups,data=data.frame(time=times,
@@ -250,14 +256,14 @@ wallyPlot <- function(object,
                                                   U.g <- runif(n.groups[g],0,1)
                                                   start <- fitcens$first.strata[g]
                                                   size <- fitcens$size.strata[g]
-                                                  strata.g <- start:(start+size)
+                                                  strata.g <- start:(start+(size-1))
                                                   g.time <- fitcens$time[strata.g]
-                                                  tau.g <- max(g.time,na.rm=TRUE)
+                                                  tau.g <- max(c(g.time,time.interest),na.rm=TRUE)
                                                   g.surv <- fitcens$surv[strata.g]
                                                   isna <- is.na(g.time)
                                                   g.surv[isna] <- 0
                                                   g.time[isna] <- tau.g
-                                                  cgroup <- c(g.time,tau.g)[prodlim::sindex(jump.times=c(0,1-g.surv),eval.times=U.g)]
+                                                  cgroup <- c(0,g.time,tau.g)[1+prodlim::sindex(jump.times=c(0,1-g.surv),eval.times=U.g)]
                                                   cgroup
                                               }))
                    C[order(order(groups))]
@@ -265,7 +271,7 @@ wallyPlot <- function(object,
          }
     }
     GetResponseSurv <- function(Y,status,pred,Pred.cut,time){
-        C <- GenCensFromKMfit(times=Y,status=status,groups=Pred.cut)
+        C <- GenCensFromKMfit(times=Y,status=status,groups=Pred.cut,time.interest=time)
         ## Note: predictions pred are survival probabilities
         ##       we simulate event times based on 1-pred
         T <- GenTimesFromPred(pi=1-pred,t=time)
@@ -275,7 +281,7 @@ wallyPlot <- function(object,
     }
     GetResponseCR <- function(Y,status,pred,pred2,Pred.cut,time){
         # generate censoring conditionally on groups
-        C <- GenCensFromKMfit(times=Y,status=status,groups=Pred.cut)
+        C <- GenCensFromKMfit(times=Y,status=status,groups=Pred.cut,time.interest=time)
         T <- GenTimesFromPred(pi=(pred+pred2),t=time)
         Tcens <- pmin(T,C)
         lambda1 <- -1/( time*(1+pred2/pred) )*log(1-pmin(pred2+pred,0.999999))

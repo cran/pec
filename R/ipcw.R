@@ -333,7 +333,7 @@ ipcw.cox <- function(formula,data,method,args,times,subjectTimes,subjectTimesLag
         wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design))
     else
         wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design,EHF$strat))
-    wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design))
+    ## wdata <- data.frame(cbind(unclass(EHF$event.history),EHF$design))
     wdata$status <- 1-wdata$status
     wform <- update(formula,"Surv(time,status)~.")
     stopifnot(NROW(na.omit(wdata))>0)

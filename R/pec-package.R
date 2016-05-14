@@ -36,6 +36,7 @@
 #' @importFrom foreach %dopar%
 #' @importFrom survival Surv
 #' @importFrom prodlim Hist
+#' @importFrom timereg aalen
 #' @importFrom grDevices col2rgb gray
 #' @importFrom graphics abline axis box legend lines mtext par plot points segments text title
 #' @importFrom stats model.frame model.response as.formula coef family formula median model.matrix na.fail na.omit pnorm predict quantile rbinom rexp runif sd smooth terms time update update.formula var wilcox.test
@@ -117,5 +118,38 @@ NULL
 #' 
 NULL
 
-
+#' threecity data
+#'
+#' Extracted data from a french population based cohort (Three-City cohort). The dataset includes 
+#' followup information on dementia outcome and predicted 5-year risks based on 
+#' based on the subject specific information which includes age, gender,
+#' education level and cognitive decline measured by a psychometric test
+#' (Mini Mental State Examination). The prediction model from which the
+#' predictions have been computed has been fitted on independent training
+#' data from the Paquid cohort, another french population based cohort with similar design (see Reference Blanche et al. 2015 for details) .
+#' 
+#' @name threecity
+#' @docType data
+#' @format A subsample consisting of 2000 observations on the following 3 variables.
+#' \describe{ \item{pi}{5-year absolute risk predictions of dementia.}
+#' \item{status}{0=censored, 1=dementia, 2=death dementia free}
+#' \item{time}{time to event (i.e., time to
+#' either dementia, death dementia free or loss of follow-up)}}
+#' @references
+#' Blanche, P., Proust-Lima, C., Loubere, L., Berr, C., Dartigues, J. F., Jacqmin-Gadda, H. (2015).
+#' Quantifying and comparing dynamic
+#' predictive accuracy of joint models for longitudinal marker and
+#' time-to-event in presence of censoring and competing risks. 
+#' Biometrics, 71(1), 102-113.
+#' 
+#' @source
+#'
+#' Web-appendix of Blanche et al. (2015).
+#' 
+#' @keywords datasets
+#' @examples
+#' 
+#' data(threecity)
+#' 
+NULL
 

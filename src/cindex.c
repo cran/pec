@@ -86,6 +86,7 @@ void cindex(double *C,
 		  /*
 		    call pair unusuable if same predictions
 		  */
+		  /* Rprintf("pred[i+s*(*N)]=%1.2f\tpred[j+s*(*N)]=%1.2f\t\n",pred[i+s*(*N)],pred[j+s*(*N)]); */
 		  if (*tiedpredIn==1){ 
 		    pairs[s] += 1/ww;
 		    conc[s] += 1/(2* ww);
