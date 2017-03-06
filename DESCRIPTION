@@ -1,7 +1,7 @@
 Package: pec
 Title: Prediction Error Curves for Risk Prediction Models in Survival
         Analysis
-Version: 2.4.9
+Version: 2.5.3
 Author: Thomas A. Gerds
 Description: Validation of risk predictions obtained from survival models and
     competing risk models based on censored data using inverse weighting and
@@ -9,13 +9,13 @@ Description: Validation of risk predictions obtained from survival models and
 Depends: R (>= 2.9.0), prodlim (>= 1.4.9)
 Imports: foreach (>= 1.4.2), rms (>= 4.2-0), survival (>= 2.37-7),
         timereg (>= 1.8.9)
-Suggests: randomForestSRC, party, cmprsk (>= 2.2-7), rpart, doMC,
-        CoxBoost, crrstep, riskRegression (>= 1.0.8), lava (>= 1.4.1),
-        Hmisc (>= 3.14-4)
+Suggests: randomForestSRC, party, cmprsk (>= 2.2-7), rpart, CoxBoost,
+        crrstep, riskRegression (>= 1.0.8), lava (>= 1.4.1), Hmisc (>=
+        3.14-4)
 Maintainer: Thomas A. Gerds <tag@biostat.ku.dk>
 License: GPL (>= 2)
-Packaged: 2016-05-14 15:36:27 UTC; tag
+Packaged: 2017-03-06 13:45:09 UTC; tag
 RoxygenNote: 5.0.1
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2016-05-14 23:19:27
+Date/Publication: 2017-03-06 15:45:07

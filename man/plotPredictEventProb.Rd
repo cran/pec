@@ -71,7 +71,6 @@ These arguments are processed via \code{\dots{}} of
 }
 \examples{
 
-
 # generate some competing risk data
 
 }

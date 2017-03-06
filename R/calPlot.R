@@ -59,7 +59,8 @@
 #' @param bandwidth The bandwidth for \code{method="nne"}
 #' @param q The number of quantiles for \code{method="quantile"} and \code{bars=TRUE}.
 #' @param bars If \code{TRUE}, use barplots to show calibration.
-#' @param hanging  Barplots only. If \code{TRUE}, hang bars corresponding to observed frequencies at the value of the corresponding prediction.
+#' @param hanging  Barplots only. If \code{TRUE}, hang bars corresponding to observed frequencies
+#'        at the value of the corresponding prediction.
 #' @param names Barplots only. Names argument passed to \code{names.arg} of \code{barplot}.
 #' @param showFrequencies Barplots only. If \code{TRUE}, show frequencies above the bars.
 #' @param jack.density Gray scale for pseudo-observations.
@@ -122,8 +123,14 @@
 ##' calPlot(f,time=3,data=dval,type="survival")
 ##' calPlot(f,time=3,data=dval,bars=TRUE,pseudo=FALSE)
 ##' calPlot(f,time=3,data=dval,bars=TRUE,type="risk",pseudo=FALSE)
-##' 
+##'
+##' ## show a red line which follows the hanging bars
 ##' calPlot(f,time=3,data=dval,bars=TRUE,hanging=TRUE)
+##' a <- calPlot(f,time=3,data=dval,bars=TRUE,hanging=TRUE,abline.col=NULL)
+##' lines(c(0,1,ceiling(a$xcoord)),
+##'       c(a$offset[1],a$offset,a$offset[length(a$offset)]),
+##'       col=2,lwd=5,type="s")
+##' 
 ##' calPlot(f,time=3,data=dval,bars=TRUE,type="risk",hanging=TRUE)
 ##' 
 ##' set.seed(13)
@@ -153,7 +160,7 @@
 ##' plot(b1)
 ##' 
 ##' calPlot(fgr,time=5,bars=TRUE,hanging=TRUE)
-##' 
+##'
 ##' 
 #' @author Thomas Alexander Gerds \email{tag@@biostat.ku.dk}
 #' @export 
@@ -207,6 +214,7 @@ calPlot <- function(object,
     if (missing(showPseudo))
         showPseudo <- ifelse(add||(pseudo!=FALSE),FALSE,TRUE)
     # {{{ find number of objects and lines
+
     cobj=class(object)[[1]]
     if (cobj!="list"){
         object <- list(object)
@@ -224,8 +232,10 @@ calPlot <- function(object,
         names(object)[(names(object)=="")] <- sapply(object[(names(object)=="")],function(o)class(o)[1])
     }
     NF <- length(object)
+
     # }}}
     # {{{ lines types
+
     if (missing(lwd)) lwd <- rep(3,NF)
     if (missing(col)) {
         if (bars)
@@ -239,8 +249,10 @@ calPlot <- function(object,
     if (length(lty) < NF) lty <- rep(lty, NF)
     if (length(col) < NF) col <- rep(col, NF)
     if (length(pch) < NF) pch <- rep(pch, NF)
+
     # }}}
     # {{{ data & formula
+
     if (missing(data)){
         data <- eval(object[[1]]$call$data)
         if (match("data.frame",class(data),nomatch=0)==0)
@@ -285,6 +297,7 @@ calPlot <- function(object,
         Y <- response[,"time"]
         ## status <- response[,"status"]
         data <- data[neworder,]
+
         # }}}
         # {{{ prediction timepoint 
 
@@ -321,8 +334,10 @@ calPlot <- function(object,
              jack <- NULL
          }
     }
+
     # }}}
     # {{{ smartControl
+
     axis1.DefaultArgs <- list(side=1,las=1,at=seq(0,ylim[2],ylim[2]/4))
     axis2.DefaultArgs <- list(side=2,las=2,at=seq(0,ylim[2],ylim[2]/4),mgp=c(4,1,0))
     if (bars){
@@ -405,6 +420,7 @@ calPlot <- function(object,
                                          forced=list("plot"=list(axes=FALSE),
                                              "axis1"=list(side=1)),
                                          verbose=TRUE)
+
     # }}}
     # {{{ splitmethod
     splitMethod <- resolvesplitMethod(splitMethod=splitMethod,B=B,N=NROW(data),M=M)
@@ -543,8 +559,8 @@ calPlot <- function(object,
             p <- predframe[,f+1]
             jackF <- predframe[,1]
         }else{
-             p <- predframe[,f]
-         }
+            p <- predframe[,f]
+        }
         switch(method,
                "quantile"={
                    if (length(q)==1)
@@ -590,8 +606,8 @@ calPlot <- function(object,
                            if (!is.null(bandwidth) && bandwidth>=1){
                                ## message("No need to round predicted probabilities to calculate calibration in the large")
                            } else{
-                                 p <- round(p,2)
-                             }
+                               p <- round(p,2)
+                           }
                        }
                        p <- na.omit(p)
                        if (no <- length(attr(p,"na.action")))
@@ -600,40 +616,41 @@ calPlot <- function(object,
                            if (length(p)>length(apppred[,f+1])){
                                bw <- prodlim::neighborhood(apppred[,f+1])$bandwidth
                            }else{
-                                bw <- prodlim::neighborhood(p)$bandwidth
-                            }
+                               bw <- prodlim::neighborhood(p)$bandwidth
+                           }
                        } else{
-                             bw <- bandwidth
-                         }
+                           bw <- bandwidth
+                       }
                        if (bw>=1){
                            ## calibration in the large
                            plotFrame <- data.frame(Pred=mean(p),Obs=mean(jackF))
                        } else{
-                             nbh <- prodlim::meanNeighbors(x=p,y=jackF,bandwidth=bw)
-                             plotFrame <- data.frame(Pred=nbh$uniqueX,Obs=nbh$averageY)
-                         }
+                           nbh <- prodlim::meanNeighbors(x=p,y=jackF,bandwidth=bw)
+                           plotFrame <- data.frame(Pred=nbh$uniqueX,Obs=nbh$averageY)
+                       }
                        attr(plotFrame,"bandwidth") <- bw
                        plotFrame
                    }else{
-                        form.p <- update(formula,paste(".~p"))
-                        if ("data.table" %in% class(data))
-                            pdata <- cbind(data[,all.vars(update(formula,".~1")),drop=FALSE,with=FALSE],p=p)
-                        else
-                            pdata <- cbind(data[,all.vars(update(formula,".~1")),drop=FALSE],p=p)
-                        y <- unlist(predict(prodlim::prodlim(form.p,data=pdata),
-                                            cause=cause,
-                                            newdata=data.frame(p=sort(p)),
-                                            times=time,
-                                            type=ifelse(type=="survival","surv","cuminc")))
-                        plotFrame <- data.frame(Pred=sort(p),Obs=y)
-                        plotFrame
-                    }
+                       form.p <- update(formula,paste(".~p"))
+                       if ("data.table" %in% class(data))
+                           pdata <- cbind(data[,all.vars(update(formula,".~1")),drop=FALSE,with=FALSE],p=p)
+                       else
+                           pdata <- cbind(data[,all.vars(update(formula,".~1")),drop=FALSE],p=p)
+                       y <- unlist(predict(prodlim::prodlim(form.p,data=pdata),
+                                           cause=cause,
+                                           newdata=data.frame(p=sort(p)),
+                                           times=time,
+                                           type=ifelse(type=="survival","surv","cuminc")))
+                       plotFrame <- data.frame(Pred=sort(p),Obs=y)
+                       plotFrame
+                   }
                })
     }
     plotFrames <- lapply(1:NF,function(f){getXY(f)})
     names(plotFrames) <- names(object)
     # }}}
     # {{{ plot and/or invisibly output the results
+
     if (bars){
         if (model.type=="survival" && type=="risk")
             plotFrames[[1]] <- plotFrames[[1]][NROW(plotFrames[[1]]):1,]
@@ -695,11 +712,14 @@ calPlot <- function(object,
                 showPseudo=showPseudo,
                 jack.density=jack.density)
     if (method=="nne")
-        out <- c(out,list(bandwidth=sapply(plotFrames,function(x)attr(x,"bandwidth"))))
-    class(out) <- "calibrationPlot"
+        out <- c(out,list(bandwidth=sapply(plotFrames,
+                                           function(x)attr(x,"bandwidth"))))
     if (plot){
-        plot.calibrationPlot(out)
+        coords <- plot.calibrationPlot(out)
+        out <- c(out,coords)
     }
+    class(out) <- "calibrationPlot"
     invisible(out)
     # }}}
+
 }

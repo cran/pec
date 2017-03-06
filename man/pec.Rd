@@ -347,8 +347,8 @@ summary(PredError.632plus)
 plot(PredError.632plus,xlim=c(0,30))
 # do the same again but now in parallel
 \dontrun{set.seed(17100)
-library(doMC)
-registerDoMC()
+# library(doMC)
+# registerDoMC()
 PredError.632plus <- pec(object=Models,
                   formula=Surv(time,status)~X1+X2,
                   data=dat,

@@ -1,5 +1,5 @@
 #include <R.h>
-void cindex(double *C,
+void cindexSRC(double *C,
 	    double *conc,
 	    double *pairs,
 	    int *tindex,

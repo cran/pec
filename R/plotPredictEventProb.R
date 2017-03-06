@@ -49,7 +49,6 @@
 #' @keywords survival
 #' @examples
 #' 
-#' 
 #' # generate some competing risk data
 #' 
 #' @export
@@ -170,7 +169,7 @@ plotPredictEventProb <- function(x,
   
   # }}}
   # {{{ smart controls
-
+    
   if (match("legend.args",names(args),nomatch=FALSE)){
     legend.DefaultArgs <- c(args[[match("legend.args",names(args),nomatch=FALSE)]],legend.DefaultArgs)
     legend.DefaultArgs <- legend.DefaultArgs[!duplicated(names(legend.DefaultArgs))]

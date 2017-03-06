@@ -324,8 +324,8 @@
 #' plot(PredError.632plus,xlim=c(0,30))
 #' # do the same again but now in parallel
 #' \dontrun{set.seed(17100)
-#' library(doMC)
-#' registerDoMC()
+#' # library(doMC)
+#' # registerDoMC()
 #' PredError.632plus <- pec(object=Models,
 #'                   formula=Surv(time,status)~X1+X2,
 #'                   data=dat,
@@ -664,24 +664,24 @@ if (missing(maxtime) || is.null(maxtime))
   # }}}
 # {{{ ---------------------------Apparent error---------------------------
 
-  AppErr <- lapply(1:NF,function(f){
-      ## message(f)
-      fit <- object[[f]]
-      extraArgs <- model.args[[f]]
-      if (predictHandlerFun=="predictEventProb"){ # competing risks
-          pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
-      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
-      .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
-    }
-    else{  # survival
-      pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
-      if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
-      ## u <- list(as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))))
-      ## if (f==2) browser(skipCalls=1)
-      .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
-    }
-  })
-  names(AppErr) <- names(object)
+    AppErr <- lapply(1:NF,function(f){
+        ## message(f)
+        fit <- object[[f]]
+        extraArgs <- model.args[[f]]
+        if (predictHandlerFun=="predictEventProb"){ # competing risks
+            pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
+            if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
+            .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
+        }
+        else{  # survival
+            pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
+            if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
+            ## u <- list(as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))))
+            ## if (f==2) browser(skipCalls=1)
+            .C("pecSRC",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
+        }
+    })
+    names(AppErr) <- names(object)
 
   ## se.Apperr <- lapply(1:NF,function(f){
   ## ## message(f)
@@ -713,39 +713,43 @@ if (missing(maxtime) || is.null(maxtime))
   # }}}
 # {{{------------------------No information error------------------------
 
-  if (splitMethod$internal.name %in% c("Boot632plus")){
-    if (verbose==TRUE){
-      message("Computing noinformation error using all permutations")
-    }
-    if (noinf.permute==FALSE){
-      NoInfErr <- lapply(1:NF,function(f){
-        fit <- object[[f]]
-        extraArgs <- model.args[[f]]
-        pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
-        extraArgs <- model.args[[f]]
-        if (predictHandlerFun=="predictEventProb")
-          .C("pec_noinfCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
-        else
-          .C("pec_noinf",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
-      })
-      names(NoInfErr) <- names(object)
-    }else{
-      if (verbose==TRUE){
-        message("Noinformation error simulation loop (B=",B,")")
-      }
-      ## FIXME: need to parallelize noinf
-      NoInfErrList <- lapply(1:B,function(b){
+    if (splitMethod$internal.name %in% c("Boot632plus")){
         if (verbose==TRUE){
-          internalTalk(b,B,sign=".")
+            message("Computing noinformation error using all permutations")
         }
-        responseNames <- colnames(response)
-        noinf.b <- data[sample(1:NROW(data),replace=FALSE),-match(responseNames,names(data))]
-        noinf.b[,responseNames] <- response
-        ipcw.b <- ipcw(formula=formula,data=noinf.b,method=cens.model,args=ipcw.args,times=times,subjectTimes=Y,subjectTimesLag=1)
-        noinfPredErr <- lapply(1:NF,function(f){
-          fit.b <- internalReevalFit(object=object[[f]],data=noinf.b,step=b,silent=FALSE,verbose=verbose)
-          ## fit.b$call <- object[[f]]$call
-          extraArgs <- model.args[[f]]
+        if (noinf.permute==FALSE){
+            NoInfErr <- lapply(1:NF,function(f){
+                fit <- object[[f]]
+                extraArgs <- model.args[[f]]
+                if (predictHandlerFun=="predictEventProb"){ # competing risks
+                    pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
+                }
+                else{  # survival
+                    pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
+                }
+                if (predictHandlerFun=="predictEventProb")
+                    .C("pec_noinfCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
+                else
+                    .C("pec_noinf",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
+            })
+            names(NoInfErr) <- names(object)
+        }else{
+            if (verbose==TRUE){
+                message("Noinformation error simulation loop (B=",B,")")
+            }
+            ## FIXME: need to parallelize noinf
+            NoInfErrList <- lapply(1:B,function(b){
+                if (verbose==TRUE){
+                    internalTalk(b,B,sign=".")
+                }
+                responseNames <- colnames(response)
+                noinf.b <- data[sample(1:NROW(data),replace=FALSE),-match(responseNames,names(data))]
+                noinf.b[,responseNames] <- response
+                ipcw.b <- ipcw(formula=formula,data=noinf.b,method=cens.model,args=ipcw.args,times=times,subjectTimes=Y,subjectTimesLag=1)
+                noinfPredErr <- lapply(1:NF,function(f){
+                    fit.b <- internalReevalFit(object=object[[f]],data=noinf.b,step=b,silent=FALSE,verbose=verbose)
+                    ## fit.b$call <- object[[f]]$call
+                    extraArgs <- model.args[[f]]
 
           pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times),extraArgs))
           if (predictHandlerFun=="predictEventProb"){
@@ -754,7 +758,7 @@ if (missing(maxtime) || is.null(maxtime))
           }
           else{
             pred.b <- do.call(predictHandlerFun,c(list(object=fit.b,newdata=noinf.b,times=times),extraArgs))
-            .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred.b),as.double(ipcw.b$IPCW.times),as.double(ipcw.b$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
+            .C("pecSRC",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred.b),as.double(ipcw.b$IPCW.times),as.double(ipcw.b$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
           }
         })
         noinfPredErr

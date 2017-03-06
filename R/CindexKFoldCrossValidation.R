@@ -116,7 +116,7 @@ CindexKFoldCrossValidation <- function(object,
                                           as.integer(tiedMatchIn),
                                           as.integer(!is.null(dim(ipcw.j))),
                                           NAOK=TRUE,
-                                          package="pec")
+                                          PACKAGE="pec")
                 Step.b.Cindex <- Step.b.CindexResult$cindex
                 Step.b.PairsA <- Step.b.CindexResult$pairsA
                 Step.b.ConcordantA <- Step.b.CindexResult$concA
@@ -125,7 +125,7 @@ CindexKFoldCrossValidation <- function(object,
                 list(Cindex.b=Step.b.Cindex,Pairs.b=list(A=Step.b.PairsA,B=Step.b.PairsB),Concordant.b=list(A=Step.b.ConcordantA,B=Step.b.ConcordantB))
             }
             else{
-                cindexOut <- .C("cindex",
+                cindexOut <- .C("cindexSRC",
                                 cindex=double(NT),
                                 conc=double(NT),
                                 pairs=double(NT),
@@ -143,7 +143,7 @@ CindexKFoldCrossValidation <- function(object,
                                 as.integer(tiedMatchIn),
                                 as.integer(!is.null(dim(ipcw.j))),
                                 NAOK=TRUE,
-                                package="pec")            
+                                PACKAGE="pec")            
                 Cindex.b <- cindexOut$cindex
                 Pairs.b <- cindexOut$pairs 
                 Concordant.b <- cindexOut$conc

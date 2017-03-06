@@ -56,15 +56,15 @@ crps <- function(object,
   # {{{find the prediction models
   if (missing(models)) models <- 1:length(object$models)
   else
-    if (!is.numeric(models))
-      models <- names(object$models)[match(models,names(object$models))]
+      if (!is.numeric(models))
+          models <- names(object$models)[match(models,names(object$models))]
   # }}}
   # {{{times
   object.times <- object$time
   if(missing(times)) times <- object$maxtime
   if (any(times>object$maxtime)) {
-    warning(paste("You asked to integrate until times where prediction error curves are not defined.", format(object$maxtime,nsmall=2,digits=2)))
-    times <- times[times<=object$maxtime]
+      warning(paste("You asked to integrate until times where prediction error curves are not defined.", format(object$maxtime,nsmall=2,digits=2)))
+      times <- times[times<=object$maxtime]
   }
   ## if (!(object$exact))
   ## warning("Exact Only ", length(object.times)," time point",ifelse(length(times)==1,"","s")," used for computation of ")
@@ -73,41 +73,41 @@ crps <- function(object,
   # }}}
   # {{{ what errors
   if (missing(what) || is.null(what)){
-    what <- grep(c("Err$"),names(object),value=TRUE)
+      what <- grep(c("Err$"),names(object),value=TRUE)
   }
   # }}}
   # {{{ for each element of what: evaluate crps at times
   out <- lapply(what,function(w){
-    est <- object[[w]][models]
-    y <- sapply(times,function(t){
-      intx <- sapply(est, function(y){
-        Dint(x=object.times,
-             y=y,
-             range=c(start,t))
+      est <- object[[w]][models]
+      y <- sapply(times,function(t){
+          intx <- sapply(est, function(y){
+              Dint(x=object.times,
+                   y=y,
+                   range=c(start,t))
+          })
       })
-    })
-    if (!is.null(dim(y))){
-      tnames <- paste("time=",round(times,1),sep="")
-      tnames[times<1] <- paste("time=",signif(times[times<1],2),sep="")
-      colnames(y) <- paste("IBS[",start,";",tnames,")",sep="")
-      y}
-    else{
-      y
-    }
+      if (!is.null(dim(y))){
+          tnames <- paste("time=",round(times,1),sep="")
+          tnames[times<1] <- paste("time=",signif(times[times<1],2),sep="")
+          colnames(y) <- paste("IBS[",start,";",tnames,")",sep="")
+          y}
+      else{
+              y
+          }
   })
   # }}}
   # {{{ prepare output
   NW <- length(what)
   NT <- length(times)
   if (NW==1)
-    out <- out[[1]]
+      out <- out[[1]]
   else
-    names(out) <- what
+      names(out) <- what
   if (NT==1){
-    if(NW>1){
-      out <- do.call("cbind",out)
-      colnames(out) <- what
-    }
+      if(NW>1){
+          out <- do.call("cbind",out)
+          colnames(out) <- what
+      }
   }
   # }}}
   class(out) <- "crps"

@@ -55,8 +55,8 @@ reclass <- function(object,
     if (missing(reference)){
         stopifnot(length(object)==2)
     } else{
-          object <- list(object,reference)
-      }
+        object <- list(object,reference)
+    }
     if ("factor" %in% class(object[[1]])){
         factorp <- TRUE
         if (!("factor" %in% class(object[[2]])))
@@ -65,10 +65,10 @@ reclass <- function(object,
         NR <- length(levels(object[[1]]))
         NC <- length(levels(object[[2]]))
     }else{
-         factorp <- FALSE
-         NC <- length(cuts)
-         NR <- NC-1 ## dimension of reclassification tables is NR x NR
-     }
+        factorp <- FALSE
+        NC <- length(cuts)
+        NR <- NC-1 ## dimension of reclassification tables is NR x NR
+    }
     # {{{ response
     ## histformula <- formula
     ## if (histformula[[2]][[1]]==as.name("Surv")){
@@ -105,42 +105,42 @@ reclass <- function(object,
         ## overall reclassification table
         retab <- table(object[[1]],object[[2]])
     }else{
-         cutP <- function(P,cuts){
-             if (min(P)<min(cuts))
-                 stop("Smallest predicted risk is smaller than first cut.")
-             if (max(P)>max(cuts))
-                 stop("Largest predicted risk is larger than last cut.")
-             cut(P,cuts,
-                 include.lowest=TRUE,
-                 labels=paste(paste(cuts[-NC],cuts[-1],sep="-"),"%",sep=""))
-         }
-         getPredictions <- function(x){
-             if (any(is.na(x))) stop("Missing values in object.")
-             P <- switch(class(x)[[1]],
-                         ## "factor"={x},
-                         "numeric"={
-                             if (all(x<1)){
-                                 warning("Assumed that predictions are given on the scale [0,1] and multiplied by 100.")
-                                 x*100
-                             } else{
-                                   x
-                               }
-                         },
-                         {if (predictHandlerFun=="predictEventProb"){
-                              P <- 100*do.call(predictHandlerFun,list(x,newdata=data,times=time,cause=cause))
-                          } else {
-                                P <- 100*do.call(predictHandlerFun,list(x,newdata=data,times=time))
+        cutP <- function(P,cuts){
+            if (min(P)<min(cuts))
+                stop("Smallest predicted risk is smaller than first cut.")
+            if (max(P)>max(cuts))
+                stop("Largest predicted risk is larger than last cut.")
+            cut(P,cuts,
+                include.lowest=TRUE,
+                labels=paste(paste(cuts[-NC],cuts[-1],sep="-"),"%",sep=""))
+        }
+        getPredictions <- function(x){
+            if (any(is.na(x))) stop("Missing values in object.")
+            P <- switch(class(x)[[1]],
+                        ## "factor"={x},
+                        "numeric"={
+                            if (all(x<1)){
+                                warning("Assumed that predictions are given on the scale [0,1] and multiplied by 100.")
+                                x*100
+                            } else{
+                                x
                             }
-                          P})
-         }
-         predrisk <- lapply(object,getPredictions)
-         names(predrisk) <- names(object)
-         predriskCut <- lapply(predrisk,function(P){if (is.factor(P)) P else cutP(P,cuts)})
-         ## overall reclassification table
-         retab <- table(predriskCut[[1]],predriskCut[[2]])
-         ## reclassification frequencies conditional on outcome
-         edat <- data.frame(cbind(do.call("cbind",predriskCut),response))
-     }
+                        },
+                        {if (predictHandlerFun=="predictEventProb"){
+                             P <- 100*do.call(predictHandlerFun,list(x,newdata=data,times=time,cause=cause))
+                         } else {
+                             P <- 100*do.call(predictHandlerFun,list(x,newdata=data,times=time))
+                         }
+                             P})
+        }
+        predrisk <- lapply(object,getPredictions)
+        names(predrisk) <- names(object)
+        predriskCut <- lapply(predrisk,function(P){if (is.factor(P)) P else cutP(P,cuts)})
+        ## overall reclassification table
+        retab <- table(predriskCut[[1]],predriskCut[[2]])
+        ## reclassification frequencies conditional on outcome
+        edat <- data.frame(cbind(do.call("cbind",predriskCut),response))
+    }
     edat$event[edat$status==0] <- 0
     N <- NROW(edat)
     names(edat)[1:2] <- c("P1","P2")
@@ -148,9 +148,9 @@ reclass <- function(object,
         cells <- split(edat,list(edat$P1,edat$P2))
         all.comb <- apply(expand.grid(1:(NR),1:(NC)),1,paste,collapse=".")
     } else{
-          cells <- split(edat,list(factor(edat$P1,levels=1:NR),factor(edat$P2,levels=1:NR)))
-          all.comb <- apply(expand.grid(1:(NR),1:(NR)),1,paste,collapse=".")
-      }
+        cells <- split(edat,list(factor(edat$P1,levels=1:NR),factor(edat$P2,levels=1:NR)))
+        all.comb <- apply(expand.grid(1:(NR),1:(NR)),1,paste,collapse=".")
+    }
     nn <- names(object)
     if (!is.null(nn) & length(nn)==2){
         names(dimnames(retab)) <- nn
@@ -181,54 +181,54 @@ reclass <- function(object,
                                            ## warn if too short followup
                                            if (all(x$time<time)) {
                                                warning(call.=FALSE,paste0("pec::reclass: Cell row ",
-                                                           sub("\\."," column ",cc),
-                                                           " no subject was followed until time ",
-                                                           time,
-                                                           ". Result is NA (not available)."))
+                                                                          sub("\\."," column ",cc),
+                                                                          " no subject was followed until time ",
+                                                                          time,
+                                                                          ". Result is NA (not available)."))
                                                rep(NA,length(availableCauses))
                                            } else{
-                                                 fit.x <- prodlim::prodlim(eformula,data=x)
-                                                 fitted.causes <- attr(fit.x$model.response,"states")
-                                                 nstates <- length(fitted.causes)
-                                                 sapply(availableCauses,function(j){
-                                                            ## it may happen that cause j
-                                                            ## does not occur in this cell
-                                                            if (sum(x$event==j)>0){
-                                                                ## check if there is more than one cause
-                                                                if (nstates<length(availableCauses)){
-                                                                    if (nstates==1){
-                                                                        ## only one cause
-                                                                        predict(fit.x,times=time,type="cuminc")
-                                                                    } else{
-                                                                          ## competing causes but less than all causes
-                                                                          ## need to change the value of cause
-                                                                          xj.cause <- match(j,fitted.causes,nomatch=0)
-                                                                          if (xj.cause==0)
-                                                                              stop(paste0("Cause ",j,"does not appear in fit. Fitted are causes: ",fitted.causes))
-                                                                          else{
-                                                                              predict(fit.x,times=time,cause=xj.cause,type="cuminc")
-                                                                          }
-                                                                      }
-                                                                }else{
-                                                                     predict(fit.x,times=time,cause=j,type="cuminc")
-                                                                 }
-                                                            } else {
-                                                                  ## warn if no event of type j
-                                                                  jstring <- j
-                                                                  if (as.character(j)%in%availableCauses[[j]])
-                                                                      jstring <- paste0(j," (",availableCauses[[j]],")")
-                                                                  warning(call.=FALSE,paste0("pec::reclass: Cell row ",
-                                                                              sub("\\."," column ",cc),
-                                                                              " no event of type ",
-                                                                              jstring,". Result is 0."))
-                                                                  return(0)
-                                                              }
-                                                        })
-                                             }
+                                               fit.x <- prodlim::prodlim(eformula,data=x)
+                                               fitted.causes <- attr(fit.x$model.response,"states")
+                                               nstates <- length(fitted.causes)
+                                               sapply(availableCauses,function(j){
+                                                   ## it may happen that cause j
+                                                   ## does not occur in this cell
+                                                   if (sum(x$event==j)>0){
+                                                       ## check if there is more than one cause
+                                                       if (nstates<length(availableCauses)){
+                                                           if (nstates==1){
+                                                               ## only one cause
+                                                               predict(fit.x,times=time,type="cuminc")
+                                                           } else{
+                                                               ## competing causes but less than all causes
+                                                               ## need to change the value of cause
+                                                               xj.cause <- match(j,fitted.causes,nomatch=0)
+                                                               if (xj.cause==0)
+                                                                   stop(paste0("Cause ",j,"does not appear in fit. Fitted are causes: ",fitted.causes))
+                                                               else{
+                                                                   predict(fit.x,times=time,cause=xj.cause,type="cuminc")
+                                                               }
+                                                           }
+                                                       }else{
+                                                           predict(fit.x,times=time,cause=j,type="cuminc")
+                                                       }
+                                                   } else {
+                                                       ## warn if no event of type j
+                                                       jstring <- j
+                                                       if (as.character(j)%in%availableCauses[[j]])
+                                                           jstring <- paste0(j," (",availableCauses[[j]],")")
+                                                       warning(call.=FALSE,paste0("pec::reclass: Cell row ",
+                                                                                  sub("\\."," column ",cc),
+                                                                                  " no event of type ",
+                                                                                  jstring,". Result is 0."))
+                                                       return(0)
+                                                   }
+                                               })
+                                           }
                                        } else{
-                                             ## empty cell
-                                             rep(0,length(availableCauses))
-                                         }}))
+                                           ## empty cell
+                                           rep(0,length(availableCauses))
+                                       }}))
         fit <- prodlim::prodlim(eformula,data=edat)
         cuminc <- unlist(lapply(availableCauses,function(j){predict(fit,times=time,cause=j,type="cuminc")}))
         Px <- apply(cuminc.x * Hx,1,function(p){p/ cuminc})
@@ -237,49 +237,51 @@ reclass <- function(object,
         efreesurv.x <- 1-rowSums(cuminc.x,na.rm=TRUE)
         Px <- rbind(Px,"eventfree"=efreesurv.x * Hx / efreesurv)
         event.retab <- lapply(1:NROW(Px),function(xx){
-                                        matrix(Px[xx,],ncol=NR)
-                                        matrix(Px[xx,],ncol=NR,dimnames=dimnames(retab))
-                                    })
+            matrix(Px[xx,],ncol=NR)
+            matrix(Px[xx,],ncol=NR,dimnames=dimnames(retab))
+        })
         names(event.retab) <- c(paste("Event:",availableCauses),"Event-free")
     } else{
-          ## --------------------------------------------------------------------------------------
-          ## Survival
-          ##
-          ## P(X=x|T<=t) = P(X=x,T<=t) /P(T<=t)
-          ##             = P(T<=t|X=x) P(X=x) /P(T<=t)
-          ##             = cuminc.x * Hx / cuminc
-          ##
-          ## P(X=x|T>t)  = P(X=x,T>t) /P(T>t)
-          ##             = surv.x * Hx / surv
-          ## 
-          ## --------------------------------------------------------------------------------------
-          eformula <- Hist(time,status)~1
-          Hx <- unlist(lapply(cells,NROW))/N
-          cuminc <- predict(prodlim::prodlim(eformula,data=edat),times=time,type="cuminc")
-          cuminc.x <- sapply(cells,function(x){
-                                 if (NROW(x)>0){
-                                     ## warn if too short followup
-                                     if (all(x$time<time)) {
-                                         warning(call.=FALSE,paste0("pec::reclass: ",
-                                                     ## sub("\\."," column ",cc),
-                                                     " no subject was followed until time ",
-                                                     time,
-                                                     ". Result is NA (not available)."))
-                                         NA
-                                     }else{
-                                          predict(prodlim::prodlim(eformula,data=x),times=time)
-                                      }
-                                 } else {
-                                       ## empty cell
-                                       0
-                                   }
-                             })
-          surv <- 1-cuminc
-          surv.x <- 1-cuminc.x
-          dimnames=dimnames(retab)
-          event.retab <- list("event"=matrix(cuminc.x*Hx/surv,ncol=NC,dimnames=dimnames(retab)),
-                              "eventfree"=matrix(surv.x * Hx / surv,ncol=NC,dimnames=dimnames(retab)))
-      }
+        ## --------------------------------------------------------------------------------------
+        ## Survival
+        ##
+        ## event:
+        ## P(X=x|T<=t) = P(X=x,T<=t) /P(T<=t)
+        ##             = P(T<=t|X=x) P(X=x) /P(T<=t)
+        ##             = cuminc.x * Hx / cuminc
+        ##
+        ## event-free:
+        ## P(X=x|T>t)  = P(X=x,T>t) /P(T>t)
+        ##             = surv.x * Hx / surv
+        ## 
+        ## --------------------------------------------------------------------------------------
+        eformula <- Hist(time,status)~1
+        Hx <- unlist(lapply(cells,NROW))/N
+        cuminc <- predict(prodlim::prodlim(eformula,data=edat),times=time,type="cuminc")
+        cuminc.x <- sapply(cells,function(x){
+            if (NROW(x)>0){
+                ## warn if too short followup
+                if (all(x$time<time)) {
+                    warning(call.=FALSE,paste0("pec::reclass: ",
+                                               ## sub("\\."," column ",cc),
+                                               " no subject was followed until time ",
+                                               time,
+                                               ". Result is NA (not available)."))
+                    NA
+                }else{
+                    predict(prodlim::prodlim(eformula,data=x),times=time,type="cuminc")
+                }
+            } else {
+                ## empty cell
+                0
+            }
+        })
+        surv <- 1-cuminc
+        surv.x <- 1-cuminc.x
+        dimnames=dimnames(retab)
+        event.retab <- list("event"=matrix(cuminc.x * Hx / cuminc,ncol=NC,dimnames=dimnames(retab)),
+                            "eventfree"=matrix(surv.x * Hx / surv,ncol=NC,dimnames=dimnames(retab)))
+    }
     out <- list(time=time,
                 predictedRisk=predrisk,
                 reclassification=retab,

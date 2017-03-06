@@ -211,7 +211,7 @@
 #' 	       formula=Surv(time,status)~1,
 #' 	       data=dat,
 #' 	       eval.times=Inf)
-#' p1 <- predictSurvProb(fit1,newdata=dat,times=c(10))
+#' p1 <- predictSurvProb(fit1,newdata=dat,times=10)
 #' p2 <- predictSurvProb(fit2,newdata=dat,times=10)
 #' p12 <- predictSurvProb(fit12,newdata=dat,times=10)
 #' harrelC1 <- rcorr.cens(p1,with(dat,Surv(time,status)))
@@ -547,7 +547,7 @@ cindex <- function(object,
                                   as.integer(tiedMatchIn),
                                   as.integer(!is.null(dim(weight.j))),
                                   NAOK=TRUE,
-                                  package="pec")
+                                  PACKAGE="pec")
             AppCindex <- AppCindexResult$cindex
             AppPairsA <- AppCindexResult$pairsA
             AppConcordantA <- AppCindexResult$concA
@@ -566,7 +566,7 @@ cindex <- function(object,
                 pred <- rep(pred,length(eval.times))
             if (length(pred)!=N*NT) stop(paste0("Prediction of model ",names(object)[f]," has wrong dimension: ",NROW(pred)," rows and ",NCOL(pred), " columns. Should have ",N, "rows and ",NT," columns."))
             ## if (any(is.na(pred))) stop(paste0("Missing values in prediction of model: ", names(object)[f]))
-            AppCindexResult <- .C("cindex",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,package="pec")
+            AppCindexResult <- .C("cindexSRC",cindex=double(NT),conc=double(NT),pairs=double(NT),as.integer(tindex),as.double(Y),as.integer(status),as.double(eval.times),as.double(weight.i),as.double(weight.j),as.double(pred),as.integer(N),as.integer(NT),as.integer(tiedPredictionsIn),as.integer(tiedOutcomeIn),as.integer(tiedMatchIn),as.integer(!is.null(dim(weight.j))),NAOK=TRUE,PACKAGE="pec")
             AppCindex <- AppCindexResult$cindex
             AppPairs <- AppCindexResult$pairs
             AppConcordant <- AppCindexResult$conc

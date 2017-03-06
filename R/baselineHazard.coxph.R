@@ -29,7 +29,7 @@ baselineHazard.coxph <- function(object,x,y,times=NULL){
            N=as.integer(length(time)),
            NJ=as.integer(length(jumptimes)),
            ## DUP=FALSE,
-           package="pec")$S
+           PACKAGE="pec")$S
   ## S01 <- sapply(jumptimes,function(s){
   ## sum(elp * (time>=s))
   ## })

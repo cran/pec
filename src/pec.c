@@ -1,7 +1,7 @@
 #include <math.h>
 #include <R.h>
 /* survival probabilities */
-void pec(double *pec,
+void pecSRC(double *pec,
 	 double *Y,
 	 double *D,
 	 double *times,

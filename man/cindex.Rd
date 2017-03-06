@@ -246,7 +246,7 @@ Cpec <- cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),
 	       formula=Surv(time,status)~1,
 	       data=dat,
 	       eval.times=Inf)
-p1 <- predictSurvProb(fit1,newdata=dat,times=c(10))
+p1 <- predictSurvProb(fit1,newdata=dat,times=10)
 p2 <- predictSurvProb(fit2,newdata=dat,times=10)
 p12 <- predictSurvProb(fit12,newdata=dat,times=10)
 harrelC1 <- rcorr.cens(p1,with(dat,Surv(time,status)))

@@ -86,7 +86,7 @@ kFoldCrossValidation <- function(object,
                                        NAOK=TRUE,
                                        PACKAGE="pec")$pec
             else
-                innerCrossValErr <- .C("pec",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred.b),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
+                innerCrossValErr <- .C("pecSRC",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred.b),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred.b))),NAOK=TRUE,PACKAGE="pec")$pec
             innerCrossValErr
         })
         names(pec) <- names(object)

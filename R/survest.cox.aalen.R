@@ -15,7 +15,7 @@
   time.vars <- cbind(1,newdata[,names(time.coef)[-(1:2)],drop=FALSE])
   nobs <- nrow(newdata)
   
-  time.part <- .C("survest_cox_aalen",timehazard=double(ntime*nobs),as.double(unlist(time.coef[,-1])),as.double(unlist(time.vars)),as.integer(ntimevars+1),as.integer(nobs),as.integer(ntime),package="pecDev")$timehazard
+  time.part <- .C("survest_cox_aalen",timehazard=double(ntime*nobs),as.double(unlist(time.coef[,-1])),as.double(unlist(time.vars)),as.integer(ntimevars+1),as.integer(nobs),as.integer(ntime),PACKAGE="pec")$timehazard
   
   time.part <- matrix(time.part,
                       ncol=ntime,

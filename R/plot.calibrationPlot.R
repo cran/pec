@@ -3,9 +3,9 @@
 ## author: Thomas Alexander Gerds
 ## created: Sep 28 2015 (17:32) 
 ## Version: 
-## last-updated: Oct  4 2015 (13:11) 
+## last-updated: Aug 19 2016 (13:19) 
 ##           By: Thomas Alexander Gerds
-##     Update #: 131
+##     Update #: 140
 #----------------------------------------------------------------------
 ## 
 ### Commentary: 
@@ -47,13 +47,13 @@ plot.calibrationPlot <- function(x,...){
         if(is.logical(x$legend[1]) && x$legend[1]==FALSE){
             control$barplot$legend.text <- NULL
         }else{
-             if (is.null(control$barplot$legend.text)){
-                 control$barplot$legend.text <- control$legend$legend
-             }
-             ## }else{
-             control$barplot$args.legend <- control$legend
-             ## }
-         }
+            if (is.null(control$barplot$legend.text)){
+                control$barplot$legend.text <- control$legend$legend
+            }
+            ## }else{
+            control$barplot$args.legend <- control$legend
+            ## }
+        }
         if (is.null(control$barplot$space))
             control$barplot$space <- rep(c(1,0),length(Pred))
         PredObs <- c(rbind(Pred,Obs))
@@ -83,8 +83,9 @@ plot.calibrationPlot <- function(x,...){
         }
         ## if (x$legend) print(control$barplot$args.legend)n
         ## message(paste0("Bars are located at ",paste(coord,collapse=",")))
-        if (x$hanging)
+        if (x$hanging){
             do.call("abline",control$abline)
+        }
         if (x$showFrequencies){
             if(x$hanging){
                 text(x=coord,
@@ -93,13 +94,14 @@ plot.calibrationPlot <- function(x,...){
                      y=(as.vector(rbind(Pred,Pred)) +rep(control$frequencies$offset,times=length(as.vector(coord))/2)),
                      paste(round(100*c(rbind(Pred,Obs)),0),ifelse(control$frequencies$percent,"%",""),sep=""),xpd=NA)
             }else{
-                 text(coord,
-                      pos=3,
-                      c(rbind(Pred,Obs))+control$frequencies$offset,
-                      cex=control$frequencies$cex,
-                      paste(round(100*c(rbind(Pred,Obs)),0),ifelse(control$frequencies$percent,"%",""),sep=""),xpd=NA)
-             }
+                text(coord,
+                     pos=3,
+                     c(rbind(Pred,Obs))+control$frequencies$offset,
+                     cex=control$frequencies$cex,
+                     paste(round(100*c(rbind(Pred,Obs)),0),ifelse(control$frequencies$percent,"%",""),sep=""),xpd=NA)
+            }
         }
+        list(xcoord=coord[,1],ycoord=PredObs,offset=control$barplot$offset)
     }
     showCal <- function(f){
         if (is.null(x$pseudo.col)){
@@ -118,12 +120,12 @@ plot.calibrationPlot <- function(x,...){
         if(NROW(pf)==1){
             plottype <- "p"
         } else{
-              if (x$method=="quantile"){
-                  plottype <- "b"
-              } else{
-                    plottype <- "l"
-                }
-          }
+            if (x$method=="quantile"){
+                plottype <- "b"
+            } else{
+                plottype <- "l"
+            }
+        }
         pf <- na.omit(pf)
         if (x$model.type=="survival" && x$type!="survival"){
             lines(1-pf$Pred,1-pf$Obs,col=x$col[f],lwd=x$lwd[f],lty=x$lty[f],type=plottype)
@@ -133,13 +135,14 @@ plot.calibrationPlot <- function(x,...){
     }
     if (x$bars) {
         stopifnot(NF==1)
-        showBars()
+        coords <- showBars()
     }else{
-         nix <- lapply(1:NF,function(f)showCal(f))
-         if (!(is.logical(x$legend[1]) && x$legend[1]==FALSE)){
-             do.call("legend",control$legend)
-         }
-     }
+        nix <- lapply(1:NF,function(f)showCal(f))
+        if (!(is.logical(x$legend[1]) && x$legend[1]==FALSE)){
+            do.call("legend",control$legend)
+        }
+        coords <- NULL
+    }
     # }}}
     # {{{ axes
     if (x$axes){
@@ -162,7 +165,7 @@ plot.calibrationPlot <- function(x,...){
         ## par(mgp=oldmgp)
         ## }
     }
-    invisible(NULL)
+    invisible(coords)
     # }}}
 }
 

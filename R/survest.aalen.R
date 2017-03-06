@@ -12,7 +12,7 @@
                  as.double(unlist(time.vars)),
                  as.integer(ntimevars+1),
                  as.integer(nobs),
-                 as.integer(ntime),package="pecDev")$timehazard
+                 as.integer(ntime),PACKAGE="pec")$timehazard
     hazard <- matrix(hazard,ncol=ntime,nrow=nobs,dimnames=list(1:nobs,paste("TP",1:ntime,sep="")))
     surv <- pmin(exp(-hazard),1)
     if (missing(times)) times <- sort(unique(fittime))

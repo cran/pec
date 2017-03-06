@@ -83,7 +83,8 @@ computing efficiency in large data sets.}
 
 \item{bars}{If \code{TRUE}, use barplots to show calibration.}
 
-\item{hanging}{Barplots only. If \code{TRUE}, hang bars corresponding to observed frequencies at the value of the corresponding prediction.}
+\item{hanging}{Barplots only. If \code{TRUE}, hang bars corresponding to observed frequencies
+at the value of the corresponding prediction.}
 
 \item{names}{Barplots only. Names argument passed to \code{names.arg} of \code{barplot}.}
 
@@ -182,7 +183,13 @@ calPlot(f,time=3,data=dval,type="survival")
 calPlot(f,time=3,data=dval,bars=TRUE,pseudo=FALSE)
 calPlot(f,time=3,data=dval,bars=TRUE,type="risk",pseudo=FALSE)
 
+## show a red line which follows the hanging bars
 calPlot(f,time=3,data=dval,bars=TRUE,hanging=TRUE)
+a <- calPlot(f,time=3,data=dval,bars=TRUE,hanging=TRUE,abline.col=NULL)
+lines(c(0,1,ceiling(a$xcoord)),
+      c(a$offset[1],a$offset,a$offset[length(a$offset)]),
+      col=2,lwd=5,type="s")
+
 calPlot(f,time=3,data=dval,bars=TRUE,type="risk",hanging=TRUE)
 
 set.seed(13)
