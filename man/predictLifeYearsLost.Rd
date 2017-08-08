@@ -3,10 +3,10 @@
 \name{predictLifeYearsLost}
 \alias{predictLifeYearsLost}
 \alias{predictLifeYearsLost.CauseSpecificCox}
+\alias{predictLifeYearsLost.riskRegression}
 \alias{predictLifeYearsLost.FGR}
 \alias{predictLifeYearsLost.prodlim}
 \alias{predictLifeYearsLost.rfsrc}
-\alias{predictLifeYearsLost.riskRegression}
 \title{Predicting life years lost (cumulative cumulative incidences) in competing
 risk models.}
 \usage{
@@ -56,11 +56,10 @@ fit <- CSC(Hist(time,cause)~X1+X2,data=train,cause=1)
 predictLifeYearsLost(fit,newdata=test,times=seq(1:10),cv=FALSE,cause=1)
 
 }
-\author{
-Thomas A. Gerds \email{tag@biostat.ku.dk}
-}
 \seealso{
 \code{\link{predictSurvProb}}, \code{\link{predictEventProb}}.
 }
+\author{
+Thomas A. Gerds \email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-

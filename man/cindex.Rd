@@ -209,7 +209,7 @@ library(prodlim)
  #
  # compute the apparent estimate of the C-index at different time points
  #
-ApparrentCindex  <- cindex(list("Cox X1"=cox1,
+ApparrentCindex  <- pec::cindex(list("Cox X1"=cox1,
 		       "Cox X2"=cox2,
 		       "Cox X1+X2"=cox12,
                        "RSF"=rsf1),
@@ -223,7 +223,7 @@ ApparrentCindex  <- cindex(list("Cox X1"=cox1,
  # the C-index at different time points
  #
 set.seed(142)
-bcvCindex  <- cindex(list("Cox X1"=cox1,
+bcvCindex  <- pec::cindex(list("Cox X1"=cox1,
 		       "Cox X2"=cox2,
 		       "Cox X1+X2"=cox12,
                        "RSF"=rsf1),
@@ -242,7 +242,7 @@ dat <- SimSurv(30,cens=FALSE)
 fit12 <- coxph(Surv(time,status)~X1+X2,data=dat)
 fit1 <- coxph(Surv(time,status)~X1,data=dat)
 fit2 <- coxph(Surv(time,status)~X2,data=dat)
-Cpec <- cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),
+Cpec <- pec::cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),
 	       formula=Surv(time,status)~1,
 	       data=dat,
 	       eval.times=Inf)
@@ -263,11 +263,8 @@ library(prodlim)
 set.seed(30)
 dcr.learn <- SimCompRisk(30)
 dcr.val <- SimCompRisk(30)
-cindex(CSC(Hist(time,event)~X1+X2,data=dcr.learn),data=dcr.val)
+pec::cindex(CSC(Hist(time,event)~X1+X2,data=dcr.learn),data=dcr.val)
 
-}
-\author{
-Thomas A Gerds \email{tag@biostat.ku.dk}
 }
 \references{
 TA Gerds, MW Kattan, M Schumacher, and C Yu. Estimating a time-dependent
@@ -283,5 +280,7 @@ Andersen, PK (2012) A note on the decomposition of number of life years lost
 according to causes of death Research report 12/2. Department of
 Biostatistics, University of Copenhagen
 }
+\author{
+Thomas A Gerds \email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-

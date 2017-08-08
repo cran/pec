@@ -102,10 +102,9 @@ wallyPlot(f2,
 }
 
 }
-\author{
-Paul F. Blanche <paul.blanche@univ-ubs.fr> and Thomas A. Gerds <tag@biostat.ku.dk>
-}
 \seealso{
 calPlot
 }
-
+\author{
+Paul F. Blanche <paul.blanche@univ-ubs.fr> and Thomas A. Gerds <tag@biostat.ku.dk>
+}

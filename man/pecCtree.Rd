@@ -26,10 +26,9 @@ f <- pecCtree(Surv(time,status)~X1+X2,data=d)
 predictSurvProb(f,newdata=nd,times=c(3,8))
 
 }
-\author{
-Thomas A. Gerds <tag@biostat.ku.dk>
-}
 \seealso{
 pecCforest
 }
-
+\author{
+Thomas A. Gerds <tag@biostat.ku.dk>
+}

@@ -50,4 +50,3 @@ sets.
 Thomas Alexander Gerds \email{tag@biostat.ku.dk}
 }
 \keyword{prediction}
-

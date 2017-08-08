@@ -3,20 +3,20 @@
 \name{predictSurvProb}
 \alias{predictSurvProb}
 \alias{predictSurvProb.aalen}
+\alias{predictSurvProb.riskRegression}
 \alias{predictSurvProb.cox.aalen}
 \alias{predictSurvProb.coxph}
 \alias{predictSurvProb.cph}
 \alias{predictSurvProb.default}
+\alias{predictSurvProb.rfsrc}
 \alias{predictSurvProb.matrix}
-\alias{predictSurvProb.pecCforest}
 \alias{predictSurvProb.pecCtree}
-\alias{predictSurvProb.pecRpart}
+\alias{predictSurvProb.pecCforest}
 \alias{predictSurvProb.prodlim}
 \alias{predictSurvProb.psm}
-\alias{predictSurvProb.rfsrc}
-\alias{predictSurvProb.riskRegression}
 \alias{predictSurvProb.selectCox}
 \alias{predictSurvProb.survfit}
+\alias{predictSurvProb.pecRpart}
 \title{Predicting survival probabilities}
 \usage{
 \method{predictSurvProb}{aalen}(object,newdata,times,...)
@@ -135,9 +135,6 @@ plot(predictSurvProb(f1,newdata=valdat,times=10),
 
 
 }
-\author{
-Thomas A. Gerds \email{tag@biostat.ku.dk}
-}
 \references{
 Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).
 Evaluating Random Forests for Survival Analysis Using Prediction Error
@@ -147,5 +144,7 @@ http://www.jstatsoft.org/v50/i11/.
 \seealso{
 \code{\link{predict}},\code{\link{survfit}}
 }
+\author{
+Thomas A. Gerds \email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-

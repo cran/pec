@@ -87,4 +87,3 @@ Rob C.M. van Kruijsdijk \email{R.C.M.vanKruijsdijk@umcutrecht.nl}
 Thomas Alexander Gerds \email{tag@biostat.ku.dk}
 }
 \keyword{survival}
-

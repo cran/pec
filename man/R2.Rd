@@ -52,9 +52,6 @@ perror=pec(list(Cox1=pmodel1,Cox2=pmodel2),Hist(time,status)~1,data=dat,referenc
 R2(perror,times=seq(0,1,.1),reference=1)
 
 }
-\author{
-Thomas A. Gerds \email{tag@biostat.ku.dk}
-}
 \references{
 E. Graf et al.  (1999), Assessment and comparison of prognostic
 classification schemes for survival data. Statistics in Medicine, vol 18,
@@ -66,5 +63,7 @@ models Biometrical Journal, 50(4), 457--479
 \seealso{
 \code{\link{pec}}
 }
+\author{
+Thomas A. Gerds \email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-

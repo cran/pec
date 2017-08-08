@@ -47,4 +47,3 @@ Andersen and Skovgaard. Regression with linear predictors.
 Springer, 2010.
 }
 \keyword{datasets}
-

@@ -19,9 +19,9 @@ curve(s)}
 string matching an element of x. The default is determined by
 splitMethod.}
 
-\item{print}{Set to FALSE to suppress printing.}
-
 \item{\dots}{Not used}
+
+\item{print}{Set to FALSE to suppress printing.}
 }
 \value{
 The first argument in the invisible cloak.
@@ -30,11 +30,10 @@ The first argument in the invisible cloak.
 Print the important arguments of call and the prediction error values at
 selected time points.
 }
-\author{
-Thomas A. Gerds \email{tag@biostat.ku.dk}
-}
 \seealso{
 \code{\link{pec}}
 }
+\author{
+Thomas A. Gerds \email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-

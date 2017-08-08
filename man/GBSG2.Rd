@@ -26,4 +26,3 @@ node-positive breast cancer patients.  \emph{Journal of Clinical Oncology},
 \bold{12}, 2086--2093.
 }
 \keyword{datasets}
-

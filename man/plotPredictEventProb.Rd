@@ -74,10 +74,6 @@ These arguments are processed via \code{\dots{}} of
 # generate some competing risk data
 
 }
-\author{
-Ulla B. Mogensen \email{ulmo@biostat.ku.dk}, Thomas A. Gerds
-\email{tag@biostat.ku.dk}
-}
 \references{
 Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).
 Evaluating Random Forests for Survival Analysis Using Prediction Error
@@ -87,5 +83,8 @@ http://www.jstatsoft.org/v50/i11/.
 \seealso{
 \code{\link{predictEventProb}}\code{\link{prodlim}}
 }
+\author{
+Ulla B. Mogensen \email{ulmo@biostat.ku.dk}, Thomas A. Gerds
+\email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-

@@ -51,4 +51,3 @@ as \code{Special.arg} in the call to \code{plot.pec}.
 \seealso{
 \code{\link{plot.pec}}
 }
-

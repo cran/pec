@@ -17,10 +17,9 @@ Nothing
 \description{
 Calibration plots
 }
-\author{
-Thomas A. Gerds <tag@biostat.ku.dk>
-}
 \seealso{
 \code{calPlot}
 }
-
+\author{
+Thomas A. Gerds <tag@biostat.ku.dk>
+}

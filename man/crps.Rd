@@ -53,9 +53,6 @@ crps(perror,times=seq(0,1,.2),start=0) # between 0 and seq(0,1,.2)
 
 
 }
-\author{
-Thomas A. Gerds \email{tag@biostat.ku.dk}
-}
 \references{
 E. Graf et al.  (1999), Assessment and comparison of prognostic
 classification schemes for survival data. Statistics in Medicine, vol 18,
@@ -67,5 +64,7 @@ models Biometrical Journal, 50(4), 457--479
 \seealso{
 \code{\link{pec}}
 }
+\author{
+Thomas A. Gerds \email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-

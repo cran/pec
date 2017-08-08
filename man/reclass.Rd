@@ -66,10 +66,9 @@ print(rc)
 reclass(crPred5,Hist(time,event)~1,data=ndcr,time=5,cuts=100*c(0,0.05,0.1,0.2,1))
 }
 }
-\author{
-Thomas A. Gerds <tag@biostat.ku.dk>
-}
 \seealso{
 predictStatusProb
 }
-
+\author{
+Thomas A. Gerds <tag@biostat.ku.dk>
+}

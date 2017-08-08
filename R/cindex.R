@@ -174,7 +174,7 @@
 #'  #
 #'  # compute the apparent estimate of the C-index at different time points
 #'  #
-#' ApparrentCindex  <- cindex(list("Cox X1"=cox1,
+#' ApparrentCindex  <- pec::cindex(list("Cox X1"=cox1,
 #' 		       "Cox X2"=cox2,
 #' 		       "Cox X1+X2"=cox12,
 #'                        "RSF"=rsf1),
@@ -188,7 +188,7 @@
 #'  # the C-index at different time points
 #'  #
 #' set.seed(142)
-#' bcvCindex  <- cindex(list("Cox X1"=cox1,
+#' bcvCindex  <- pec::cindex(list("Cox X1"=cox1,
 #' 		       "Cox X2"=cox2,
 #' 		       "Cox X1+X2"=cox12,
 #'                        "RSF"=rsf1),
@@ -207,7 +207,7 @@
 #' fit12 <- coxph(Surv(time,status)~X1+X2,data=dat)
 #' fit1 <- coxph(Surv(time,status)~X1,data=dat)
 #' fit2 <- coxph(Surv(time,status)~X2,data=dat)
-#' Cpec <- cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),
+#' Cpec <- pec::cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),
 #' 	       formula=Surv(time,status)~1,
 #' 	       data=dat,
 #' 	       eval.times=Inf)
@@ -228,7 +228,7 @@
 #' set.seed(30)
 #' dcr.learn <- SimCompRisk(30)
 #' dcr.val <- SimCompRisk(30)
-#' cindex(CSC(Hist(time,event)~X1+X2,data=dcr.learn),data=dcr.val)
+#' pec::cindex(CSC(Hist(time,event)~X1+X2,data=dcr.learn),data=dcr.val)
 #'
 #' @export 
 # {{{ header cindex.list

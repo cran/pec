@@ -38,4 +38,3 @@ survival analysis using prediction error curves. Technical Report 8,
 University of Copenhagen, Department of Biostatistics, 2010.
 }
 \keyword{datasets}
-

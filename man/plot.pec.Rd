@@ -136,12 +136,11 @@ plot(PredError.632plus,
 
 
 }
+\seealso{
+\code{\link{pec}}\code{\link{summary.pec}}\code{\link{Special}}\code{\link{prodlim}}
+}
 \author{
 Ulla B. Mogensen \email{ulmo@biostat.ku.dk}, Thomas A. Gerds
 \email{tag@biostat.ku.dk}
 }
-\seealso{
-\code{\link{pec}}\code{\link{summary.pec}}\code{\link{Special}}\code{\link{prodlim}}
-}
 \keyword{survival}
-

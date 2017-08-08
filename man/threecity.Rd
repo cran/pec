@@ -34,4 +34,3 @@ time-to-event in presence of censoring and competing risks.
 Biometrics, 71(1), 102-113.
 }
 \keyword{datasets}
-

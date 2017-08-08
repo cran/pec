@@ -226,4 +226,3 @@ calPlot(fgr,time=5,bars=TRUE,hanging=TRUE)
 Thomas Alexander Gerds \email{tag@biostat.ku.dk}
 }
 \keyword{survival}
-

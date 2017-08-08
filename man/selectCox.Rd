@@ -39,4 +39,3 @@ Curves. Journal of Statistical Software, 50(11), 1-23. URL
 http://www.jstatsoft.org/v50/i11/.
 }
 \keyword{survival}
-

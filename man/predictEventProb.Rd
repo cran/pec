@@ -3,10 +3,10 @@
 \name{predictEventProb}
 \alias{predictEventProb}
 \alias{predictEventProb.CauseSpecificCox}
+\alias{predictEventProb.riskRegression}
 \alias{predictEventProb.FGR}
 \alias{predictEventProb.prodlim}
 \alias{predictEventProb.rfsrc}
-\alias{predictEventProb.riskRegression}
 \title{Predicting event probabilities (cumulative incidences) in competing risk
 models.}
 \usage{
@@ -63,11 +63,10 @@ cox.fit2  <- CSC(list(Hist(time,cause)~strata(X1)+X2,Hist(time,cause)~X1+X2),dat
 predictEventProb(cox.fit2,newdata=test,times=seq(1:10),cause=1)
 
 }
-\author{
-Thomas A. Gerds \email{tag@biostat.ku.dk}
-}
 \seealso{
 See \code{\link{predictSurvProb}}.
 }
+\author{
+Thomas A. Gerds \email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-

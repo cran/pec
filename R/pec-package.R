@@ -43,8 +43,6 @@
 #' @importFrom utils capture.output head select.list
 #' @keywords datasets
 NULL
-
-
 #' German Breast Cancer Study Group 2
 #' 
 #' A data frame containing the observations from the GBSG2 study.

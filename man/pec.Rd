@@ -386,9 +386,6 @@ f4  <- FGR(Hist(time,event)~X1+X2,cause=2,data=cdat)
 p1 <- pec(list(f1,f1a,f2,f3,f4),formula=Hist(time,event)~1,data=cdat,cause=2)
 
 }
-\author{
-Thomas Alexander Gerds \email{tag@biostat.ku.dk}
-}
 \references{
 Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).
 Evaluating Random Forests for Survival Analysis Using Prediction Error
@@ -422,5 +419,7 @@ the prediction error difference between 2 predictors Biostatistics (2009)
 \code{\link{plot.pec}}, \code{\link{summary.pec}},
 \code{\link{R2}}, \code{\link{crps}}
 }
+\author{
+Thomas Alexander Gerds \email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-

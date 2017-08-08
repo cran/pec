@@ -21,4 +21,3 @@ This uses functionality of the lava package.
 \author{
 Thomas Alexander Gerds
 }
-

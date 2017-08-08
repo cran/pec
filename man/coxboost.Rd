@@ -39,14 +39,13 @@ Formula interface for function \code{CoxBoost} of package \code{CoxBoost}.
 \details{
 See \code{CoxBoost}.
 }
-\author{
-Thomas Alexander Gerds \email{tag@biostat.ku.dk}
-}
 \references{
 See \code{CoxBoost}.
 }
 \seealso{
 See \code{CoxBoost}.
 }
+\author{
+Thomas Alexander Gerds \email{tag@biostat.ku.dk}
+}
 \keyword{survival}
-
