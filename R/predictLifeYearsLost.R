@@ -140,46 +140,34 @@ predictLifeYearsLost.ARR <- function(object,newdata,times,cause,...){
 
 ##' @export
 predictLifeYearsLost.CauseSpecificCox <- function (object, newdata, times, cause, ...) {
-  survtype <- object$survtype
-  N <- NROW(newdata)
-  NC <- length(object$model)
-  eTimes <- object$eventTimes
-  if (missing(cause))
-    cause <- object$theCause
-  causes <- object$causes
-  stopifnot(match(as.character(cause),causes,nomatch=0)!=0)
-  if (survtype=="survival"){
-    if (object$theCause!=cause)
-      stop("Object can be used to predict cause ",object$theCause," but not ",cause,".\nNote: the cause can be specified in CSC(...,cause=).")
-  }
-  # predict cumulative cause specific hazards
-  cumHaz1 <- -log(predictSurvProb(object$models[[paste("Cause",cause)]],times=eTimes,newdata=newdata))
-  if (length(eTimes)==1)
-    Haz1 <- cumHaz1
-  else
-    Haz1 <- t(apply(cbind(0,cumHaz1),1,diff))
-  if (survtype=="hazard"){
+    N <- NROW(newdata)
+    NC <- length(object$model)
+    eTimes <- object$eventTimes
+    if (missing(cause))
+        cause <- object$theCause
+    causes <- object$causes
+    stopifnot(match(as.character(cause),causes,nomatch=0)!=0)
+    # predict cumulative cause specific hazards
+    cumHaz1 <- -log(predictSurvProb(object$models[[paste("Cause",cause)]],times=eTimes,newdata=newdata))
+    if (length(eTimes)==1)
+        Haz1 <- cumHaz1
+    else
+        Haz1 <- t(apply(cbind(0,cumHaz1),1,diff))
     cumHazOther <- lapply(causes[-match(cause,causes)],function(c){
-      -log(predictSurvProb(object$models[[paste("Cause",c)]],times=eTimes,newdata=newdata))
+        -log(predictSurvProb(object$models[[paste("Cause",c)]],times=eTimes,newdata=newdata))
     })
     lagsurv <- exp(-cumHaz1 - Reduce("+",cumHazOther))
     cif <- t(apply(lagsurv*Haz1,1,cumsum))
-  }
-  else{
-    tdiff <- min(diff(eTimes))/2
-    lagsurv <- predictSurvProb(object$models[["OverallSurvival"]],times=eTimes-tdiff,newdata=newdata)
-    cif <- t(apply(lagsurv*Haz1,1,cumsum))
-  }
-  pos <- prodlim::sindex(jump.times=eTimes,eval.times=times)
-  lyl <- matrix(unlist(lapply(1:length(pos), function(j) {
-    pos.j <- 1:(pos[j]+1)
-    p <- cbind(0,cif)[,pos.j,drop=FALSE]
-    time.diff <- diff(c(0, eTimes)[pos.j])
-    apply(p, 1, function(x) {sum(x[-length(x)] * time.diff)})
-  })), ncol = length(pos))
-  if (NROW(lyl) != NROW(newdata) || NCOL(lyl) != length(times))
-            stop(paste("\nLYL matrix has wrong dimension:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(lyl)," x ",NCOL(lyl),"\n\n",sep=""))
-  lyl
+    pos <- prodlim::sindex(jump.times=eTimes,eval.times=times)
+    lyl <- matrix(unlist(lapply(1:length(pos), function(j) {
+        pos.j <- 1:(pos[j]+1)
+        p <- cbind(0,cif)[,pos.j,drop=FALSE]
+        time.diff <- diff(c(0, eTimes)[pos.j])
+        apply(p, 1, function(x) {sum(x[-length(x)] * time.diff)})
+    })), ncol = length(pos))
+    if (NROW(lyl) != NROW(newdata) || NCOL(lyl) != length(times))
+        stop(paste("\nLYL matrix has wrong dimension:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(lyl)," x ",NCOL(lyl),"\n\n",sep=""))
+    lyl
 }
 
 

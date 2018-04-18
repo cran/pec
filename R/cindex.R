@@ -167,9 +167,9 @@
 #'  # note: low number of trees for the purpose of illustration 
 #'  library(survival)
 #'  library(randomForestSRC)
-#'  cox12 <- coxph(Surv(time,status)~X1+X2,data=dat)
-#'  cox1 <- coxph(Surv(time,status)~X1,data=dat)
-#'  cox2 <- coxph(Surv(time,status)~X2,data=dat)
+#'  cox12 <- coxph(Surv(time,status)~X1+X2,data=dat,x=TRUE,y=TRUE)
+#'  cox1 <- coxph(Surv(time,status)~X1,data=dat,x=TRUE,y=TRUE)
+#'  cox2 <- coxph(Surv(time,status)~X2,data=dat,x=TRUE,y=TRUE)
 #'  rsf1 <- rfsrc(Surv(time,status)~X1+X2,data=dat,ntree=15,forest=TRUE)
 #'  #
 #'  # compute the apparent estimate of the C-index at different time points
@@ -180,7 +180,7 @@
 #'                        "RSF"=rsf1),
 #' 		  formula=Surv(time,status)~X1+X2,
 #' 		  data=dat,
-#' 		  eval.times=seq(5,500,50))
+#' 		  eval.times=seq(1,15,1))
 #'   print(ApparrentCindex)
 #'   plot(ApparrentCindex)
 #'  #
@@ -196,14 +196,15 @@
 #' 		  data=dat,
 #'                   splitMethod="bootcv",
 #'                   B=5,
-#' 		  eval.times=seq(5,500,50))
+#'  		  eval.times=seq(1,15,1))
 #'   print(bcvCindex)
 #'   plot(bcvCindex)
 #'  # for uncensored data the results are the same
 #'  # as those obtained with the function rcorr.cens from Hmisc
 #' library(Hmisc)
 #' set.seed(16)
-#' dat <- SimSurv(30,cens=FALSE)
+#' dat <- SimSurv(30)
+#' dat$staus=1
 #' fit12 <- coxph(Surv(time,status)~X1+X2,data=dat)
 #' fit1 <- coxph(Surv(time,status)~X1,data=dat)
 #' fit2 <- coxph(Surv(time,status)~X2,data=dat)

@@ -352,15 +352,13 @@
 #' library(cmprsk)
 #' library(pec)
 #' cdat <- SimCompRisk(100)
-#' data(cdat)
 #' f1  <- CSC(Hist(time,event)~X1+X2,cause=2,data=cdat)
-#' f1a  <- CSC(Hist(time,event)~X1+X2,cause=2,data=cdat,survtype="surv")
 #' f2  <- CSC(Hist(time,event)~X1,data=cdat,cause=2)
 #' require(cmprsk)
 #' ## predict.crr <- cmprsk:::predict.crr
 #' f3  <- FGR(Hist(time,event)~X1+X2,cause=2,data=cdat)
 #' f4  <- FGR(Hist(time,event)~X1+X2,cause=2,data=cdat)
-#' p1 <- pec(list(f1,f1a,f2,f3,f4),formula=Hist(time,event)~1,data=cdat,cause=2)
+#' p1 <- pec(list(f1,f2,f3,f4),formula=Hist(time,event)~1,data=cdat,cause=2)
 #' 
 #' @export 
 # {{{ header pec.list
@@ -411,16 +409,15 @@ pec <- function(object,
   theCall=match.call()
   if (match("replan",names(theCall),nomatch=FALSE))
     stop("The argument name 'replan' has been replaced by 'splitMethod'.")
-  
-  if (!missing(testIBS) && (!(is.logical(testIBS) || (length(testIBS)==2 && is.numeric(testIBS)))))
-    stop("Argument testIBS can be TRUE/FALSE or a vector of two numeric values.")
-  if (missing(testIBS)) testIBS <- FALSE
-  if (keep.residuals && missing(testTimes))
-    stop("To keep.residuals please specify testTimes.")
-  if (missing(splitMethod) && multiSplitTest==TRUE){
-    stop("Need data splitting to compute van de Wiel's test")
-  }
-  if (missing(M) && multiSplitTest) M <- NA
+    if (!missing(testIBS) && (!(is.logical(testIBS) || (length(testIBS)==2 && is.numeric(testIBS)))))
+        stop("Argument testIBS can be TRUE/FALSE or a vector of two numeric values.")
+    if (missing(testIBS)) testIBS <- FALSE
+    if (keep.residuals && missing(testTimes))
+        stop("To keep.residuals please specify testTimes.")
+    if (missing(splitMethod) && multiSplitTest==TRUE){
+        stop("Need data splitting to compute van de Wiel's test")
+    }
+    if (missing(M) && multiSplitTest) M <- NA
 
   # }}}
   # {{{ check and convert object
@@ -597,58 +594,58 @@ if (missing(maxtime) || is.null(maxtime))
 # }}}
 # {{{ IPCW (all equal to 1 without censoring) 
 
-  if((cens.model %in% c("aalen","cox","nonpar"))){
-      if (all(as.numeric(status)==1) || sum(status)==N){
-          if (verbose)
-              message("No censored observations: cens.model coerced to \"none\".")
-          cens.model <- "none"
-      }
-      if ((cens.model!="nonpar") && length(attr(terms(formula),"factors"))==0){
-          if (verbose==TRUE)
-              message("No covariates  specified: Kaplan-Meier for censoring times used for weighting.")
-          cens.model <- "marginal"}
-  }
-  if (predictHandlerFun=="predictEventProb"){
-      iFormula <- as.formula(paste("Surv(itime,istatus)","~",as.character(formula)[[3]]))
-      iData <- data
-      iData$itime <- response[,"time"]
-      iData$istatus <- response[,"status"]
-      if (ipcw.refit==TRUE)
-          stop("pec: internal refitting of censoring distribution not (not yet) supported for competing risks")
-      ipcw.call <- NULL
-      ipcw <- ipcw(formula=iFormula,
-                   data=iData,
-                   method=cens.model,
-                   args=ipcw.args,
-                   times=times,
-                   subjectTimes=Y,
-                   subjectTimesLag=1)
-      ipcw$dim <- if (cens.model %in% c("marginal","none")) 0 else 1
-  }
-  else{
-      if (ipcw.refit==TRUE && splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632"))
-          ipcw.call <- list(formula=formula,data=NULL,method=cens.model,times=times,subjectTimes=NULL,subjectTimesLag=1)
-      else
-          ipcw.call <- NULL
-      ipcw <- ipcw(formula=formula,
-                   data=data,
-                   method=cens.model,
-                   args=ipcw.args,
-                   times=times,
-                   subjectTimes=Y,
-                   subjectTimesLag=1)
-      ipcw$dim <- if (cens.model %in% c("marginal","none")) 0 else 1
-  }
-  ## force ipc weights not to exaggerate
-  ## weights should not be greater than 1/(sample size)
-  ## if (ipcw$dim==1){
-  ## ipcw$IPCW.times <- apply(ipcw$IPCW.times,1,function(x)pmax(x,1/N))
-  ## }
-  ## else{
-  ## ipcw$IPCW.times <- pmax(ipcw$IPCW.times,1/N)
-  ## }
-  ## ipcw$IPCW.subjectTimes <- pmax(ipcw$IPCW.subjectTimes,1/N)
-  ## browser()
+    if((cens.model %in% c("aalen","cox","nonpar"))){
+        if (all(as.numeric(status)==1) || sum(status)==N){
+            if (verbose)
+                message("No censored observations: cens.model coerced to \"none\".")
+            cens.model <- "none"
+        }
+        if ((cens.model!="nonpar") && length(attr(terms(formula),"factors"))==0){
+            if (verbose==TRUE)
+                message("No covariates  specified: Kaplan-Meier for censoring times used for weighting.")
+            cens.model <- "marginal"}
+    }
+    if (predictHandlerFun=="predictEventProb"){
+        iFormula <- as.formula(paste("Surv(itime,istatus)","~",as.character(formula)[[3]]))
+        iData <- data
+        iData$itime <- response[,"time"]
+        iData$istatus <- response[,"status"]
+        if (ipcw.refit==TRUE)
+            stop("pec: internal refitting of censoring distribution not (not yet) supported for competing risks")
+        ipcw.call <- NULL
+        ipcw <- ipcw(formula=iFormula,
+                     data=iData,
+                     method=cens.model,
+                     args=ipcw.args,
+                     times=times,
+                     subjectTimes=Y,
+                     subjectTimesLag=1)
+        ipcw$dim <- if (cens.model %in% c("marginal","none")) 0 else 1
+    }
+    else{
+        if (ipcw.refit==TRUE && splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632"))
+            ipcw.call <- list(formula=formula,data=NULL,method=cens.model,times=times,subjectTimes=NULL,subjectTimesLag=1)
+        else
+            ipcw.call <- NULL
+        ipcw <- ipcw(formula=formula,
+                     data=data,
+                     method=cens.model,
+                     args=ipcw.args,
+                     times=times,
+                     subjectTimes=Y,
+                     subjectTimesLag=1)
+        ipcw$dim <- if (cens.model %in% c("marginal","none")) 0 else 1
+    }
+    ## force ipc weights not to exaggerate
+    ## weights should not be greater than 1/(sample size)
+    ## if (ipcw$dim==1){
+    ## ipcw$IPCW.times <- apply(ipcw$IPCW.times,1,function(x)pmax(x,1/N))
+    ## }
+    ## else{
+    ## ipcw$IPCW.times <- pmax(ipcw$IPCW.times,1/N)
+    ## }
+    ## ipcw$IPCW.subjectTimes <- pmax(ipcw$IPCW.subjectTimes,1/N)
+    ## browser()
   
   #  wt <- ipcw$IPCW.times
   #  wt.obs <- ipcw$IPCW.subjectTimes
