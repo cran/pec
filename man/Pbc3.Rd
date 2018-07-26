@@ -19,7 +19,7 @@ in years} \item{stage}{histological stage (1, 2, 3, 4)}
 (days)} \item{status}{status at observation time (0: censored, 1:
 liver transplantation, 2 : dead)} }}
 \source{
-\url{http://192.38.117.59/~linearpredictors/?page=datasets&dataset=Pbc3}
+Andersen and Skovgaard. Regression with linear predictors.
 }
 \description{
 PBC3 was a multi-centre randomized clinical trial conducted in six European

@@ -108,12 +108,12 @@
 ##' # survival
 ##' dlearn <- SimSurv(40)
 ##' dval <- SimSurv(100)
-##' f <- coxph(Surv(time,status)~X1+X2,data=dlearn)
+##' f <- coxph(Surv(time,status)~X1+X2,data=dlearn,x=TRUE,y=TRUE)
 ##' cf=calPlot(f,time=3,data=dval)
 ##' print(cf)
 ##' plot(cf)
 ##' 
-##' g <- coxph(Surv(time,status)~X2,data=dlearn)
+##' g <- coxph(Surv(time,status)~X2,data=dlearn,x=TRUE,y=TRUE)
 ##' cf2=calPlot(list("Cox regression X1+X2"=f,"Cox regression X2"=g),
 ##'     time=3,
 ##'     type="risk",

@@ -85,7 +85,7 @@
 ##' predictSurvProb(coxmodel,newdata=ndat,times=ttt)
 ##' 
 ##' # stratified cox model
-##' sfit <- coxph(Surv(time,status)~strata(X1)+X2,data=d,y=TRUE)
+##' sfit <- coxph(Surv(time,status)~strata(X1)+X2,data=d,,x=TRUE,y=TRUE)
 ##' predictSurvProb(sfit,newdata=d[1:3,],times=c(1,3,5,10))
 ##' 
 ##' ## simulate some learning and some validation data
@@ -93,7 +93,7 @@
 ##' valdat <- SimSurv(100)
 ##' ## use the learning data to fit a Cox model
 ##' library(survival)
-##' fitCox <- coxph(Surv(time,status)~X1+X2,data=learndat)
+##' fitCox <- coxph(Surv(time,status)~X1+X2,data=learndat,x=TRUE,y=TRUE)
 ##' ## suppose we want to predict the survival probabilities for all patients
 ##' ## in the validation data at the following time points:
 ##' ## 0, 12, 24, 36, 48, 60
@@ -108,8 +108,8 @@
 ##' predictSurvProb(rsfmodel,newdata=ndat,times=ttt)
 ##' 
 ##' ## Cox with ridge option
-##' f1 <- coxph(Surv(time,status)~X1+X2,data=learndat)
-##' f2 <- coxph(Surv(time,status)~ridge(X1)+ridge(X2),data=learndat)
+##' f1 <- coxph(Surv(time,status)~X1+X2,data=learndat,x=TRUE,y=TRUE)
+##' f2 <- coxph(Surv(time,status)~ridge(X1)+ridge(X2),data=learndat,x=TRUE,y=TRUE)
 ##' plot(predictSurvProb(f1,newdata=valdat,times=10),
 ##'      pec:::predictSurvProb.coxph(f2,newdata=valdat,times=10),
 ##'      xlim=c(0,1),
@@ -244,62 +244,73 @@ predictSurvProb.pecRpart <- function(object,newdata,times,...){
     
 ##' @export 
 predictSurvProb.coxph <- function(object,newdata,times,...){
-    ## baselineHazard.coxph(object,times)
-    ## require(survival)
-    ## new feature of the survival package requires that the
-    ## original data are included
-    ## survival.survfit.coxph <- getFromNamespace("survfit.coxph",ns="survival")
-    ## survival.summary.survfit <- getFromNamespace("summary.survfit",ns="survival")
-    ## b <- function(x){browser()}
-    ## b()
-    survfit.object <- survival::survfit(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
-    if (is.null(attr(object$terms,"specials")$strata)){
-        ## case without strata 
-        inflated.pred <- summary(survfit.object,times=times)$surv
-        if (is.null(inflated.pred)){
-            ## can happen when all times beyond maxtime  
-            p=matrix(NA,ncol=length(times),nrow=NROW(newdata))
-        } else{
-            p <- t(inflated.pred)        
-            if ((beyond <- (length(times)-NCOL(p)))>0)
-                p <- cbind(p,matrix(NA,nrow=NROW(newdata),ncol=beyond))
-        }
-    }else{
-        ## case with strata 
-        inflated.pred <- summary(survfit.object,times=times)
-        plist <- split(inflated.pred$surv,inflated.pred$strata)
-        p <- do.call("rbind",lapply(plist,function(x){
-            beyond <- length(times)-length(x)
-            c(x,rep(NA,beyond))
-        }))
-        ## p <- matrix(inflated.pred,ncol=length(times),byrow=TRUE)
-    }
-    if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+    p <- riskRegression::predictCox(object=object,
+                    newdata=newdata,
+                    times=times,
+                    se = FALSE,
+                    iid = FALSE,
+                    keep.times=FALSE,
+                    type="survival")$survival
+    if (NROW(p) != NROW(newdata) || NCOL(p) != length(times)){
         stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
+    }
     p
 }
+## baselineHazard.coxph(object,times)
+## require(survival)
+## new feature of the survival package requires that the
+## original data are included
+## survival.survfit.coxph <- getFromNamespace("survfit.coxph",ns="survival")
+## survival.summary.survfit <- getFromNamespace("summary.survfit",ns="survival")
+## b <- function(x){browser()}
+## b()
+## survfit.object <- survival::survfit(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
+## if (is.null(attr(object$terms,"specials")$strata)){
+## case without strata 
+## inflated.pred <- summary(survfit.object,times=times)$surv
+## if (is.null(inflated.pred)){
+## can happen when all times beyond maxtime  
+## p=matrix(NA,ncol=length(times),nrow=NROW(newdata))
+## } else{
+## p <- t(inflated.pred)        
+## if ((beyond <- (length(times)-NCOL(p)))>0)
+## p <- cbind(p,matrix(NA,nrow=NROW(newdata),ncol=beyond))
+## }
+## }else{
+## case with strata 
+## inflated.pred <- summary(survfit.object,times=times)
+## plist <- split(inflated.pred$surv,inflated.pred$strata)
+## p <- do.call("rbind",lapply(plist,function(x){
+## beyond <- length(times)-length(x)
+## c(x,rep(NA,beyond))
+## }))
+## p <- matrix(inflated.pred,ncol=length(times),byrow=TRUE)
+## }
+## if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+## stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
+## p
+## }
 
-##' @export
-predictSurvProb.coxph.penal <- function(object,newdata,times,...){
-  ## require(survival)
-  frailhistory <- object$history$'frailty(cluster)'$history
-  frailVar <- frailhistory[NROW(frailhistory),1]
-  ## survfit.object <- survival.survfit.coxph(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
-  linearPred <- predict(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
-  basehaz <- basehaz(object)
-  bhTimes <- basehaz[,2]
-  bhValues <- basehaz[,1]
-  survPred <- do.call("rbind",lapply(1:NROW(newdata),function(i){
-    (1+frailVar*bhValues*exp(linearPred[i]))^{-1/frailVar}
-  }))
-  where <- prodlim::sindex(jump.times=bhTimes,eval.times=times)
-  p <- cbind(1,survPred)[,where+1]
-  if ((miss.time <- (length(times) - NCOL(p)))>0)
-    p <- cbind(p,matrix(rep(NA,miss.time*NROW(p)),nrow=NROW(p)))
-  if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
-      stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
-  p
-}
+## predictSurvProb.coxph.penal <- function(object,newdata,times,...){
+## require(survival)
+## frailhistory <- object$history$ frailty(cluster) $history
+## frailVar <- frailhistory[NROW(frailhistory),1]
+## survfit.object <- survival.survfit.coxph(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
+## linearPred <- predict(object,newdata=newdata,se.fit=FALSE,conf.int=FALSE)
+## basehaz <- basehaz(object)
+## bhTimes <- basehaz[,2]
+## bhValues <- basehaz[,1]
+## survPred <- do.call("rbind",lapply(1:NROW(newdata),function(i){
+## (1+frailVar*bhValues*exp(linearPred[i]))^{-1/frailVar}
+## }))
+## where <- prodlim::sindex(jump.times=bhTimes,eval.times=times)
+## p <- cbind(1,survPred)[,where+1]
+## if ((miss.time <- (length(times) - NCOL(p)))>0)
+## p <- cbind(p,matrix(rep(NA,miss.time*NROW(p)),nrow=NROW(p)))
+## if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
+## stop(paste("\nPrediction matrix has wrong dimensions:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))
+## p
+## }
 
 
 

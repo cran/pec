@@ -41,7 +41,7 @@ set.seed(18713)
 library(prodlim)
 library(survival)
 dat=SimSurv(100)
-pmodel=coxph(Surv(time,status)~X1+X2,data=dat)
+pmodel=coxph(Surv(time,status)~X1+X2,data=dat,x=TRUE,y=TRUE)
 perror=pec(list(Cox=pmodel),Hist(time,status)~1,data=dat)
 
 ## cumulative prediction error

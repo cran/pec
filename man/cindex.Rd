@@ -240,9 +240,9 @@ library(Hmisc)
 set.seed(16)
 dat <- SimSurv(30)
 dat$staus=1
-fit12 <- coxph(Surv(time,status)~X1+X2,data=dat)
-fit1 <- coxph(Surv(time,status)~X1,data=dat)
-fit2 <- coxph(Surv(time,status)~X2,data=dat)
+fit12 <- coxph(Surv(time,status)~X1+X2,data=dat,x=TRUE,y=TRUE)
+fit1 <- coxph(Surv(time,status)~X1,data=dat,x=TRUE,y=TRUE)
+fit2 <- coxph(Surv(time,status)~X2,data=dat,x=TRUE,y=TRUE)
 Cpec <- pec::cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),
 	       formula=Surv(time,status)~1,
 	       data=dat,

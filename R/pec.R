@@ -273,9 +273,9 @@
 #' 
 #' # fit some candidate Cox models and compute the Kaplan-Meier estimate 
 #' 
-#' Models <- list("Cox.X1"=coxph(Surv(time,status)~X1,data=dat,y=TRUE),
-#'               "Cox.X2"=coxph(Surv(time,status)~X2,data=dat,y=TRUE),
-#'               "Cox.X1.X2"=coxph(Surv(time,status)~X1+X2,data=dat,y=TRUE))
+#' Models <- list("Cox.X1"=coxph(Surv(time,status)~X1,data=dat,x=TRUE,y=TRUE),
+#'               "Cox.X2"=coxph(Surv(time,status)~X2,data=dat,x=TRUE,y=TRUE),
+#'               "Cox.X1.X2"=coxph(Surv(time,status)~X1+X2,data=dat,x=TRUE,y=TRUE))
 #' 
 #' # compute the apparent prediction error 
 #' PredError <- pec(object=Models,
@@ -298,7 +298,7 @@
 #' data(pbc)
 #' pbc <- pbc[sample(1:NROW(pbc),size=100),]
 #' f1 <- psm(Surv(time,status!=0)~edema+log(bili)+age+sex+albumin,data=pbc)
-#' f2 <- coxph(Surv(time,status!=0)~edema+log(bili)+age+sex+albumin,data=pbc)
+#' f2 <- coxph(Surv(time,status!=0)~edema+log(bili)+age+sex+albumin,data=pbc,x=TRUE,y=TRUE)
 #' f3 <- cph(Surv(time,status!=0)~edema+log(bili)+age+sex+albumin,data=pbc,surv=TRUE)
 #' brier <- pec(list("Weibull"=f1,"CoxPH"=f2,"CPH"=f3),data=pbc,formula=Surv(time,status!=0)~1)
 #' print(brier)

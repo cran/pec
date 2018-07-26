@@ -77,7 +77,7 @@
 ##' predictRestrictedMeanTime(coxmodel,newdata=ndat,times=ttt)
 ##' 
 ##' # stratified cox model
-##' sfit <- coxph(Surv(time,status)~strata(X1)+X2,data=d,y=TRUE)
+##' sfit <- coxph(Surv(time,status)~strata(X1)+X2,data=d,x=TRUE,y=TRUE)
 ##' predictRestrictedMeanTime(sfit,newdata=d[1:3,],times=c(1,3,5,10))
 ##' 
 ##' ## simulate some learning and some validation data
@@ -85,7 +85,7 @@
 ##' valdat <- SimSurv(100)
 ##' ## use the learning data to fit a Cox model
 ##' library(survival)
-##' fitCox <- coxph(Surv(time,status)~X1+X2,data=learndat)
+##' fitCox <- coxph(Surv(time,status)~X1+X2,data=learndat,x=TRUE,y=TRUE)
 ##' ## suppose we want to predict the survival probabilities for all patients
 ##' ## in the validation data at the following time points:
 ##' ## 0, 12, 24, 36, 48, 60

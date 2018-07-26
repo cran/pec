@@ -107,8 +107,8 @@ NULL
 #' @references Andersen and Skovgaard. Regression with linear predictors.
 #' Springer, 2010.
 #' @source
+#' Andersen and Skovgaard. Regression with linear predictors.
 #' 
-#' \url{http://192.38.117.59/~linearpredictors/?page=datasets&dataset=Pbc3}
 #' @keywords datasets
 #' @examples
 #' 
