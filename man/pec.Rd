@@ -9,10 +9,10 @@ pec(object, formula, data, traindata, times, cause, start, maxtime,
   ipcw.refit = FALSE, ipcw.args = NULL, splitMethod = "none", B, M,
   reference = TRUE, model.args = NULL, model.parms = NULL,
   keep.index = FALSE, keep.matrix = FALSE, keep.models = FALSE,
-  keep.residuals = FALSE, keep.pvalues = FALSE, noinf.permute = FALSE,
-  multiSplitTest = FALSE, testIBS, testTimes, confInt = FALSE,
-  confLevel = 0.95, verbose = TRUE, savePath = NULL, slaveseed = NULL,
-  na.action = na.fail, ...)
+  keep.residuals = FALSE, keep.pvalues = FALSE,
+  noinf.permute = FALSE, multiSplitTest = FALSE, testIBS, testTimes,
+  confInt = FALSE, confLevel = 0.95, verbose = TRUE,
+  savePath = NULL, slaveseed = NULL, na.action = na.fail, ...)
 }
 \arguments{
 \item{object}{A named list of prediction models, where allowed entries are
@@ -246,6 +246,9 @@ assess and compare the predictive power of various regression modelling
 strategies on the same set of data.
 }
 \details{
+Note that package riskRegression which provides very similar
+functionality and much more but not yet everything.
+
 Missing data in the response or in the input matrix cause a failure.
 
 The status of the continuous response variable at cutpoints (\code{times}),

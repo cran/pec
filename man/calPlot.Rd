@@ -4,13 +4,14 @@
 \alias{calPlot}
 \title{Calibration plots for right censored data}
 \usage{
-calPlot(object, time, formula, data, splitMethod = "none", B = 1, M, pseudo,
-  type, showPseudo, pseudo.col = NULL, pseudo.pch = NULL, method = "nne",
-  round = TRUE, bandwidth = NULL, q = 10, bars = FALSE,
-  hanging = FALSE, names = "quantiles", showFrequencies = FALSE,
-  jack.density = 55, plot = TRUE, add = FALSE, diag = !add,
-  legend = !add, axes = !add, xlim = c(0, 1), ylim = c(0, 1), xlab,
-  ylab, col, lwd, lty, pch, cause = 1, percent = TRUE, giveToModel = NULL,
+calPlot(object, time, formula, data, splitMethod = "none", B = 1, M,
+  pseudo, type, showPseudo, pseudo.col = NULL, pseudo.pch = NULL,
+  method = "nne", round = TRUE, bandwidth = NULL, q = 10,
+  bars = FALSE, hanging = FALSE, names = "quantiles",
+  showFrequencies = FALSE, jack.density = 55, plot = TRUE,
+  add = FALSE, diag = !add, legend = !add, axes = !add,
+  xlim = c(0, 1), ylim = c(0, 1), xlab, ylab, col, lwd, lty, pch,
+  cause = 1, percent = TRUE, giveToModel = NULL,
   na.action = na.fail, cores = 1, verbose = FALSE, cex = 1, ...)
 }
 \arguments{

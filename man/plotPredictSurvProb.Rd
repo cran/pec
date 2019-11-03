@@ -4,9 +4,9 @@
 \alias{plotPredictSurvProb}
 \title{Plotting predicted survival curves.}
 \usage{
-plotPredictSurvProb(x, newdata, times, xlim, ylim, xlab, ylab, axes = TRUE,
-  col, density, lty, lwd, add = FALSE, legend = TRUE, percent = FALSE,
-  ...)
+plotPredictSurvProb(x, newdata, times, xlim, ylim, xlab, ylab,
+  axes = TRUE, col, density, lty, lwd, add = FALSE, legend = TRUE,
+  percent = FALSE, ...)
 }
 \arguments{
 \item{x}{A survival prediction model including \code{call} and

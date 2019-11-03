@@ -45,7 +45,7 @@
 #' @param eval.times A vector of timepoints for evaluating the discriminative
 #' ability. At each timepoint the c-index is computed using only those pairs
 #' where one of the event times is known to be earlier than this timepoint. If
-#' \code{eval.times} is \code{missing} or \code{Inf} then the largest
+#' \code{eval.times} is \code{missing} then the largest
 #' uncensored event time is used.
 #' @param pred.times A vector of timepoints for evaluating the prediction
 #' models. This should either be exactly one timepoint used for all
@@ -156,6 +156,10 @@
 #' Andersen, PK (2012) A note on the decomposition of number of life years lost
 #' according to causes of death Research report 12/2. Department of
 #' Biostatistics, University of Copenhagen
+#'
+#' Paul Blanche, Michael W Kattan, and Thomas A Gerds. The c-index is not
+#' proper for the evaluation of-year predicted risks. Biostatistics, 20(2):
+#' 347--357, 2018.
 #' @keywords survival
 #' @examples
 #' 
@@ -174,6 +178,11 @@
 #'  #
 #'  # compute the apparent estimate of the C-index at different time points
 #'  #
+#' A1  <- pec::cindex(list("Cox X1"=cox1,
+#'                        "RSF"=rsf1),
+#' 		  formula=Surv(time,status)~X1+X2,
+#' 		  data=dat,
+#' 		  eval.times=10)
 #' ApparrentCindex  <- pec::cindex(list("Cox X1"=cox1,
 #' 		       "Cox X2"=cox2,
 #' 		       "Cox X1+X2"=cox12,
@@ -210,8 +219,7 @@
 #' fit2 <- coxph(Surv(time,status)~X2,data=dat,x=TRUE,y=TRUE)
 #' Cpec <- pec::cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),
 #' 	       formula=Surv(time,status)~1,
-#' 	       data=dat,
-#' 	       eval.times=Inf)
+#' 	       data=dat) 	       
 #' p1 <- predictSurvProb(fit1,newdata=dat,times=10)
 #' p2 <- predictSurvProb(fit2,newdata=dat,times=10)
 #' p12 <- predictSurvProb(fit12,newdata=dat,times=10)
@@ -295,7 +303,7 @@ cindex <- function(object,
           stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
       } else{
           ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
-          if ((class(ftry)=="try-error") || match("formula",class(formula),nomatch=0)==0)
+          if ((class(ftry)[1]=="try-error") || match("formula",class(formula),nomatch=0)==0)
               stop("Argument formula is missing and first model has no usable formula.")
           else if (verbose)
               warning("Formula missing. Using formula from first model")
@@ -417,103 +425,104 @@ cindex <- function(object,
   N <- length(Y)
   NU <- length(unique.Y)
 
-  # }}}
-  # {{{  splitMethod
-  splitMethod <- resolvesplitMethod(splitMethod=splitMethod,B=B,N=N,M=M)
-  if (splitMethod$internal.name %in% c("Boot632plus")) stop(".632+ method not implemented for c-index.")
-  B <- splitMethod$B
-  ResampleIndex <- splitMethod$index
-  k <- splitMethod$k
-  do.resample <- !(is.null(ResampleIndex))
-  if (keep.matrix==TRUE & !do.resample){
-    warning("Argument keep.matrix set to FALSE, since no resampling/crossvalidation is requested.")
-    keep.matrix <- FALSE
-  }
-  # }}}
-  # {{{  define the prediction time(s) and the evaluation time(s)
-  maxtime <- unique.Y[NU]
-  if (missing(eval.times) || is.infinite(eval.times)){
-    ## eval.times <- max(Y) ## maybe less efficient 
-    eval.times <- max(Y[status==1])
-  }
-  else{
-    tooLate <- sum(eval.times>maxtime)
-    if (tooLate>0){
-      if (verbose)
-          warning(tooLate," eval.times beyond the maximal evaluation time: ",ifelse(maxtime>1,round(maxtime,1),round(maxtime,3)))
-      ## eval.times <- c(eval.times[eval.times<maxtime],maxtime)
+                                        # }}}
+                                        # {{{  splitMethod
+    splitMethod <- resolvesplitMethod(splitMethod=splitMethod,B=B,N=N,M=M)
+    if (splitMethod$internal.name %in% c("Boot632plus")) stop(".632+ method not implemented for c-index.")
+    B <- splitMethod$B
+    ResampleIndex <- splitMethod$index
+    k <- splitMethod$k
+    do.resample <- !(is.null(ResampleIndex))
+    if (keep.matrix==TRUE & !do.resample){
+        warning("Argument keep.matrix set to FALSE, since no resampling/crossvalidation is requested.")
+        keep.matrix <- FALSE
     }
-  }
-  if (missing(pred.times))
-    ## pred.times <- median(unique.Y)
-    pred.times <- eval.times
-  ## FIXME: if the model changes the risk order over time, then we need to care about pred.times
-  NT <-  length(eval.times)
-  tindex <- match(Y,unique.Y)
-  # }}}
-  # {{{  IPCW (all equal to 1 without censoring)
-  if((cens.model %in% c("aalen","cox","nonpar"))){
-    if (all(as.numeric(status)==1) || sum(status)==N){
-      message("No censored observations: cens.model coerced to \"none\".")
-      cens.model <- "none"
-    }
-    if (length(attr(terms(formula),"factors"))==0){
-      if (verbose==TRUE)
-        message("No covariates  specified: cens.model coerced to \"marginal\".\n")
-      cens.model <- "marginal"}
-  }
-  if (model.type=="competing.risks"){
-    iFormula <- as.formula(paste("Surv(itime,istatus)","~",as.character(formula)[[3]]))
-    iData <- data
-    iData$itime <- response[,"time"]
-    iData$istatus <- response[,"status"]
-    weight.i <- ipcw(formula=iFormula,data=iData,method=cens.model,times=NULL,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes")$IPCW.subjectTimes
-    weight.j <- ipcw(formula=iFormula,data=iData,method=cens.model,times=unique.Y,subjectTimes=NULL,subjectTimesLag=0,what="IPCW.times")$IPCW.times
-    ipcw.call <- NULL
-  }
-  else{
-    #  weights for T_i<=T_j
-    #  FIXED: the correct weights are G(T_i|X_j) and G(T_i-|X_i)
-    weight.i <- ipcw(formula=formula,data=data,method=cens.model,times=NULL,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes")$IPCW.subjectTimes
-    weight.j <- ipcw(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=NULL,subjectTimesLag=0,what="IPCW.times")$IPCW.times
-  }
-  if (ipcw.refit==TRUE)
-    stop("pec: internal refitting of censoring distribution not (not yet) supported for competing risks")
-  ## if (ipcw.refit==TRUE && splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632"))
-  ## ipcw.call <- list(weight.i=list(formula=formula,data=data,method=cens.model,times=NULL,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes"),
-  ## weight.j=list(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=NULL,subjectTimesLag=0,what="IPCW.times"))
-  ## else
-  ipcw.call <- NULL
-  ## print(weight.j)
-  # truncate the weights
-  if (!missing(ipcw.limit) && ipcw.limit!=0){
-    pfit <- prodlim::prodlim(update(formula,".~1"),data=data)
-    limit.i <- 1/(1+c(0,cumsum(pfit$n.lost))[1+prodlim::sindex(jump.times=pfit$time,eval.times=Y-min(diff(Y))/2)])
-    limit.times <- 1/(1+c(0,cumsum(pfit$n.lost))[1+prodlim::sindex(jump.times=pfit$time,eval.times=unique.Y)])
-    if (ipcw.limit<1 && ipcw.limit>0){
-      limit.i <- pmax(ipcw.limit,limit.i)
-      limit.times <- pmax(ipcw.limit,limit.times)
-    }
-    weight.i <- pmax(weight.i,limit.i)
-    if (is.null(dim(weight.j))){
-      weight.j <- pmax(weight.j,limit.times)
+                                        # }}}
+                                        # {{{  define the prediction time(s) and the evaluation time(s)
+    maxtime <- unique.Y[NU]
+    if (missing(eval.times)){
+        ## eval.times <- max(Y) ## maybe less efficient 
+        eval.times <- max(Y[status==1])
     }
     else{
-      weight.j <- t(apply(weight.j,1,function(wj){
-        pmax(limit.times,wj)
-      }))
+        if (any(is.infinite(eval.times))) stop("Infinite eval.times are not allowed.")
+        tooLate <- sum(eval.times>maxtime)
+        if (tooLate>0){
+            if (verbose)
+                warning(tooLate," eval.times beyond the maximal evaluation time: ",ifelse(maxtime>1,round(maxtime,1),round(maxtime,3)))
+            ## eval.times <- c(eval.times[eval.times<maxtime],maxtime)
+        }
     }
-  }
-  weights <- list(weight.i=weight.i,weight.j=weight.j)
-  # }}}
-  # {{{  checking the models for compatibility with resampling
-  if (do.resample){
-    cm <- checkModels(object=object,model.args=model.args,model.parms=model.parms,splitMethod=splitMethod$internal.name)
-    model.args <- cm$model.args
-    model.parms <- cm$model.parms
-  }
-  # }}}
-  # {{{ -------------------Apparent or test sample cindex----------------------
+    if (missing(pred.times))
+        ## pred.times <- median(unique.Y)
+        pred.times <- eval.times
+    ## FIXME: if the model changes the risk order over time, then we need to care about pred.times
+    NT <-  length(eval.times)
+    tindex <- match(Y,unique.Y)
+                                        # }}}
+                                        # {{{  IPCW (all equal to 1 without censoring)
+    if((cens.model %in% c("aalen","cox","nonpar"))){
+        if (all(as.numeric(status)==1) || sum(status)==N){
+            message("No censored observations: cens.model coerced to \"none\".")
+            cens.model <- "none"
+        }
+        if (length(attr(terms(formula),"factors"))==0){
+            if (verbose==TRUE)
+                message("No covariates  specified: cens.model coerced to \"marginal\".\n")
+            cens.model <- "marginal"}
+    }
+    if (model.type=="competing.risks"){
+        iFormula <- as.formula(paste("Surv(itime,istatus)","~",as.character(formula)[[3]]))
+        iData <- data
+        iData$itime <- response[,"time"]
+        iData$istatus <- response[,"status"]
+        weight.i <- ipcw(formula=iFormula,data=iData,method=cens.model,times=NULL,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes")$IPCW.subjectTimes
+        weight.j <- ipcw(formula=iFormula,data=iData,method=cens.model,times=unique.Y,subjectTimes=NULL,subjectTimesLag=0,what="IPCW.times")$IPCW.times
+        ipcw.call <- NULL
+    }
+    else{
+                                        #  weights for T_i<=T_j
+                                        #  FIXED: the correct weights are G(T_i|X_j) and G(T_i-|X_i)
+        weight.i <- ipcw(formula=formula,data=data,method=cens.model,times=NULL,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes")$IPCW.subjectTimes
+        weight.j <- ipcw(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=NULL,subjectTimesLag=0,what="IPCW.times")$IPCW.times
+    }
+    if (ipcw.refit==TRUE)
+        stop("pec: internal refitting of censoring distribution not (not yet) supported for competing risks")
+    ## if (ipcw.refit==TRUE && splitMethod$internal.name %in% c("Boot632plus","BootCv","Boot632"))
+    ## ipcw.call <- list(weight.i=list(formula=formula,data=data,method=cens.model,times=NULL,subjectTimes=Y,subjectTimesLag=1,what="IPCW.subjectTimes"),
+    ## weight.j=list(formula=formula,data=data,method=cens.model,times=unique.Y,subjectTimes=NULL,subjectTimesLag=0,what="IPCW.times"))
+    ## else
+    ipcw.call <- NULL
+    ## print(weight.j)
+                                        # truncate the weights
+    if (!missing(ipcw.limit) && ipcw.limit!=0){
+        pfit <- prodlim::prodlim(update(formula,".~1"),data=data)
+        limit.i <- 1/(1+c(0,cumsum(pfit$n.lost))[1+prodlim::sindex(jump.times=pfit$time,eval.times=Y-min(diff(Y))/2)])
+        limit.times <- 1/(1+c(0,cumsum(pfit$n.lost))[1+prodlim::sindex(jump.times=pfit$time,eval.times=unique.Y)])
+        if (ipcw.limit<1 && ipcw.limit>0){
+            limit.i <- pmax(ipcw.limit,limit.i)
+            limit.times <- pmax(ipcw.limit,limit.times)
+        }
+        weight.i <- pmax(weight.i,limit.i)
+        if (is.null(dim(weight.j))){
+            weight.j <- pmax(weight.j,limit.times)
+        }
+        else{
+            weight.j <- t(apply(weight.j,1,function(wj){
+                pmax(limit.times,wj)
+            }))
+        }
+    }
+    weights <- list(weight.i=weight.i,weight.j=weight.j)
+                                        # }}}
+                                        # {{{  checking the models for compatibility with resampling
+    if (do.resample){
+        cm <- checkModels(object=object,model.args=model.args,model.parms=model.parms,splitMethod=splitMethod$internal.name)
+        model.args <- cm$model.args
+        model.parms <- cm$model.parms
+    }
+                                        # }}}
+                                        # {{{ -------------------Apparent or test sample cindex----------------------
   
     AppCindexList <- lapply(1:NF,function(f){
         fit <- object[[f]]

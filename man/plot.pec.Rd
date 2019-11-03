@@ -5,9 +5,9 @@
 \title{Plotting prediction error curves}
 \usage{
 \method{plot}{pec}(x, what, models, xlim = c(x$start, x$minmaxtime),
-  ylim = c(0, 0.3), xlab = "Time", ylab, axes = TRUE, col, lty, lwd, type,
-  smooth = FALSE, add.refline = FALSE, add = FALSE, legend = ifelse(add,
-  FALSE, TRUE), special = FALSE, ...)
+  ylim = c(0, 0.3), xlab = "Time", ylab, axes = TRUE, col, lty, lwd,
+  type, smooth = FALSE, add.refline = FALSE, add = FALSE,
+  legend = ifelse(add, FALSE, TRUE), special = FALSE, ...)
 }
 \arguments{
 \item{x}{Object of class \code{pec} obtained with function

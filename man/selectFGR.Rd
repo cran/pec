@@ -5,8 +5,8 @@
 \title{Stepwise variable selection in the Fine & Gray regression competing risk
 model}
 \usage{
-selectFGR(formula, data, cause = 1, rule = "AIC", direction = "backward",
-  ...)
+selectFGR(formula, data, cause = 1, rule = "AIC",
+  direction = "backward", ...)
 }
 \arguments{
 \item{formula}{A formula whose left hand side is a \code{Hist}

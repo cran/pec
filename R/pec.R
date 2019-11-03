@@ -9,6 +9,9 @@
 #' based on bootstrap resampling or bootstrap subsampling can be applied to
 #' assess and compare the predictive power of various regression modelling
 #' strategies on the same set of data.
+#'
+#' Note that package riskRegression which provides very similar
+#' functionality and much more but not yet everything.
 #' 
 #' Missing data in the response or in the input matrix cause a failure.
 #' 
@@ -406,9 +409,9 @@ pec <- function(object,
     # }}}
     # {{{ checking integrity some arguments
 
-  theCall=match.call()
-  if (match("replan",names(theCall),nomatch=FALSE))
-    stop("The argument name 'replan' has been replaced by 'splitMethod'.")
+    theCall=match.call()
+    if (match("replan",names(theCall),nomatch=FALSE))
+        stop("The argument name 'replan' has been replaced by 'splitMethod'.")
     if (!missing(testIBS) && (!(is.logical(testIBS) || (length(testIBS)==2 && is.numeric(testIBS)))))
         stop("Argument testIBS can be TRUE/FALSE or a vector of two numeric values.")
     if (missing(testIBS)) testIBS <- FALSE
@@ -431,7 +434,7 @@ pec <- function(object,
           stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
       } else{
           ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
-          if ((class(ftry)=="try-error") || match("formula",class(formula),nomatch=0)==0)
+          if ((class(ftry)[1]=="try-error") || match("formula",class(formula),nomatch=0)==0)
               stop("Argument formula is missing and first model has no usable formula.")
           else if (verbose)
               warning("Formula missing. Using formula from first model")

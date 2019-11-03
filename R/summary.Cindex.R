@@ -77,5 +77,7 @@ summary.Cindex <- function(object,what=NULL,digits=3,print=TRUE,...){
         if (print==TRUE) cat("\nAppCindex    : Apparent (training data) performance\nBootCvCindex : Bootstrap crossvalidated performance\n\n")
     # }}}
     invisible(out)
+    warning("The C-index is not proper for t-year predictions. Blanche et al. (2018), Biostatistics, 20(2): 347--357.\n
+Consider using time-dependent AUC instead: riskRegression::Score")
 }
 

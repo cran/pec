@@ -9,8 +9,8 @@
 \alias{ipcw.aalen}
 \title{Estimation of censoring probabilities}
 \usage{
-ipcw(formula, data, method, args, times, subjectTimes, subjectTimesLag = 1,
-  what)
+ipcw(formula, data, method, args, times, subjectTimes,
+  subjectTimesLag = 1, what)
 }
 \arguments{
 \item{formula}{A survival formula like, \code{Surv(time,status)~1}, where

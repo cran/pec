@@ -7,12 +7,12 @@
 cindex(object, formula, data, eval.times, pred.times, cause, lyl = FALSE,
   cens.model = "marginal", ipcw.refit = FALSE, ipcw.args = NULL,
   ipcw.limit, tiedPredictionsIn = TRUE, tiedOutcomeIn = TRUE,
-  tiedMatchIn = TRUE, splitMethod = "noPlan", B, M, model.args = NULL,
-  model.parms = NULL, keep.models = FALSE, keep.residuals = FALSE,
-  keep.pvalues = FALSE, keep.weights = FALSE, keep.index = FALSE,
-  keep.matrix = FALSE, multiSplitTest = FALSE, testTimes, confInt = FALSE,
-  confLevel = 0.95, verbose = TRUE, savePath = NULL, slaveseed = NULL,
-  na.action = na.fail, ...)
+  tiedMatchIn = TRUE, splitMethod = "noPlan", B, M,
+  model.args = NULL, model.parms = NULL, keep.models = FALSE,
+  keep.residuals = FALSE, keep.pvalues = FALSE, keep.weights = FALSE,
+  keep.index = FALSE, keep.matrix = FALSE, multiSplitTest = FALSE,
+  testTimes, confInt = FALSE, confLevel = 0.95, verbose = TRUE,
+  savePath = NULL, slaveseed = NULL, na.action = na.fail, ...)
 }
 \arguments{
 \item{object}{A named list of prediction models, where allowed entries are
@@ -42,7 +42,7 @@ set from the first element in object.}
 \item{eval.times}{A vector of timepoints for evaluating the discriminative
 ability. At each timepoint the c-index is computed using only those pairs
 where one of the event times is known to be earlier than this timepoint. If
-\code{eval.times} is \code{missing} or \code{Inf} then the largest
+\code{eval.times} is \code{missing} then the largest
 uncensored event time is used.}
 
 \item{pred.times}{A vector of timepoints for evaluating the prediction
@@ -209,6 +209,11 @@ library(prodlim)
  #
  # compute the apparent estimate of the C-index at different time points
  #
+A1  <- pec::cindex(list("Cox X1"=cox1,
+                       "RSF"=rsf1),
+		  formula=Surv(time,status)~X1+X2,
+		  data=dat,
+		  eval.times=10)
 ApparrentCindex  <- pec::cindex(list("Cox X1"=cox1,
 		       "Cox X2"=cox2,
 		       "Cox X1+X2"=cox12,
@@ -245,8 +250,7 @@ fit1 <- coxph(Surv(time,status)~X1,data=dat,x=TRUE,y=TRUE)
 fit2 <- coxph(Surv(time,status)~X2,data=dat,x=TRUE,y=TRUE)
 Cpec <- pec::cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),
 	       formula=Surv(time,status)~1,
-	       data=dat,
-	       eval.times=Inf)
+	       data=dat) 	       
 p1 <- predictSurvProb(fit1,newdata=dat,times=10)
 p2 <- predictSurvProb(fit2,newdata=dat,times=10)
 p12 <- predictSurvProb(fit12,newdata=dat,times=10)
@@ -280,6 +284,10 @@ of Biostatistics, University of Copenhagen
 Andersen, PK (2012) A note on the decomposition of number of life years lost
 according to causes of death Research report 12/2. Department of
 Biostatistics, University of Copenhagen
+
+Paul Blanche, Michael W Kattan, and Thomas A Gerds. The c-index is not
+proper for the evaluation of-year predicted risks. Biostatistics, 20(2):
+347--357, 2018.
 }
 \author{
 Thomas A Gerds \email{tag@biostat.ku.dk}

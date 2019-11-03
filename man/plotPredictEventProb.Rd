@@ -4,9 +4,9 @@
 \alias{plotPredictEventProb}
 \title{Plotting predicted survival curves.}
 \usage{
-plotPredictEventProb(x, newdata, times, cause = 1, xlim, ylim, xlab, ylab,
-  axes = TRUE, col, density, lty, lwd, add = FALSE, legend = TRUE,
-  percent = FALSE, ...)
+plotPredictEventProb(x, newdata, times, cause = 1, xlim, ylim, xlab,
+  ylab, axes = TRUE, col, density, lty, lwd, add = FALSE,
+  legend = TRUE, percent = FALSE, ...)
 }
 \arguments{
 \item{x}{Object specifying an event risk prediction model.}

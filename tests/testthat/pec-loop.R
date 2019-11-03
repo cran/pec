@@ -16,4 +16,4 @@ test_that("boot632plus",{
                              verbose=TRUE)
     saved <- c(Reference=8.09,Cox.X1=7.86,Cox.X2=7.23,Cox.X1.X2=7.07)
     expect_equal(round(100*ibs(PredError.632plus,times=3)[,4],2),saved)
-}
+})

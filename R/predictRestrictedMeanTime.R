@@ -195,15 +195,8 @@ predictRestrictedMeanTime.pecRpart <- function(object,newdata,times,...){
     
 ##' @export
 predictRestrictedMeanTime.coxph <- function(object,newdata,times,...){
-    ## baselineHazard.coxph(object,times)
-    ## require(survival)
-    ## new feature of the survival package requires that the
-    ## original data are included
-    ## survival.survfit.coxph <- getFromNamespace("survfit.coxph",ns="survival")
-    ## survival.summary.survfit <- getFromNamespace("summary.survfit",ns="survival")
-    ## b <- function(x){browser()}
-    ## b()
-    eTimes <- unique(sort(object$y))
+    if (is.null(y <- unclass(object$y)[,1])) stop("Need 'y=TRUE' in call of 'coxph'.")
+    eTimes <- unique(sort(y))
     pos <- prodlim::sindex(jump.times=eTimes,eval.times=times)
     surv <- predictSurvProb(object,newdata=newdata,times=eTimes)
     rmt <- matrix(unlist(lapply(1:length(pos), function(j) {
