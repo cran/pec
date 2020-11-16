@@ -4,15 +4,44 @@
 \alias{pec}
 \title{Prediction error curves}
 \usage{
-pec(object, formula, data, traindata, times, cause, start, maxtime,
-  exact = TRUE, exactness = 100, fillChar = NA, cens.model = "cox",
-  ipcw.refit = FALSE, ipcw.args = NULL, splitMethod = "none", B, M,
-  reference = TRUE, model.args = NULL, model.parms = NULL,
-  keep.index = FALSE, keep.matrix = FALSE, keep.models = FALSE,
-  keep.residuals = FALSE, keep.pvalues = FALSE,
-  noinf.permute = FALSE, multiSplitTest = FALSE, testIBS, testTimes,
-  confInt = FALSE, confLevel = 0.95, verbose = TRUE,
-  savePath = NULL, slaveseed = NULL, na.action = na.fail, ...)
+pec(
+  object,
+  formula,
+  data,
+  traindata,
+  times,
+  cause,
+  start,
+  maxtime,
+  exact = TRUE,
+  exactness = 100,
+  fillChar = NA,
+  cens.model = "cox",
+  ipcw.refit = FALSE,
+  ipcw.args = NULL,
+  splitMethod = "none",
+  B,
+  M,
+  reference = TRUE,
+  model.args = NULL,
+  model.parms = NULL,
+  keep.index = FALSE,
+  keep.matrix = FALSE,
+  keep.models = FALSE,
+  keep.residuals = FALSE,
+  keep.pvalues = FALSE,
+  noinf.permute = FALSE,
+  multiSplitTest = FALSE,
+  testIBS,
+  testTimes,
+  confInt = FALSE,
+  confLevel = 0.95,
+  verbose = TRUE,
+  savePath = NULL,
+  slaveseed = NULL,
+  na.action = na.fail,
+  ...
+)
 }
 \arguments{
 \item{object}{A named list of prediction models, where allowed entries are
@@ -246,8 +275,8 @@ assess and compare the predictive power of various regression modelling
 strategies on the same set of data.
 }
 \details{
-Note that package riskRegression which provides very similar
-functionality and much more but not yet everything.
+Note that package riskRegression provides very similar
+functionality (and much more) but not yet every feature of pec.
 
 Missing data in the response or in the input matrix cause a failure.
 
@@ -375,23 +404,28 @@ summary(pf)
 
 library(survival)
 library(riskRegression)
+if(requireNamespace("cmprsk",quietly=TRUE)){
 library(cmprsk)
 library(pec)
 cdat <- SimCompRisk(100)
 f1  <- CSC(Hist(time,event)~X1+X2,cause=2,data=cdat)
 f2  <- CSC(Hist(time,event)~X1,data=cdat,cause=2)
-require(cmprsk)
-## predict.crr <- cmprsk:::predict.crr
 f3  <- FGR(Hist(time,event)~X1+X2,cause=2,data=cdat)
 f4  <- FGR(Hist(time,event)~X1+X2,cause=2,data=cdat)
 p1 <- pec(list(f1,f2,f3,f4),formula=Hist(time,event)~1,data=cdat,cause=2)
+}
 
 }
 \references{
+Gerds TA, Kattan MW.
+Medical Risk Prediction Models: With Ties to Machine Learning.
+Chapman & Hall/CRC
+https://www.routledge.com/9781138384477
+
 Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).
 Evaluating Random Forests for Survival Analysis Using Prediction Error
 Curves. Journal of Statistical Software, 50(11), 1-23. URL
-http://www.jstatsoft.org/v50/i11/.
+https://www.jstatsoft.org/v50/i11.
 
 E. Graf et al.  (1999), Assessment and comparison of prognostic
 classification schemes for survival data. Statistics in Medicine, vol 18,

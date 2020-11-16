@@ -4,7 +4,8 @@
 \name{GBSG2}
 \alias{GBSG2}
 \title{German Breast Cancer Study Group 2}
-\format{This data frame contains the observations of 686 women: \describe{
+\format{
+This data frame contains the observations of 686 women: \describe{
 \item{horTh}{hormonal therapy, a factor at two levels \code{no} and
 \code{yes}.} \item{age}{of the patients in years.}
 \item{menostat}{menopausal status, a factor at two levels \code{pre}
@@ -13,7 +14,8 @@
 < III}.} \item{pnodes}{number of positive nodes.}
 \item{progrec}{progesterone receptor (in fmol).} \item{estrec}{estrogen
 receptor (in fmol).} \item{time}{recurrence free survival time (in days).}
-\item{cens}{censoring indicator (0- censored, 1- event).} }}
+\item{cens}{censoring indicator (0- censored, 1- event).} }
+}
 \description{
 A data frame containing the observations from the GBSG2 study.
 }

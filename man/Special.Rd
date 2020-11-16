@@ -6,8 +6,20 @@
 of models. The prediction error for an optional benchmark model can be added
 together with bootstrapped cross-validation error and apparent errors.}
 \usage{
-Special(x, y, addprederr, models, bench, benchcol, times, maxboot, bootcol,
-  col, lty, lwd)
+Special(
+  x,
+  y,
+  addprederr,
+  models,
+  bench,
+  benchcol,
+  times,
+  maxboot,
+  bootcol,
+  col,
+  lty,
+  lwd
+)
 }
 \arguments{
 \item{x}{an object of class 'pec' as returned by the \code{pec} function.}

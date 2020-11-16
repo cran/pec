@@ -56,7 +56,7 @@ approaches.
 \details{
 The function predictRestrictedMeanTime is a generic function, meaning that it
 invokes a different function dependent on the 'class' of the
-first argument.
+first argument. 
 
 See also \code{\link{predictSurvProb}}.
 }
@@ -116,7 +116,7 @@ predictRestrictedMeanTime(rsfmodel,newdata=ndat,times=ttt)
 Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).
 Evaluating Random Forests for Survival Analysis Using Prediction Error
 Curves. Journal of Statistical Software, 50(11), 1-23. URL
-http://www.jstatsoft.org/v50/i11/.
+https://www.jstatsoft.org/v50/i11.
 }
 \seealso{
 \code{\link{predict}},\code{\link{survfit}}

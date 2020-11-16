@@ -4,7 +4,8 @@
 \name{cost}
 \alias{cost}
 \title{Copenhagen Stroke Study}
-\format{This data frame contains the observations of 518 stroke patients :
+\format{
+This data frame contains the observations of 518 stroke patients :
 \describe{ \item{age}{Age of the patients in years.} \item{sex}{A factor
 with two levels \code{female} and \code{male}.} \item{hypTen}{Hypertension,
 a factor with two levels \code{no} and \code{yes}.} \item{ihd}{History of
@@ -23,7 +24,8 @@ subtype), a factor with two levels \code{no} (infarction) and \code{yes}
 (hemorrhage).} \item{strokeScore}{Scandinavian stroke score at admission to
 the hospital. Ranges from 0 (worst) to 58 (best).}
 \item{cholest}{Cholesterol level} \item{time}{Survival time (in days).}
-\item{status}{Status (\code{0}: censored, \code{1}: event).} }}
+\item{status}{Status (\code{0}: censored, \code{1}: event).} }
+}
 \description{
 This data set contains a subset of the data from the Copenhagen stroke
 study.

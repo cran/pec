@@ -4,8 +4,16 @@
 \alias{reclass}
 \title{Retrospective risk reclassification table}
 \usage{
-reclass(object, reference, formula, data, time, cause, cuts = seq(0, 100,
-  25), digits = 2)
+reclass(
+  object,
+  reference,
+  formula,
+  data,
+  time,
+  cause,
+  cuts = seq(0, 100, 25),
+  digits = 2
+)
 }
 \arguments{
 \item{object}{Either a 

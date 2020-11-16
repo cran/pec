@@ -144,6 +144,7 @@
 ##' d2 <- sim(m,100)
 ##' csc <- CSC(Hist(time,event)~X1+X2+X3+X4+X5,data=d1)
 ##' fgr <- FGR(Hist(time,event)~X1+X2+X3+X4+X5,data=d1,cause=1)
+##' if ((requireNamespace("cmprsk",quietly=TRUE))){
 ##' predict.crr <- cmprsk:::predict.crr
 ##' cf3=calPlot(list("Cause-specific Cox"=csc,"Fine-Gray"=fgr),
 ##'         time=5,
@@ -160,7 +161,7 @@
 ##' plot(b1)
 ##' 
 ##' calPlot(fgr,time=5,bars=TRUE,hanging=TRUE)
-##'
+##'}
 ##' 
 #' @author Thomas Alexander Gerds \email{tag@@biostat.ku.dk}
 #' @export 

@@ -34,7 +34,6 @@
 #' @examples
 #' 
 #' library(pec)
-#' library(CoxBoost)
 #' library(survival)
 #' library(riskRegression)
 #' library(prodlim)
@@ -42,8 +41,6 @@
 #' test <- SimCompRisk(10)
 #' cox.fit  <- CSC(Hist(time,cause)~X1+X2,data=train)
 #' predictEventProb(cox.fit,newdata=test,times=seq(1:10),cause=1)
-#' ## cb.fit <- coxboost(Hist(time,cause)~X1+X2,cause=1,data=train,stepno=10)
-#' ## predictEventProb(cb.fit,newdata=test,times=seq(1:10),cause=1)
 #'
 #' ## with strata
 #' cox.fit2  <- CSC(list(Hist(time,cause)~strata(X1)+X2,Hist(time,cause)~X1+X2),data=train)
@@ -94,8 +91,6 @@ predictEventProb.prodlim <- function(object,newdata,times,cause,...){
 
 ##' @export 
 predictEventProb.FGR <- function(object,newdata,times,cause,...){
-    ## require(cmprsk)
-    ## predict.crr <- cmprsk:::predict.crr
     p <- predict(object=object,newdata=newdata,times=times)
     if (NROW(p) != NROW(newdata) || NCOL(p) != length(times))
                 stop(paste("\nPrediction matrix has wrong dimension:\nRequested newdata x times: ",NROW(newdata)," x ",length(times),"\nProvided prediction matrix: ",NROW(p)," x ",NCOL(p),"\n\n",sep=""))

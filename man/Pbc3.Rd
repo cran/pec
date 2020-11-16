@@ -4,7 +4,8 @@
 \name{Pbc3}
 \alias{Pbc3}
 \title{Pbc3 data}
-\format{A data frame with 349 observations on the following 15 variables.
+\format{
+A data frame with 349 observations on the following 15 variables.
 \describe{ \item{ptno}{patient identification}
 \item{unit}{hospital (1: Hvidovre, 2: London, 3: Copenhagen, 4:
 Barcelona, 5: Munich, 6: Lyon)} \item{tment}{treatment (0: placebo,
@@ -17,7 +18,8 @@ in years} \item{stage}{histological stage (1, 2, 3, 4)}
 \item{asptr}{aspartate transaminase (IU/L)}
 \item{weight}{body weight (kg)} \item{days}{observation time
 (days)} \item{status}{status at observation time (0: censored, 1:
-liver transplantation, 2 : dead)} }}
+liver transplantation, 2 : dead)} }
+}
 \source{
 Andersen and Skovgaard. Regression with linear predictors.
 }

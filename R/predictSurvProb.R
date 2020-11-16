@@ -64,7 +64,7 @@
 #' @references Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).
 #' Evaluating Random Forests for Survival Analysis Using Prediction Error
 #' Curves. Journal of Statistical Software, 50(11), 1-23. URL
-#' http://www.jstatsoft.org/v50/i11/.
+#' https://www.jstatsoft.org/v50/i11.
 #' @keywords survival
 ##' @examples
 ##' 
@@ -215,6 +215,7 @@ predictSurvProb.cox.aalen <- function(object,newdata,times,...){
 #' @return list with three elements: ctree and call
 #' @examples
 #' library(prodlim)
+#' if (!requireNamespace("rpart",quietly=TRUE)){
 #' library(rpart)
 #' library(survival)
 #' set.seed(50)
@@ -222,8 +223,10 @@ predictSurvProb.cox.aalen <- function(object,newdata,times,...){
 #' nd <- data.frame(X1=c(0,1,0),X2=c(-1,0,1))
 #' f <- pecRpart(Surv(time,status)~X1+X2,data=d)
 #' predictSurvProb(f,newdata=nd,times=c(3,8))
+#' }
 #' @export 
 pecRpart <- function(formula,data,...){
+    if (!requireNamespace("rpart",quietly=TRUE)){stop("Need package rpart.")}
     robj <- rpart::rpart(formula=formula,data=data,...)
     nclass <- length(unique(robj$where))
     data$rpartFactor <- factor(predict(robj,newdata=data,...))

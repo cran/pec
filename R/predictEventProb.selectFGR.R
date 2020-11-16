@@ -36,6 +36,7 @@
 ##' library(riskRegression)
 ##' library(prodlim)
 ##' library(lava)
+##' if (!requireNamespace("cmprsk",quietly=TRUE)){
 ##' library(cmprsk)
 ##' library(pec)
 ##' m <- crModel()
@@ -78,6 +79,7 @@
 ##'     B=5,
 ##'     splitMethod="bootcv")
 ##' }
+##' }
 ##' 
 ##' 
 #' @export selectFGR
@@ -87,8 +89,8 @@ selectFGR <- function(formula,
                       rule="AIC",
                       direction="backward",
                       ...){
-    if (!requireNamespace("riskRegression")) stop("This function requires library riskRegression")
-    if (!requireNamespace("crrstep")) stop("This function requires library crrstep")
+    if (!requireNamespace("riskRegression",quietly=TRUE)) stop("This function requires library riskRegression")
+    if (!requireNamespace("crrstep",quietly=TRUE)) stop("This function requires library crrstep")
     if (missing(data)) stop("Argument 'data' is missing")
     if (missing(formula)) stop("Argument 'formula' is missing")
     call <- match.call()

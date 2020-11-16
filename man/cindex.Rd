@@ -4,15 +4,42 @@
 \alias{cindex}
 \title{Concordance index for right censored survival time data}
 \usage{
-cindex(object, formula, data, eval.times, pred.times, cause, lyl = FALSE,
-  cens.model = "marginal", ipcw.refit = FALSE, ipcw.args = NULL,
-  ipcw.limit, tiedPredictionsIn = TRUE, tiedOutcomeIn = TRUE,
-  tiedMatchIn = TRUE, splitMethod = "noPlan", B, M,
-  model.args = NULL, model.parms = NULL, keep.models = FALSE,
-  keep.residuals = FALSE, keep.pvalues = FALSE, keep.weights = FALSE,
-  keep.index = FALSE, keep.matrix = FALSE, multiSplitTest = FALSE,
-  testTimes, confInt = FALSE, confLevel = 0.95, verbose = TRUE,
-  savePath = NULL, slaveseed = NULL, na.action = na.fail, ...)
+cindex(
+  object,
+  formula,
+  data,
+  eval.times,
+  pred.times,
+  cause,
+  lyl = FALSE,
+  cens.model = "marginal",
+  ipcw.refit = FALSE,
+  ipcw.args = NULL,
+  ipcw.limit,
+  tiedPredictionsIn = TRUE,
+  tiedOutcomeIn = TRUE,
+  tiedMatchIn = TRUE,
+  splitMethod = "noPlan",
+  B,
+  M,
+  model.args = NULL,
+  model.parms = NULL,
+  keep.models = FALSE,
+  keep.residuals = FALSE,
+  keep.pvalues = FALSE,
+  keep.weights = FALSE,
+  keep.index = FALSE,
+  keep.matrix = FALSE,
+  multiSplitTest = FALSE,
+  testTimes,
+  confInt = FALSE,
+  confLevel = 0.95,
+  verbose = TRUE,
+  savePath = NULL,
+  slaveseed = NULL,
+  na.action = na.fail,
+  ...
+)
 }
 \arguments{
 \item{object}{A named list of prediction models, where allowed entries are
@@ -241,7 +268,7 @@ bcvCindex  <- pec::cindex(list("Cox X1"=cox1,
   plot(bcvCindex)
  # for uncensored data the results are the same
  # as those obtained with the function rcorr.cens from Hmisc
-library(Hmisc)
+
 set.seed(16)
 dat <- SimSurv(30)
 dat$staus=1
@@ -254,12 +281,15 @@ Cpec <- pec::cindex(list("Cox X1+X2"=fit12,"Cox X1"=fit1,"Cox X2"=fit2),
 p1 <- predictSurvProb(fit1,newdata=dat,times=10)
 p2 <- predictSurvProb(fit2,newdata=dat,times=10)
 p12 <- predictSurvProb(fit12,newdata=dat,times=10)
+if (requireNamespace("Hmisc",quietly=TRUE)){
+library(Hmisc)
 harrelC1 <- rcorr.cens(p1,with(dat,Surv(time,status)))
 harrelC2 <- rcorr.cens(p2,with(dat,Surv(time,status)))
 harrelC12 <- rcorr.cens(p12,with(dat,Surv(time,status)))
 harrelC1[["C Index"]]==Cpec$AppCindex[["Cox.X1"]]
 harrelC2[["C Index"]]==Cpec$AppCindex[["Cox.X2"]]
 harrelC12[["C Index"]]==Cpec$AppCindex[["Cox.X1.X2"]]
+}
  #
  # competing risks 
  #

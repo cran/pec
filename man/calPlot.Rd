@@ -4,15 +4,50 @@
 \alias{calPlot}
 \title{Calibration plots for right censored data}
 \usage{
-calPlot(object, time, formula, data, splitMethod = "none", B = 1, M,
-  pseudo, type, showPseudo, pseudo.col = NULL, pseudo.pch = NULL,
-  method = "nne", round = TRUE, bandwidth = NULL, q = 10,
-  bars = FALSE, hanging = FALSE, names = "quantiles",
-  showFrequencies = FALSE, jack.density = 55, plot = TRUE,
-  add = FALSE, diag = !add, legend = !add, axes = !add,
-  xlim = c(0, 1), ylim = c(0, 1), xlab, ylab, col, lwd, lty, pch,
-  cause = 1, percent = TRUE, giveToModel = NULL,
-  na.action = na.fail, cores = 1, verbose = FALSE, cex = 1, ...)
+calPlot(
+  object,
+  time,
+  formula,
+  data,
+  splitMethod = "none",
+  B = 1,
+  M,
+  pseudo,
+  type,
+  showPseudo,
+  pseudo.col = NULL,
+  pseudo.pch = NULL,
+  method = "nne",
+  round = TRUE,
+  bandwidth = NULL,
+  q = 10,
+  bars = FALSE,
+  hanging = FALSE,
+  names = "quantiles",
+  showFrequencies = FALSE,
+  jack.density = 55,
+  plot = TRUE,
+  add = FALSE,
+  diag = !add,
+  legend = !add,
+  axes = !add,
+  xlim = c(0, 1),
+  ylim = c(0, 1),
+  xlab,
+  ylab,
+  col,
+  lwd,
+  lty,
+  pch,
+  cause = 1,
+  percent = TRUE,
+  giveToModel = NULL,
+  na.action = na.fail,
+  cores = 1,
+  verbose = FALSE,
+  cex = 1,
+  ...
+)
 }
 \arguments{
 \item{object}{A named list of prediction models, where allowed
@@ -204,6 +239,7 @@ d1 <- sim(m,100)
 d2 <- sim(m,100)
 csc <- CSC(Hist(time,event)~X1+X2+X3+X4+X5,data=d1)
 fgr <- FGR(Hist(time,event)~X1+X2+X3+X4+X5,data=d1,cause=1)
+if ((requireNamespace("cmprsk",quietly=TRUE))){
 predict.crr <- cmprsk:::predict.crr
 cf3=calPlot(list("Cause-specific Cox"=csc,"Fine-Gray"=fgr),
         time=5,
@@ -220,7 +256,7 @@ print(b1)
 plot(b1)
 
 calPlot(fgr,time=5,bars=TRUE,hanging=TRUE)
-
+}
 
 }
 \author{

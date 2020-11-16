@@ -210,7 +210,7 @@
 #'   plot(bcvCindex)
 #'  # for uncensored data the results are the same
 #'  # as those obtained with the function rcorr.cens from Hmisc
-#' library(Hmisc)
+#' 
 #' set.seed(16)
 #' dat <- SimSurv(30)
 #' dat$staus=1
@@ -223,12 +223,15 @@
 #' p1 <- predictSurvProb(fit1,newdata=dat,times=10)
 #' p2 <- predictSurvProb(fit2,newdata=dat,times=10)
 #' p12 <- predictSurvProb(fit12,newdata=dat,times=10)
+#' if (requireNamespace("Hmisc",quietly=TRUE)){
+#' library(Hmisc)
 #' harrelC1 <- rcorr.cens(p1,with(dat,Surv(time,status)))
 #' harrelC2 <- rcorr.cens(p2,with(dat,Surv(time,status)))
 #' harrelC12 <- rcorr.cens(p12,with(dat,Surv(time,status)))
 #' harrelC1[["C Index"]]==Cpec$AppCindex[["Cox.X1"]]
 #' harrelC2[["C Index"]]==Cpec$AppCindex[["Cox.X2"]]
 #' harrelC12[["C Index"]]==Cpec$AppCindex[["Cox.X1.X2"]]
+#' }
 #'  #
 #'  # competing risks 
 #'  #

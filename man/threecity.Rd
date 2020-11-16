@@ -4,11 +4,13 @@
 \name{threecity}
 \alias{threecity}
 \title{threecity data}
-\format{A subsample consisting of 2000 observations on the following 3 variables.
+\format{
+A subsample consisting of 2000 observations on the following 3 variables.
 \describe{ \item{pi}{5-year absolute risk predictions of dementia.}
 \item{status}{0=censored, 1=dementia, 2=death dementia free}
 \item{time}{time to event (i.e., time to
-either dementia, death dementia free or loss of follow-up)}}}
+either dementia, death dementia free or loss of follow-up)}}
+}
 \source{
 Web-appendix of Blanche et al. (2015).
 }
