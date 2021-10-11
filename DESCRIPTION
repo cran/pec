@@ -1,7 +1,7 @@
 Package: pec
 Title: Prediction Error Curves for Risk Prediction Models in Survival
         Analysis
-Version: 2020.11.17
+Version: 2021.10.11
 Author: Thomas A. Gerds
 Description: Validation of risk predictions obtained from survival models and
     competing risk models based on censored data using inverse weighting and
@@ -16,6 +16,6 @@ Maintainer: Thomas A. Gerds <tag@biostat.ku.dk>
 License: GPL (>= 2)
 RoxygenNote: 7.1.1
 NeedsCompilation: yes
-Packaged: 2020-11-16 15:23:38 UTC; tag
+Packaged: 2021-10-11 11:26:41 UTC; tag
 Repository: CRAN
-Date/Publication: 2020-11-16 16:30:02 UTC
+Date/Publication: 2021-10-11 14:30:02 UTC

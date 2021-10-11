@@ -55,8 +55,8 @@
 #' @seealso \code{\link{predict}},\code{\link{survfit}}
 #' @references Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).
 #' Evaluating Random Forests for Survival Analysis Using Prediction Error
-#' Curves. Journal of Statistical Software, 50(11), 1-23. URL
-#' https://www.jstatsoft.org/v50/i11.
+#' Curves. Journal of Statistical Software, 50(11), 1-23. DOI
+#' 10.18637/jss.v050.i11
 #' @keywords survival
 ##' @examples
 ##' 

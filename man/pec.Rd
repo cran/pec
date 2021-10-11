@@ -424,8 +424,8 @@ https://www.routledge.com/9781138384477
 
 Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).
 Evaluating Random Forests for Survival Analysis Using Prediction Error
-Curves. Journal of Statistical Software, 50(11), 1-23. URL
-https://www.jstatsoft.org/v50/i11.
+Curves. Journal of Statistical Software, 50(11), 1-23. DOI
+10.18637/jss.v050.i11
 
 E. Graf et al.  (1999), Assessment and comparison of prognostic
 classification schemes for survival data. Statistics in Medicine, vol 18,

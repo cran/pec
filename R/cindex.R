@@ -241,7 +241,9 @@
 #' dcr.learn <- SimCompRisk(30)
 #' dcr.val <- SimCompRisk(30)
 #' pec::cindex(CSC(Hist(time,event)~X1+X2,data=dcr.learn),data=dcr.val)
-#'
+#' fit <- CSC(Hist(time,event)~X1+X2,data=dcr.learn)
+#' cif <- predictRisk(fit,newdata=dcr.val,times=3,cause=1)
+#' pec::cindex(list(fit),data=dcr.val,times=3)
 #' @export 
 # {{{ header cindex.list
 cindex <- function(object,
