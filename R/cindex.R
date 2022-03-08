@@ -170,23 +170,22 @@
 #'  # fit three different Cox models and a random survival forest
 #'  # note: low number of trees for the purpose of illustration 
 #'  library(survival)
-#'  library(randomForestSRC)
 #'  cox12 <- coxph(Surv(time,status)~X1+X2,data=dat,x=TRUE,y=TRUE)
 #'  cox1 <- coxph(Surv(time,status)~X1,data=dat,x=TRUE,y=TRUE)
 #'  cox2 <- coxph(Surv(time,status)~X2,data=dat,x=TRUE,y=TRUE)
-#'  rsf1 <- rfsrc(Surv(time,status)~X1+X2,data=dat,ntree=15,forest=TRUE)
 #'  #
-#'  # compute the apparent estimate of the C-index at different time points
+#'  # compute the apparent estimate of the C-index at a single time point
 #'  #
-#' A1  <- pec::cindex(list("Cox X1"=cox1,
-#'                        "RSF"=rsf1),
+#' A1  <- pec::cindex(list("Cox X1"=cox1),
 #' 		  formula=Surv(time,status)~X1+X2,
 #' 		  data=dat,
 #' 		  eval.times=10)
+#'  #
+#'  # compute the apparent estimate of the C-index at different time points
+#'  #
 #' ApparrentCindex  <- pec::cindex(list("Cox X1"=cox1,
 #' 		       "Cox X2"=cox2,
-#' 		       "Cox X1+X2"=cox12,
-#'                        "RSF"=rsf1),
+#' 		       "Cox X1+X2"=cox12),
 #' 		  formula=Surv(time,status)~X1+X2,
 #' 		  data=dat,
 #' 		  eval.times=seq(1,15,1))
@@ -199,8 +198,7 @@
 #' set.seed(142)
 #' bcvCindex  <- pec::cindex(list("Cox X1"=cox1,
 #' 		       "Cox X2"=cox2,
-#' 		       "Cox X1+X2"=cox12,
-#'                        "RSF"=rsf1),
+#' 		       "Cox X1+X2"=cox12),
 #' 		  formula=Surv(time,status)~X1+X2,
 #' 		  data=dat,
 #'                   splitMethod="bootcv",
@@ -308,7 +306,7 @@ cindex <- function(object,
           stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
       } else{
           ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
-          if ((class(ftry)[1]=="try-error") || match("formula",class(formula),nomatch=0)==0)
+          if (inherits(x=ftry,what="try-error") || match("formula",class(formula),nomatch=0)==0)
               stop("Argument formula is missing and first model has no usable formula.")
           else if (verbose)
               warning("Formula missing. Using formula from first model")

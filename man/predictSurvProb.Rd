@@ -118,11 +118,6 @@ psurv <- predictSurvProb(fitCox,newdata=valdat,times=seq(0,60,12))
 ## one column for each of the 5 time points
 ## one row for each validation set individual
 
-# Do the same for a randomSurvivalForest model
-library(randomForestSRC)
-rsfmodel <- rfsrc(Surv(time,status)~X1+X2,data=d)
-predictSurvProb(rsfmodel,newdata=ndat,times=ttt)
-
 ## Cox with ridge option
 f1 <- coxph(Surv(time,status)~X1+X2,data=learndat,x=TRUE,y=TRUE)
 f2 <- coxph(Surv(time,status)~ridge(X1)+ridge(X2),data=learndat,x=TRUE,y=TRUE)

@@ -228,23 +228,22 @@ library(prodlim)
  # fit three different Cox models and a random survival forest
  # note: low number of trees for the purpose of illustration 
  library(survival)
- library(randomForestSRC)
  cox12 <- coxph(Surv(time,status)~X1+X2,data=dat,x=TRUE,y=TRUE)
  cox1 <- coxph(Surv(time,status)~X1,data=dat,x=TRUE,y=TRUE)
  cox2 <- coxph(Surv(time,status)~X2,data=dat,x=TRUE,y=TRUE)
- rsf1 <- rfsrc(Surv(time,status)~X1+X2,data=dat,ntree=15,forest=TRUE)
  #
- # compute the apparent estimate of the C-index at different time points
+ # compute the apparent estimate of the C-index at a single time point
  #
-A1  <- pec::cindex(list("Cox X1"=cox1,
-                       "RSF"=rsf1),
+A1  <- pec::cindex(list("Cox X1"=cox1),
 		  formula=Surv(time,status)~X1+X2,
 		  data=dat,
 		  eval.times=10)
+ #
+ # compute the apparent estimate of the C-index at different time points
+ #
 ApparrentCindex  <- pec::cindex(list("Cox X1"=cox1,
 		       "Cox X2"=cox2,
-		       "Cox X1+X2"=cox12,
-                       "RSF"=rsf1),
+		       "Cox X1+X2"=cox12),
 		  formula=Surv(time,status)~X1+X2,
 		  data=dat,
 		  eval.times=seq(1,15,1))
@@ -257,8 +256,7 @@ ApparrentCindex  <- pec::cindex(list("Cox X1"=cox1,
 set.seed(142)
 bcvCindex  <- pec::cindex(list("Cox X1"=cox1,
 		       "Cox X2"=cox2,
-		       "Cox X1+X2"=cox12,
-                       "RSF"=rsf1),
+		       "Cox X1+X2"=cox12),
 		  formula=Surv(time,status)~X1+X2,
 		  data=dat,
                   splitMethod="bootcv",

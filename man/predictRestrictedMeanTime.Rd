@@ -107,10 +107,6 @@ psurv <- predictRestrictedMeanTime(fitCox,newdata=valdat,times=seq(0,60,12))
 ## one column for each of the 5 time points
 ## one row for each validation set individual
 
-# the same can be done e.g. for a randomSurvivalForest model
-library(randomForestSRC)
-rsfmodel <- rfsrc(Surv(time,status)~X1+X2,data=d)
-predictRestrictedMeanTime(rsfmodel,newdata=ndat,times=ttt)
 }
 \references{
 Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).

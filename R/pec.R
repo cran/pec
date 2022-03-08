@@ -441,7 +441,7 @@ pec <- function(object,
           stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
       } else{
           ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
-          if ((class(ftry)[1]=="try-error") || match("formula",class(formula),nomatch=0)==0)
+          if (inherits(x=ftry,what="try-error") || match("formula",class(formula),nomatch=0)==0)
               stop("Argument formula is missing and first model has no usable formula.")
           else if (verbose)
               warning("Formula missing. Using formula from first model")

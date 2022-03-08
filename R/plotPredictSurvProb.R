@@ -62,11 +62,6 @@
 #'  ndat <- data.frame(X1=c(0.25,0.25,-0.05,0.05),X2=c(0,1,0,1))
 #' plotPredictSurvProb(coxmodel,newdata=ndat,times=ttt)
 #' 
-#' # the same can be done e.g. for a randomSurvivalForest model
-#' library(randomForestSRC)
-#' rsfmodel <- rfsrc(Surv(time,status)~X1+X2,data=d)
-#' plotPredictSurvProb(rsfmodel,newdata=ndat,times=ttt)
-#' 
 #' @export
 plotPredictSurvProb <- function(x,
                                 newdata,

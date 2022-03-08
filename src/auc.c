@@ -14,7 +14,7 @@ void auc(double *AUC,
 	 int *tiedpredIn,
 	 int *cens_model){
   int i,j,s;
-  double wi, wj, ww, lasttime=0;
+  double wi, wj, ww;
   for (s=0; s<(*NT);s++) {
     conc[s]=0;
     pairs[s]=0;
@@ -59,6 +59,6 @@ void auc(double *AUC,
       }
     }
     AUC[s]=conc[s]/pairs[s];
-    lasttime=times[s];
+    /* lasttime=times[s]; */
   }
 }

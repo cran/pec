@@ -81,7 +81,6 @@
 ##' }
 ##' }
 ##' 
-##' 
 #' @export selectFGR
 selectFGR <- function(formula,
                       data,
@@ -89,6 +88,7 @@ selectFGR <- function(formula,
                       rule="AIC",
                       direction="backward",
                       ...){
+    crrstep <- NULL
     if (!requireNamespace("riskRegression",quietly=TRUE)) stop("This function requires library riskRegression")
     if (!requireNamespace("crrstep",quietly=TRUE)) stop("This function requires library crrstep")
     if (missing(data)) stop("Argument 'data' is missing")

@@ -114,7 +114,7 @@ bootstrapCrossValidation <- function(object,
             try2predict <- try(pred.b <- do.call(predictHandlerFun,
                                                  c(list(object=fit.b,newdata=val.b,times=times),extraArgs)))
         }
-        if (inherits(try2predict,"try-error")==TRUE){
+        if (inherits(x=try2predict,what="try-error")==TRUE){
             if (verbose==TRUE) warning(paste("During bootstrapping: prediction for model ",class(fit.b)," failed in step ",b),immediate.=TRUE)
             NULL}
         else{

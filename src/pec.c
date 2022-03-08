@@ -84,41 +84,40 @@ void pecCR(double *pec,
 }
 
 
-void pec_uncens(double *pec,
-		double *Y,
-		double *times,
-		double *pred,
-		int *N,
-		int *NT,
-		int *ConstantPrediction,
-		int *survP)
-{
-  int s, i;
-  double p, brier;
+/* void pec_uncens(double *pec, */
+		/* double *Y, */
+		/* double *times, */
+		/* double *pred, */
+		/* int *N, */
+		/* int *NT, */
+		/* int *ConstantPrediction, */
+		/* int *survP) */
+/* { */
+  /* int s, i; */
+  /* double p, brier; */
   
-  for (s=0; s<(*NT);s++) {
-    for (i=0; i<*N;i++){
-      /* prediction */
-      if (*ConstantPrediction==0)
-	p = pred[i + s * (*N)];
-      else
-	p = pred[s];
+  /* for (s=0; s<(*NT);s++) { */
+    /* for (i=0; i<*N;i++){ */
+      /* if (*ConstantPrediction==0) */
+	/* p = pred[i + s * (*N)]; */
+      /* else */
+	/* p = pred[s]; */
 
-      if (*survP==1) 
-	if (Y[i] <= times[s])
-	  brier = p * p;
-	else
-	  brier = (1-p)*(1-p);
-      else
-	if (Y[i] > times[s])
-	  brier = p * p;
-	else
-	  brier = (1-p)*(1-p);
+      /* if (*survP==1)  */
+	/* if (Y[i] <= times[s]) */
+	  /* brier = p * p; */
+	/* else */
+	  /* brier = (1-p)*(1-p); */
+      /* else */
+	/* if (Y[i] > times[s]) */
+	  /* brier = p * p; */
+	/* else */
+	  /* brier = (1-p)*(1-p); */
       
-      pec[s] += brier / (double) *N;
-    }
-  }
-}
+      /* pec[s] += brier / (double) *N; */
+    /* } */
+  /* } */
+/* } */
 
 void pec_noinf(double *pec,
 	       double *Y,
@@ -198,41 +197,39 @@ void pec_noinfCR(double *pec,
   }
 }
 
-void pec_cmprsk(double *pec,
-		double *Y,
-		double *D,
-		double *times,
-		double *pred,
-		double *weight,
-		double *weight_obs,
-		int *N,
-		int *NT,
-		int *cmodel,
-		int *ConstantPrediction)
-{
-  int s, i;
-  double p, brier, gs, gi;
+/* void pec_cmprsk(double *pec, */
+		/* double *Y, */
+		/* double *D, */
+		/* double *times, */
+		/* double *pred, */
+		/* double *weight, */
+		/* double *weight_obs, */
+		/* int *N, */
+		/* int *NT, */
+		/* int *cmodel, */
+		/* int *ConstantPrediction) */
+/* { */
+  /* int s, i; */
+  /* double p, brier, gs, gi; */
   
-  for (s=0; s<(*NT);s++) {
+  /* for (s=0; s<(*NT);s++) { */
     
-    for (i=0; i<(*N);i++){
+    /* for (i=0; i<(*N);i++){ */
       
-      /* prediction */
-      if (*ConstantPrediction==0)
-	p = pred[i + s * (*N)];
-      else
-	p = pred[s];
+      /* if (*ConstantPrediction==0) */
+	/* p = pred[i + s * (*N)]; */
+      /* else */
+	/* p = pred[s]; */
       
-      /* weights */
-      gs = weight[(i + s * (*N)) * (*cmodel) + s * (1-(*cmodel))];
-      gi = weight_obs[i];
+      /* gs = weight[(i + s * (*N)) * (*cmodel) + s * (1-(*cmodel))]; */
+      /* gi = weight_obs[i]; */
       
-      if (Y[i] <= times[s] && D[i]==1){
-	brier = (p * p) + (1 - 2 * p)/gi;}
-      else 
-	brier = (p * p);
+      /* if (Y[i] <= times[s] && D[i]==1){ */
+	/* brier = (p * p) + (1 - 2 * p)/gi;} */
+      /* else  */
+	/* brier = (p * p); */
       
-      pec[s] += brier / (double) (*N);
-    }
-  }
-}
+      /* pec[s] += brier / (double) (*N); */
+    /* } */
+  /* } */
+/* } */

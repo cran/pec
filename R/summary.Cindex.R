@@ -8,7 +8,7 @@ summary.Cindex <- function(object,what=NULL,digits=3,print=TRUE,...){
         if (class(m) %in% c("character","call"))
             m
         else
-            if (class(try(m$call,silent=TRUE))=="try-error")
+            if (inherits(try(m$call,silent=TRUE),what="try-error"))
                 "unknown formula"
             else
                 m$call

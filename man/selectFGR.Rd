@@ -80,7 +80,6 @@ pec(list(full.model=fg,selectedAIC=sfgAIC,selectedBIC=sfgBIC),
 }
 }
 
-
 }
 \author{
 Rob C.M. van Kruijsdijk \email{R.C.M.vanKruijsdijk@umcutrecht.nl}

@@ -31,7 +31,7 @@ void ccr(double *C,
 	 int *tiedmatchIn,
 	 int *cens_model){
   int i,j,s;
-  double Aij, Bij, WAij=1, WBij=1, weightedA, weightedB ,lasttime=0, weightedConcPairs,weightedPairs;
+  double Aij, Bij, WAij=1, WBij=1, weightedA, weightedB ,weightedConcPairs,weightedPairs;
   for (s=0; s<(*NT);s++) {
     concA[s]=0;  /* count concordant pairs with (T[i]<T[j], D[i]=1,T[i]) */
     concB[s]=0;  /* count concordant pairs with (T[i]>=T[j], D[j]=2,T[i]) */
@@ -116,6 +116,5 @@ void ccr(double *C,
     }
     /* C[s]=(concA[s]+concB[s])/(pairsA[s]+pairsB[s]); */
     C[s]=weightedConcPairs/weightedPairs;
-    lasttime=times[s];
   }
 }

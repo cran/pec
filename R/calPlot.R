@@ -266,12 +266,12 @@ calPlot <- function(object,
         if (length(grep("~",as.character(object[[1]]$call$formula)))==0){
             stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
         } else{
-              ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
-              if ((class(ftry)[1]=="try-error") || match("formula",class(formula),nomatch=0)==0)
-                  stop("Argument formula is missing and first model has no usable formula.")
-              else if (verbose)
-                  warning("Formula missing. Using formula from first model")
-          }
+            ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
+            if (inherits(x=ftry,what="try-error") || match("formula",class(formula),nomatch=0)==0)
+                stop("Argument formula is missing and first model has no usable formula.")
+            else if (verbose)
+                warning("Formula missing. Using formula from first model")
+        }
     }
     
     m <- model.frame(formula,data,na.action=na.action)
