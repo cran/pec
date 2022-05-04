@@ -5,13 +5,13 @@ summary.Cindex <- function(object,what=NULL,digits=3,print=TRUE,...){
     # {{{ echo models
     if (print==TRUE) cat("Prediction models:\n\n")
     printModels <- sapply(object$models,function(m){
-        if (class(m) %in% c("character","call"))
+        if (inherits(x = m,what = "character")||inherits(x = m,what = "call"))
             m
         else
             if (inherits(try(m$call,silent=TRUE),what="try-error"))
                 "unknown formula"
-            else
-                m$call
+        else
+            m$call
     })
     if (print==TRUE) print(printModels,quote=FALSE)
     # }}}

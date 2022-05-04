@@ -52,7 +52,7 @@ R2 <- function(object,
                times,
                reference=1){
   
-  stopifnot(class(object)[1] == "pec")
+    stopifnot(inherits(x = object,what = "pec"))
   
   # {{{find the prediction models
   

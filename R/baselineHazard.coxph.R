@@ -1,5 +1,5 @@
 baselineHazard.coxph <- function(object,x,y,times=NULL){
-  stopifnot(class(object)=="coxph")
+  stopifnot(inherits(x = object,what = "coxph"))
   if (is.null(object$x)) stop("You have to say `x=TRUE' in the call to coxph")
   if (!is.null(object$strata)){
     yList <- split(object$y,object$strata)

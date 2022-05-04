@@ -27,7 +27,7 @@ print.pec <- function(x,
     # {{{ echo models
     cat("Prediction models:\n\n")
     printModels <- sapply(x$models,function(m){
-        if (class(m) %in% c("character","call"))
+        if (inherits(x = m,what = "character")||inherits(x = m,what = "call"))
             m
         else
             if (inherits(try(m$call,silent=TRUE),what="try-error"))

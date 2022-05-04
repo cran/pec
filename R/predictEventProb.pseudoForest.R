@@ -10,8 +10,6 @@ predictEventProb.pseudoForest <- function(object,
     # }}}
     # {{{ get forests
     forestList <- object$forest
-    ##   if (class(forestList[[1]])!="randomForest")
-    ##     stop("Only works for 'randomForest'")
     L <- length(forestList)
     # }}}
     # {{{ predict to given time points
@@ -22,7 +20,7 @@ predictEventProb.pseudoForest <- function(object,
     ##   pos <- prodlim::sindex(jump.times=object$times,eval.times=times)
     p <- do.call("cbind",lapply(pos,function(t){
         getForest <- forestList[[t]]
-        if (class(getForest)!="randomForest")
+        if (!inherits(x = getForest,what = "randomForest"))
             pseudo.t <- rep(getForest, NROW(newdata))
         else
             pseudo.t <- stats::predict(getForest,newdata=newdata)

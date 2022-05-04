@@ -12,7 +12,7 @@ predictSurvProb.pseudoForest <- function(object,
   #          made for easy extraction to different time points.
   #
   forestList <- object$forest
-  if (class(forestList[[1]])!="randomForest")
+  if (!inherits(x = forestList,what = "randomForest"))
     stop("Only works for 'randomForest'")
 
   L <- length(forestList)

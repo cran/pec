@@ -49,9 +49,9 @@ ConfScoreSurv <- function(object,
       try2predict <- try(pred.b <- predictSurvProb(object=fit.b,
                                                    newdata=newdata,
                                                    times=times))
-      if (inherits(try2predict,"try-error")==TRUE){
+      if (inherits(try2predict,"try-error")){
         if (verbose==TRUE)
-          warning(paste("During bootstrapping: prediction for model ",class(fit.b)," failed in step ",b),immediate.=TRUE)
+          warning(paste("During bootstrapping: prediction for model ",class(fit.b)[1]," failed in step ",b),immediate.=TRUE)
       } else{
         if (predTestSet==TRUE){
           for (i in 1:NROW(pred.b)){

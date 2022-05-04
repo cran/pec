@@ -41,15 +41,8 @@
 #' in newdata (rows) and each cutpoint (column) of the response variable that
 #' defines an event status.
 #' 
-#' Currently, \code{predictSurvProb} methods are available for the following
-#' R-objects: \describe{ \item{}{\code{matrix}} \item{}{\code{aalen},
-#' \code{cox.aalen} from \code{library(timereg)}} \item{}{\code{mfp} from
-#' \code{library(mfp)}} \item{}{\code{phnnet}, \code{survnnet} from
-#' \code{library(survnnet)}} \item{}{\code{rpart} (from \code{library(rpart)})}
-#' \item{}{\code{coxph}, \code{survfit} from \code{library(survival)}}
-#' \item{}{\code{cph}, \code{psm} from \code{library(rms)}}
-#' \item{}{\code{prodlim} from \code{library(prodlim)}} \item{}{\code{glm} from
-#' \code{library(stats)}} }
+#' Currently, \code{predictSurvProb} methods are readily available for 
+#' various survival models, see \code{methods(predictSurvProb)}
 #'
 #' @aliases pec
 #' @param object A named list of prediction models, where allowed entries are
@@ -431,7 +424,7 @@ pec <- function(object,
 
   # }}}
   # {{{ check and convert object
-  if (class(object)[1]!="list") {
+  if (!inherits(object,"list")) {
       object <- list(object)
   }
   # }}}
@@ -441,7 +434,7 @@ pec <- function(object,
           stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
       } else{
           ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
-          if (inherits(x=ftry,what="try-error") || match("formula",class(formula),nomatch=0)==0)
+          if (inherits(x=ftry,what="try-error") || !inherits(x = formula,what = "formula"))
               stop("Argument formula is missing and first model has no usable formula.")
           else if (verbose)
               warning("Formula missing. Using formula from first model")
@@ -463,7 +456,7 @@ pec <- function(object,
   # {{{ data
   if (missing(data)){
       data <- eval(object[[1]]$call$data)
-      if (match("data.frame",class(data),nomatch=0)==0)
+      if (!inherits(x = data,what = "data.frame"))
           stop("Argument data is missing.")
       else
           if (verbose)
@@ -484,7 +477,7 @@ pec <- function(object,
   ## m <- model.frame(histformula,data,na.action=na.fail)
   m <- model.frame(histformula,data,na.action=na.action)
   response <- model.response(m)
-  if (match("Surv",class(response),nomatch=0)!=0){
+  if (inherits(x = response,what = "Surv")){
       attr(response,"model") <- "survival"
       attr(response,"cens.type") <- "rightCensored"
       model.type <- "survival"
@@ -677,12 +670,12 @@ if (missing(maxtime) || is.null(maxtime))
         extraArgs <- model.args[[f]]
         if (predictHandlerFun=="predictEventProb"){ # competing risks
             pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times,cause=cause),extraArgs))
-            if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
+            if (inherits(x = fit,what = "matrix")||inherits(x = fit,what = "numeric")) pred <- pred[neworder,,drop=FALSE]
             .C("pecCR",pec=double(NT),as.double(Y),as.double(status),as.double(event),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec
         }
         else{  # survival
             pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=times),extraArgs))
-            if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,,drop=FALSE]
+            if (inherits(x = fit,what = "matrix")||inherits(x = fit,what = "numeric")) pred <- pred[neworder,,drop=FALSE]
             ## u <- list(as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))))
             ## if (f==2) browser(skipCalls=1)
             .C("pecSRC",pec=double(NT),as.double(Y),as.double(status),as.double(times),as.double(pred),as.double(ipcw$IPCW.times),as.double(ipcw$IPCW.subjectTimes),as.integer(N),as.integer(NT),as.integer(ipcw$dim),as.integer(is.null(dim(pred))),NAOK=TRUE,PACKAGE="pec")$pec

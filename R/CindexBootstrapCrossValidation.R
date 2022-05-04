@@ -116,8 +116,8 @@ CindexBootstrapCrossValidation <- function(object,
       }
       ## browser()
       ## print(pred.b[1:5])
-      if (inherits(try2predict,"try-error")==TRUE){
-        if (verbose==TRUE) warning(paste("During bootstrapping: prediction for model ",class(fit.b)," failed in step ",b),immediate.=TRUE)
+      if (inherits(try2predict,"try-error")){
+        if (verbose==TRUE) warning(paste("During bootstrapping: prediction for model ",class(fit.b)[[1]]," failed in step ",b),immediate.=TRUE)
         NULL}
       else{
         pred.b

@@ -120,7 +120,7 @@ predictSurvProb <- function(object,newdata,times,...){
 
 ##' @export 
 predictSurvProb.default <- function(object,newdata,times,...){
-  stop("No method for evaluating predicted probabilities from objects in class: ",class(object),call.=FALSE)
+  stop("No method for evaluating predicted probabilities from objects in class: ",class(object)[[1]],call.=FALSE)
 }
 
 
@@ -336,7 +336,7 @@ predictSurvProb.prodlim <- function(object,newdata,times,...){
                  times=times,
                  mode="matrix",
                  level.chaos=1)
-    if (NROW(newdata)==1 && class(p)=="list"){
+    if (NROW(newdata)==1 && inherits(x = p,what = "list")){
         p <- unlist(p)
     }
     if (is.null(dim(p)) && NROW(newdata)>=1){
@@ -358,7 +358,7 @@ predictSurvProb.prodlim <- function(object,newdata,times,...){
 }
 
 predict.survfit <- function(object,newdata,times,bytimes=TRUE,fill="last",...){
-    if (length(class(object))!=1 || class(object)!="survfit" || object$typ !="right")
+    if (!inherits(x = object,what = "survfit") || object$typ !="right")
         stop("Predictions only available \nfor class 'survfit', possibly stratified Kaplan-Meier fits.\n For class 'cph' Cox models see survest.cph.")
     if (missing(newdata))
         npat <- 1

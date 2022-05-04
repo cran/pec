@@ -51,7 +51,7 @@ crps <- function(object,
                  what,
                  times,
                  start){
-  stopifnot(class(object)[1] == "pec")
+    stopifnot(inherits(x = object,what = "pec"))
   
   # {{{find the prediction models
   if (missing(models)) models <- 1:length(object$models)

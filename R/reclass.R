@@ -57,9 +57,9 @@ reclass <- function(object,
     } else{
         object <- list(object,reference)
     }
-    if ("factor" %in% class(object[[1]])){
+    if (inherits(object[[1]],"factor")){
         factorp <- TRUE
-        if (!("factor" %in% class(object[[2]])))
+        if (!inherits(object[[2]],"factor"))
             stop("The first object is a factor, so the reference must also be a factor.")
         ## dimension of reclassification tables is NR x NC
         NR <- length(levels(object[[1]]))
@@ -79,7 +79,7 @@ reclass <- function(object,
     ## m <- model.frame(histformula,data,na.action=na.fail)
     m <- model.frame(formula,data,na.action=na.omit)
     response <- model.response(m)
-    if (match("Surv",class(response),nomatch=0)!=0){
+    if (inherits(x = response,what = "Surv")){
         attr(response,"model") <- "survival"
         attr(response,"cens.type") <- "rightCensored"
         model.type <- "survival"

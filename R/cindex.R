@@ -296,7 +296,7 @@ cindex <- function(object,
   stopifnot(as.numeric(tiedMatchIn) %in% c(0,1))
   # }}}
   # {{{ check and convert object
-  if (class(object)[1]!="list") {
+  if (!(inherits(x = object,what = "list"))) {
       object <- list(object)
   }
   # }}}
@@ -306,7 +306,7 @@ cindex <- function(object,
           stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
       } else{
           ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
-          if (inherits(x=ftry,what="try-error") || match("formula",class(formula),nomatch=0)==0)
+          if (inherits(x=ftry,what="try-error") || !inherits(x = formula,what = "formula"))
               stop("Argument formula is missing and first model has no usable formula.")
           else if (verbose)
               warning("Formula missing. Using formula from first model")
@@ -331,7 +331,7 @@ cindex <- function(object,
           stop("Data missing and cannot borrow data from the first object :(")
       }
       data <- eval(object[[1]]$call$data)
-      if (match("data.frame",class(data),nomatch=0)==0)
+      if (!inherits(x = data,what = "data.frame"))
           stop("Argument data is missing.")
       else
           if (verbose)
@@ -351,7 +351,7 @@ cindex <- function(object,
   }
   m <- model.frame(histformula,data,na.action=na.action)
   response <- model.response(m)
-  if (match("Surv",class(response),nomatch=0)!=0){
+  if (inherits(x = response,what = "Surv")){
       attr(response,"model") <- "survival"
       attr(response,"cens.type") <- "rightCensored"
       model.type <- "survival"
@@ -532,9 +532,9 @@ cindex <- function(object,
         extraArgs <- model.args[[f]]
         if (model.type=="competing.risks"){
             pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times,cause=cause),extraArgs))
-            if (class(fit)[[1]]%in% c("prodlim","survfit") && is.null(dim(pred)) && length(pred)==length(pred.times))
+            if ((inherits(x = fit,what = "prodlim")||inherits(x = fit,what = "survfit")) && is.null(dim(pred)) && length(pred)==length(pred.times))
                 pred <- rep(pred,N)
-            if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
+            if (inherits(x = fit,what = "matrix")||inherits(x = fit,what = "numeric")) pred <- pred[neworder,]
             if (length(pred.times)==1 && length(pred.times)<length(eval.times))
                 pred <- rep(pred,length(eval.times))
             if (length(pred)!=N*NT) stop(paste0("Prediction of model ",names(object)[f]," has wrong dimension: ",NROW(pred)," rows and ",NCOL(pred), " columns. Should have ",N, "rows and ",NT," columns."))
@@ -572,9 +572,9 @@ cindex <- function(object,
         }
         else{
             pred <- do.call(predictHandlerFun,c(list(object=fit,newdata=data,times=pred.times),extraArgs))
-            if (class(fit)[[1]]%in% c("prodlim","survfit") && is.null(dim(pred)) && length(pred)==length(pred.times))
+            if ((inherits(x = fit,what = "prodlim")||inherits(x = fit,what = "survfit")) && is.null(dim(pred)) && length(pred)==length(pred.times))
                 pred <- rep(pred,N)
-            if (class(fit)[[1]]%in% c("matrix","numeric")) pred <- pred[neworder,]
+            if (inherits(x = fit,what = "matrix")||inherits(x = fit,what = "numeric")) pred <- pred[neworder,]
             if (length(pred.times)==1 && length(pred.times)<length(eval.times))
                 pred <- rep(pred,length(eval.times))
             if (length(pred)!=N*NT) stop(paste0("Prediction of model ",names(object)[f]," has wrong dimension: ",NROW(pred)," rows and ",NCOL(pred), " columns. Should have ",N, "rows and ",NT," columns."))

@@ -216,8 +216,7 @@ calPlot <- function(object,
         showPseudo <- ifelse(add||(pseudo!=FALSE),FALSE,TRUE)
     # {{{ find number of objects and lines
 
-    cobj=class(object)[[1]]
-    if (cobj!="list"){
+    if (!inherits(x = object,what="list")){
         object <- list(object)
     }
     if (is.null(names(object))) names(object) <- paste0("Model.",1:length(object))
@@ -256,7 +255,7 @@ calPlot <- function(object,
 
     if (missing(data)){
         data <- eval(object[[1]]$call$data)
-        if (match("data.frame",class(data),nomatch=0)==0)
+        if (!inherits(x = data,what = "data.frame"))
             stop("Argument data is missing.")
         else
             if (verbose)
@@ -267,7 +266,7 @@ calPlot <- function(object,
             stop(paste("Argument formula is missing and first model has no usable formula:",as.character(object[[1]]$call$formula)))
         } else{
             ftry <- try(formula <- eval(object[[1]]$call$formula),silent=TRUE)
-            if (inherits(x=ftry,what="try-error") || match("formula",class(formula),nomatch=0)==0)
+            if (inherits(x=ftry,what="try-error") || !inherits(x = formula,what = "formula"))
                 stop("Argument formula is missing and first model has no usable formula.")
             else if (verbose)
                 warning("Formula missing. Using formula from first model")
@@ -276,7 +275,7 @@ calPlot <- function(object,
     
     m <- model.frame(formula,data,na.action=na.action)
     response <- model.response(m)
-    if (match("Surv",class(response),nomatch=FALSE))
+    if (inherits(x = response,what = "Surv"))
         model.type <- "survival"
     else
         model.type <- attr(response,"model")
@@ -434,23 +433,24 @@ calPlot <- function(object,
     apppred <- do.call("cbind",
                        lapply(1:NF,function(f){
                                   fit <- object[[f]]
-                                  if (class(fit)[1] %in% c("numeric","double"))
+                                  if (inherits(x = fit,what = "numeric")||inherits(x = fit,what = "double"))
                                       fit <- matrix(fit,ncol=1)
                                   apppred <- switch(model.type,
                                                     "competing.risks"={
                                                         p <- as.vector(do.call(predictHandlerFun,list(fit,newdata=data,times=time,cause=cause)))
-                                                        if (class(fit)[[1]]%in% c("matrix","numeric")) p <- p[neworder]
+                                                        if (inherits(x = fit,what = "numeric")||inherits(x = fit,what = "matrix")) p <- p[neworder]
                                                         p
                                                     },
                                                     "survival"={
                                                         p <- as.vector(do.call(predictHandlerFun,list(fit,newdata=data,times=time)))
-                                                        if (class(fit)[[1]]%in% c("matrix","numeric")) 
+                                                        if (inherits(x = fit,what = "numeric")||inherits(x = fit,what = "matrix"))
                                                             p <- p[neworder]
                                                         p
                                                     },
                                                     "binary"={
                                                         p <- do.call(predictHandlerFun,list(fit,newdata=data))
-                                                        if (class(fit)[[1]]%in% c("matrix","numeric")) p <- p[neworder]
+                                                        if (inherits(x = fit,what = "numeric")||inherits(x = fit,what = "matrix"))
+                                                            p <- p[neworder]
                                                         p
                                                     })
                               }))
@@ -578,7 +578,7 @@ calPlot <- function(object,
                    }
                    else{
                        form.pcut <- update(formula,paste(".~pcut"))
-                       if ("data.table" %in% class(data))
+                       if (inherits(x = data,what = "data.table"))
                            pdata <- cbind(data[,all.vars(update(formula,".~1")),drop=FALSE,with=FALSE],pcut=pcut)
                        else
                            pdata <- cbind(data[,all.vars(update(formula,".~1")),drop=FALSE],pcut=pcut)
@@ -633,7 +633,7 @@ calPlot <- function(object,
                        plotFrame
                    }else{
                        form.p <- update(formula,paste(".~p"))
-                       if ("data.table" %in% class(data))
+                       if (inherits(x = data,what = "data.table"))
                            pdata <- cbind(data[,all.vars(update(formula,".~1")),drop=FALSE,with=FALSE],p=p)
                        else
                            pdata <- cbind(data[,all.vars(update(formula,".~1")),drop=FALSE],p=p)

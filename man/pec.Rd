@@ -306,15 +306,8 @@ derives a matrix with predicted event status probabilities for each subject
 in newdata (rows) and each cutpoint (column) of the response variable that
 defines an event status.
 
-Currently, \code{predictSurvProb} methods are available for the following
-R-objects: \describe{ \item{}{\code{matrix}} \item{}{\code{aalen},
-\code{cox.aalen} from \code{library(timereg)}} \item{}{\code{mfp} from
-\code{library(mfp)}} \item{}{\code{phnnet}, \code{survnnet} from
-\code{library(survnnet)}} \item{}{\code{rpart} (from \code{library(rpart)})}
-\item{}{\code{coxph}, \code{survfit} from \code{library(survival)}}
-\item{}{\code{cph}, \code{psm} from \code{library(rms)}}
-\item{}{\code{prodlim} from \code{library(prodlim)}} \item{}{\code{glm} from
-\code{library(stats)}} }
+Currently, \code{predictSurvProb} methods are readily available for 
+various survival models, see \code{methods(predictSurvProb)}
 }
 \examples{
 
