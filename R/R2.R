@@ -30,7 +30,7 @@
 #' classification schemes for survival data. Statistics in Medicine, vol 18,
 #' pp= 2529--2545.
 #' 
-#' Gerds TA, Cai T & Schumacher M (2008) The performance of risk prediction
+#' Gerds TA, Cai T and Schumacher M (2008) The performance of risk prediction
 #' models Biometrical Journal, 50(4), 457--479
 #' @keywords survival
 #' @examples

@@ -81,6 +81,7 @@ choices of \code{method}.
 
 library(prodlim)
 library(rms)
+library(survival)
 dat=SimSurv(30)
 
 dat <- dat[order(dat$time),]

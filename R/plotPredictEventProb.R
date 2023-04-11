@@ -49,7 +49,14 @@
 #' @keywords survival
 #' @examples
 #' 
-#' # generate some competing risk data
+#' # competing risk data
+#' library(riskRegression)
+#' library(pec)
+#' set.seed(9)
+#' d=sampleData(80)
+#' csc1 <- CSC(Hist(time,event)~X1+X8, data=d)
+#' nd=sampleData(3)
+#' plotPredictEventProb(csc1, newdata=nd, cause=1, col=1:3)
 #' 
 #' @export
 plotPredictEventProb <- function(x,
@@ -77,8 +84,8 @@ plotPredictEventProb <- function(x,
 
   if(missing(times)){
     # formula
-    formula <- eval(x$call$formula)
-    if (inherits(x = formula,what = "formula"))
+      formula <- eval(x$call$formula)
+    if (!inherits(x = formula,what = "formula"))
       stop("Argument formula is missing.")
     # find data
     data <- eval(x$call$data)

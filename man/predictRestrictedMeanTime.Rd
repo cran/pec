@@ -79,6 +79,7 @@ set.seed(100)
 d <- SimSurv(100)
 # then fit a Cox model
 library(rms)
+library(survival)
 coxmodel <- cph(Surv(time,status)~X1+X2,data=d,surv=TRUE)
 
 # predicted survival probabilities can be extracted

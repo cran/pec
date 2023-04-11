@@ -73,6 +73,7 @@
 ##' set.seed(100)
 ##' d <- SimSurv(100)
 ##' # then fit a Cox model
+##' library(survival)
 ##' library(rms)
 ##' coxmodel <- cph(Surv(time,status)~X1+X2,data=d,surv=TRUE)
 ##' 
@@ -222,7 +223,7 @@ predictSurvProb.cox.aalen <- function(object,newdata,times,...){
 #' @export 
 pecRpart <- function(formula,data,...){
     if (!requireNamespace("rpart",quietly=TRUE)){stop("Need package rpart.")}
-    robj <- rpart::rpart(formula=formula,data=data,...)
+    robj <- do.call(rpart::rpart,list(formula=formula,data=data,...))
     nclass <- length(unique(robj$where))
     data$rpartFactor <- factor(predict(robj,newdata=data,...))
     form <- update(formula,paste(".~","rpartFactor",sep=""))

@@ -30,7 +30,7 @@
 coxboost <- function(formula,data,cv=TRUE,cause=1,penalty,...){
   call <- match.call(expand.dots=TRUE)
   formula.names <- try(all.names(formula),silent=TRUE)
-  if (!(formula.names[2]=="Hist")) stop("The left hand side of formula look like this: Hist(time,event).")
+  if (!(formula.names[2]=="Hist")) stop("The left hand side of formula should look like this: Hist(time,event).")
   actual.terms <- terms(formula,data=data)
   formula <- eval(call$formula)
   response <- model.response(model.frame(formula,data))

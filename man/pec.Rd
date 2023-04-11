@@ -247,13 +247,13 @@ error when the model(s) are evaluated in the permuted data.  Only if
 \code{PredErr}.  } \item{weight}{ The weight used to linear combine the
 \code{AppErr} and the \code{BootCvErr} Only if \code{splitMethod} is one of
 "Boot632", or "Boot632plus".  } \item{overfit}{ Estimated \code{overfit} of
-the model(s).  See Efron \& Tibshirani (1997, Journal of the American
-Statistical Association) and Gerds \& Schumacher (2007, Biometrics).  Only
+the model(s).  See Efron and Tibshirani (1997, Journal of the American
+Statistical Association) and Gerds and Schumacher (2007, Biometrics).  Only
 if \code{splitMethod} is one of "Boot632", or "Boot632plus".  }
 \item{call}{The call that produced the object} \item{time}{The time points
 at which the prediction error curves change.} \item{ipcw.fit}{The fitted
 censoring model that was used for re-weighting the Brier score residuals.
-See Gerds \& Schumacher (2006, Biometrical Journal)} \item{n.risk}{The
+See Gerds and Schumacher (2006, Biometrical Journal)} \item{n.risk}{The
 number of subjects at risk for all time points.} \item{models}{The
 prediction models fitted in their own data.} \item{cens.model}{The censoring
 models.} \item{maxtime}{The latest timepoint where the prediction error
@@ -386,6 +386,7 @@ PredError.632plus <- pec(object=Models,
 # assessing parametric survival models in learn/validation setting
 learndat <- SimSurv(50)
 testdat <- SimSurv(30)
+library(survival)
 library(rms)
 f1 <- psm(Surv(time,status)~X1+X2,data=learndat)
 f2 <- psm(Surv(time,status)~X1,data=learndat)
@@ -412,7 +413,7 @@ p1 <- pec(list(f1,f2,f3,f4),formula=Hist(time,event)~1,data=cdat,cause=2)
 \references{
 Gerds TA, Kattan MW.
 Medical Risk Prediction Models: With Ties to Machine Learning.
-Chapman & Hall/CRC
+Chapman and Hall/CRC
 https://www.routledge.com/9781138384477
 
 Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).

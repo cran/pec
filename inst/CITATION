@@ -1,22 +1,13 @@
-citHeader("To cite pec in publications use:")
-
-citEntry(entry = "Article",
-  title = "Evaluating Random Forests for Survival Analysis Using
-Prediction Error Curves",
-  author       = personList(as.person("Ulla B. Mogensen"),
-                   as.person("Hemant Ishwaran"),
-                   as.person("Thomas A. Gerds")),
+## R package reference generated from DESCRIPTION metadata
+citation(auto = meta)
+bibentry(bibtype = "Article",
+  title = "Evaluating Random Forests for Survival Analysis Using Prediction Error Curves",
+  author       = c(person(c("Ulla B."),"Mogensen"),
+                   person(c("Hemant"), "Ishwaran"),
+                   person(c("Thomas A."),"Gerds")),
   journal      = "Journal of Statistical Software",
   year         = "2012",
   volume       = "50",
   number       = "11",
   pages        = "1--23",
-  url          = "https://www.jstatsoft.org/v50/i11",
-
-  textVersion  =
-  paste("Ulla B. Mogensen, Hemant Ishwaran, Thomas A. Gerds (2012).",
-        "Evaluating Random Forests for Survival Analysis Using
-Prediction Error Curves.",
-        "Journal of Statistical Software, 50(11), 1-23.",
-        "DOI 10.18637/jss.v050.i11")
-)
+  doi = "10.18637/jss.v050.i11")
